@@ -8,6 +8,9 @@ export default function Maquinas() {
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [maquinaSelecionada, setMaquinaSelecionada] = useState(null);
+  const [editando, setEditando] = useState(false);
+  const [formEdicao, setFormEdicao] = useState({});
   const [form, setForm] = useState({
     numero_serie: '',
     modelo: '',
@@ -103,6 +106,74 @@ export default function Maquinas() {
           </div>
         )}
 
+        {maquinaSelecionada && (
+          <div style={styles.painel}>
+            <div style={styles.painelHeader}>
+              <h3 style={styles.painelTitulo}>{maquinaSelecionada.numero_serie}</h3>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button style={styles.botaoEditar} onClick={() => setEditando(!editando)}>
+                  {editando ? '✕ Cancelar' : '✏️ Editar'}
+                </button>
+                <button style={styles.botaoFechar} onClick={() => setMaquinaSelecionada(null)}>
+                  ✕ Fechar
+                </button>
+              </div>
+            </div>
+
+            {!editando ? (
+              <div style={styles.painelGrid}>
+                <div style={styles.painelCampo}><span style={styles.painelLabel}>Modelo</span><span>{maquinaSelecionada.modelo || '—'}</span></div>
+                <div style={styles.painelCampo}><span style={styles.painelLabel}>Status</span><span>{maquinaSelecionada.status || '—'}</span></div>
+                <div style={styles.painelCampo}><span style={styles.painelLabel}>Cliente</span><span>{maquinaSelecionada.nome_cliente || '—'}</span></div>
+                <div style={styles.painelCampo}><span style={styles.painelLabel}>Data de Aquisição</span><span>{maquinaSelecionada.data_aquisicao || '—'}</span></div>
+                <div style={styles.painelCampo}><span style={styles.painelLabel}>Custo de Aquisição</span><span>{maquinaSelecionada.custo_aquisicao || '—'}</span></div>
+                <div style={styles.painelCampo}><span style={styles.painelLabel}>Fornecedor</span><span>{maquinaSelecionada.fornecedor || '—'}</span></div>
+                <div style={styles.painelCampo}><span style={styles.painelLabel}>Versão Firmware</span><span>{maquinaSelecionada.versao_firmware || '—'}</span></div>
+                <div style={styles.painelCampo}><span style={styles.painelLabel}>Notas Internas</span><span>{maquinaSelecionada.notas_internas || '—'}</span></div>
+              </div>
+            ) : (
+              <div style={styles.form}>
+                <select style={styles.input} value={formEdicao.modelo || ''} onChange={(e) => setFormEdicao({ ...formEdicao, modelo: e.target.value })}>
+                  <option value="">Modelo *</option>
+                  <option value="BP-ONE">BlendPro ONE</option>
+                  <option value="BP-CAPS">BlendPro Caps</option>
+                </select>
+                <select style={styles.input} value={formEdicao.status || ''} onChange={(e) => setFormEdicao({ ...formEdicao, status: e.target.value })}>
+                  <option value="">Status *</option>
+                  <option value="Ativa">Ativa</option>
+                  <option value="Em Estoque">Em Estoque</option>
+                  <option value="Manutenção">Manutenção</option>
+                  <option value="Bloqueada">Bloqueada</option>
+                </select>
+                <input style={styles.input} type="date" value={formEdicao.data_aquisicao || ''} onChange={(e) => setFormEdicao({ ...formEdicao, data_aquisicao: e.target.value })} />
+                <input style={styles.input} placeholder="Custo de Aquisição" value={formEdicao.custo_aquisicao || ''} onChange={(e) => setFormEdicao({ ...formEdicao, custo_aquisicao: e.target.value })} />
+                <input style={styles.input} placeholder="Fornecedor" value={formEdicao.fornecedor || ''} onChange={(e) => setFormEdicao({ ...formEdicao, fornecedor: e.target.value })} />
+                <input style={styles.input} placeholder="Versão do Firmware" value={formEdicao.versao_firmware || ''} onChange={(e) => setFormEdicao({ ...formEdicao, versao_firmware: e.target.value })} />
+                <textarea style={styles.input} placeholder="Notas Internas" value={formEdicao.notas_internas || ''} onChange={(e) => setFormEdicao({ ...formEdicao, notas_internas: e.target.value })} rows={3} />
+                <button style={styles.botaoSalvar} onClick={async () => {
+                  try {
+                    await api.patch(`/maquinas/${maquinaSelecionada.numero_serie}`, {
+                      ...formEdicao,
+                      custo_aquisicao: formEdicao.custo_aquisicao
+                        ? parseFloat(String(formEdicao.custo_aquisicao).replace(',', '.'))
+                        : null,
+                    });
+                    alert('Máquina atualizada com sucesso!');
+                    setEditando(false);
+                    setMaquinaSelecionada({ ...maquinaSelecionada, ...formEdicao });
+                    const res = await api.get('/maquinas');
+                    setMaquinas(res.data);
+                  } catch {
+                    alert('Erro ao atualizar máquina.');
+                  }
+                }}>
+                  Salvar Alterações
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {carregando ? (
           <p style={styles.mensagem}>Carregando...</p>
         ) : maquinas.length === 0 ? (
@@ -119,7 +190,7 @@ export default function Maquinas() {
             </thead>
             <tbody>
               {maquinas.map((m) => (
-                <tr key={m.id} style={styles.tr}>
+                <tr key={m.id} style={{ ...styles.tr, cursor: 'pointer' }} onClick={() => { setMaquinaSelecionada(m); setFormEdicao(m); setEditando(false); }}>
                   <td style={styles.td}>{m.numero_serie}</td>
                   <td style={styles.td}>{m.modelo}</td>
                   <td style={styles.td}>{m.status}</td>
@@ -152,4 +223,12 @@ const styles = {
   formTitulo: { color: '#38bdf8', margin: '0 0 8px 0' },
   input: { padding: '10px 14px', backgroundColor: '#0f172a', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '8px', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
   botaoSalvar: { padding: '12px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', marginTop: '8px' },
+  painel: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', marginBottom: '32px' },
+  painelHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
+  painelTitulo: { color: '#38bdf8', margin: 0 },
+  painelGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
+  painelCampo: { display: 'flex', flexDirection: 'column', gap: '4px' },
+  painelLabel: { color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase' },
+  botaoEditar: { padding: '8px 16px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
+  botaoFechar: { padding: '8px 16px', backgroundColor: '#334155', color: '#f1f5f9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
 };
