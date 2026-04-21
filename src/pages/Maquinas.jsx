@@ -9,6 +9,7 @@ export default function Maquinas() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [maquinaSelecionada, setMaquinaSelecionada] = useState(null);
+  const [clientes, setClientes] = useState([]);
   const [editando, setEditando] = useState(false);
   const [formEdicao, setFormEdicao] = useState({});
   const [form, setForm] = useState({
@@ -48,11 +49,15 @@ export default function Maquinas() {
   };
 
   useEffect(() => {
-    api.get('/maquinas')
-      .then((res) => setMaquinas(res.data))
-      .catch(() => setMaquinas([]))
-      .finally(() => setCarregando(false));
-  }, []);
+  api.get('/maquinas')
+    .then((res) => setMaquinas(res.data))
+    .catch(() => setMaquinas([]))
+    .finally(() => setCarregando(false));
+
+  api.get('/clientes')
+    .then((res) => setClientes(res.data))
+    .catch(() => setClientes([]));
+}, []);
 
   return (
     <div style={styles.container}>
@@ -147,6 +152,13 @@ export default function Maquinas() {
                 </select>
                 <input style={styles.input} type="date" value={formEdicao.data_aquisicao || ''} onChange={(e) => setFormEdicao({ ...formEdicao, data_aquisicao: e.target.value })} />
                 <input style={styles.input} placeholder="Custo de Aquisição" value={formEdicao.custo_aquisicao || ''} onChange={(e) => setFormEdicao({ ...formEdicao, custo_aquisicao: e.target.value })} />
+                <select style={styles.input} value={formEdicao.id_cliente || ''} onChange={(e) => setFormEdicao({ ...formEdicao, id_cliente: e.target.value })}>
+  <option value="">Vincular a um Cliente</option>
+  {clientes.map((c) => (
+    <option key={c.id} value={c.id}>{c.nome_cliente}</option>
+  ))}
+</select>
+                
                 <input style={styles.input} placeholder="Fornecedor" value={formEdicao.fornecedor || ''} onChange={(e) => setFormEdicao({ ...formEdicao, fornecedor: e.target.value })} />
                 <input style={styles.input} placeholder="Versão do Firmware" value={formEdicao.versao_firmware || ''} onChange={(e) => setFormEdicao({ ...formEdicao, versao_firmware: e.target.value })} />
                 <textarea style={styles.input} placeholder="Notas Internas" value={formEdicao.notas_internas || ''} onChange={(e) => setFormEdicao({ ...formEdicao, notas_internas: e.target.value })} rows={3} />
