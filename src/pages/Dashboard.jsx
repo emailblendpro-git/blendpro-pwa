@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
@@ -47,6 +47,11 @@ export default function Dashboard() {
             <p style={styles.cardTitulo}>Manutenções</p>
             <p style={styles.cardValor}>🔧</p>
             <p style={styles.cardLink}>Ver registros →</p>
+          </div>
+          <div style={styles.card} onClick={() => navigate('/chamados')}>
+            <p style={styles.cardTitulo}>Chamados</p>
+            <p style={styles.cardValor}>🎫</p>
+            <p style={styles.cardLink}>Ver chamados →</p>
           </div>
         </div>
       </div>

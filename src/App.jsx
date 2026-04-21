@@ -5,7 +5,7 @@ import Maquinas from './pages/Maquinas';
 import Clientes from './pages/Clientes';
 import Usuarios from './pages/Usuarios';
 import Manutencoes from './pages/Manutencoes';
-
+import Chamados from './pages/Chamados';
 function RotaProtegida({ children }) {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/" />;
@@ -21,6 +21,7 @@ export default function App() {
         <Route path="/clientes" element={<RotaProtegida><Clientes /></RotaProtegida>} />
         <Route path="/usuarios" element={<RotaProtegida><Usuarios /></RotaProtegida>} />
         <Route path="/manutencoes" element={<RotaProtegida><Manutencoes /></RotaProtegida>} />
+        <Route path="/chamados" element={<RotaProtegida><Chamados /></RotaProtegida>} />
       </Routes>
     </BrowserRouter>
   );
