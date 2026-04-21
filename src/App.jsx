@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Maquinas from './pages/Maquinas';
 import Clientes from './pages/Clientes';
 import Usuarios from './pages/Usuarios';
+import Manutencoes from './pages/Manutencoes';
 
 function RotaProtegida({ children }) {
   const token = localStorage.getItem('token');
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/maquinas" element={<RotaProtegida><Maquinas /></RotaProtegida>} />
         <Route path="/clientes" element={<RotaProtegida><Clientes /></RotaProtegida>} />
         <Route path="/usuarios" element={<RotaProtegida><Usuarios /></RotaProtegida>} />
+        <Route path="/manutencoes" element={<RotaProtegida><Manutencoes /></RotaProtegida>} />
       </Routes>
     </BrowserRouter>
   );

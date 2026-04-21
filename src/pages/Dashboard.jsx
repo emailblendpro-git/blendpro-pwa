@@ -43,6 +43,11 @@ export default function Dashboard() {
             <p style={styles.cardValor}>{usuarios.length}</p>
             <p style={styles.cardLink}>Ver todos →</p>
           </div>
+          <div style={styles.card} onClick={() => navigate('/manutencoes')}>
+            <p style={styles.cardTitulo}>Manutenções</p>
+            <p style={styles.cardValor}>🔧</p>
+            <p style={styles.cardLink}>Ver registros →</p>
+          </div>
         </div>
       </div>
     </div>
