@@ -1,3 +1,3 @@
-git add .
-git commit -m "fix: usa npx vite build no netlify"
-git push
+[build]
+command = "npm install && npx vite build"
+publish = "dist"
