@@ -206,7 +206,8 @@ export default function Maquinas() {
                                         });
                                         alert('Máquina atualizada com sucesso!');
                                         setEditando(false);
-                                        setMaquinaSelecionada({ ...maquinaSelecionada, ...formEdicao });
+                                        const resMaquina = await api.get(`/maquinas/${maquinaSelecionada.numero_serie}`);
+                                        setMaquinaSelecionada(resMaquina.data);
                                         const res = await api.get('/maquinas');
                                         setMaquinas(res.data);
                                     } catch {
