@@ -1,21 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useUsuario } from '../hooks/useUsuario';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [maquinas, setMaquinas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const { usuario, podeGerenciar, podeManutencao, isCliente } = useUsuario();
 
   useEffect(() => {
     api.get('/maquinas').then((res) => setMaquinas(res.data)).catch(() => setMaquinas([]));
-    api.get('/clientes').then((res) => setClientes(res.data)).catch(() => setClientes([]));
-    api.get('/usuarios').then((res) => setUsuarios(res.data)).catch(() => setUsuarios([]));
+    if (podeGerenciar) {
+      api.get('/clientes').then((res) => setClientes(res.data)).catch(() => setClientes([]));
+      api.get('/usuarios').then((res) => setUsuarios(res.data)).catch(() => setUsuarios([]));
+    }
   }, []);
 
   function handleLogout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
     navigate('/');
   }
 
@@ -23,41 +28,65 @@ export default function Dashboard() {
     <div style={styles.container}>
       <div style={styles.header}>
         <h1 style={styles.titulo}>BlendPro</h1>
-        <button style={styles.botaoSair} onClick={handleLogout}>Sair</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={styles.nomeUsuario}>👤 {usuario?.nome || 'Usuário'}</span>
+          <button style={styles.botaoSair} onClick={handleLogout}>Sair</button>
+        </div>
       </div>
       <div style={styles.conteudo}>
         <h2 style={styles.bemVindo}>Dashboard</h2>
         <div style={styles.cards}>
+
+          {/* Máquinas — todos veem */}
           <div style={styles.card} onClick={() => navigate('/maquinas')}>
             <p style={styles.cardTitulo}>Total de Máquinas</p>
             <p style={styles.cardValor}>{maquinas.length}</p>
             <p style={styles.cardLink}>Ver todas →</p>
           </div>
-          <div style={styles.card} onClick={() => navigate('/clientes')}>
-            <p style={styles.cardTitulo}>Total de Clientes</p>
-            <p style={styles.cardValor}>{clientes.length}</p>
-            <p style={styles.cardLink}>Ver todos →</p>
-          </div>
-          <div style={styles.card} onClick={() => navigate('/usuarios')}>
-            <p style={styles.cardTitulo}>Total de Usuários</p>
-            <p style={styles.cardValor}>{usuarios.length}</p>
-            <p style={styles.cardLink}>Ver todos →</p>
-          </div>
-          <div style={styles.card} onClick={() => navigate('/manutencoes')}>
-            <p style={styles.cardTitulo}>Manutenções</p>
-            <p style={styles.cardValor}>🔧</p>
-            <p style={styles.cardLink}>Ver registros →</p>
-          </div>
+
+          {/* Clientes — apenas Master e Operador Interno */}
+          {podeGerenciar && (
+            <div style={styles.card} onClick={() => navigate('/clientes')}>
+              <p style={styles.cardTitulo}>Total de Clientes</p>
+              <p style={styles.cardValor}>{clientes.length}</p>
+              <p style={styles.cardLink}>Ver todos →</p>
+            </div>
+          )}
+
+          {/* Usuários — apenas Master e Operador Interno */}
+          {podeGerenciar && (
+            <div style={styles.card} onClick={() => navigate('/usuarios')}>
+              <p style={styles.cardTitulo}>Total de Usuários</p>
+              <p style={styles.cardValor}>{usuarios.length}</p>
+              <p style={styles.cardLink}>Ver todos →</p>
+            </div>
+          )}
+
+          {/* Manutenções — todos exceto Cliente */}
+          {podeManutencao && (
+            <div style={styles.card} onClick={() => navigate('/manutencoes')}>
+              <p style={styles.cardTitulo}>Manutenções</p>
+              <p style={styles.cardValor}>🔧</p>
+              <p style={styles.cardLink}>Ver registros →</p>
+            </div>
+          )}
+
+          {/* Chamados — todos veem */}
           <div style={styles.card} onClick={() => navigate('/chamados')}>
             <p style={styles.cardTitulo}>Chamados</p>
             <p style={styles.cardValor}>🎫</p>
             <p style={styles.cardLink}>Ver chamados →</p>
           </div>
-          <div style={styles.card} onClick={() => navigate('/produtos')}>
-            <p style={styles.cardTitulo}>Produtos</p>
-            <p style={styles.cardValor}>🧴</p>
-            <p style={styles.cardLink}>Ver produtos →</p>
-          </div>
+
+          {/* Produtos — apenas Master e Operador Interno */}
+          {podeGerenciar && (
+            <div style={styles.card} onClick={() => navigate('/produtos')}>
+              <p style={styles.cardTitulo}>Produtos</p>
+              <p style={styles.cardValor}>🧴</p>
+              <p style={styles.cardLink}>Ver produtos →</p>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
@@ -68,6 +97,7 @@ const styles = {
   container: { backgroundColor: '#0f172a', minHeight: '100vh', color: '#f1f5f9' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 32px', backgroundColor: '#1e293b', borderBottom: '1px solid #334155' },
   titulo: { color: '#38bdf8', margin: 0 },
+  nomeUsuario: { color: '#94a3b8', fontSize: '14px' },
   botaoSair: { padding: '8px 16px', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
   conteudo: { padding: '40px 32px' },
   bemVindo: { color: '#f1f5f9', marginBottom: '24px' },

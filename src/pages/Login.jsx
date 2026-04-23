@@ -14,6 +14,7 @@ export default function Login() {
     try {
       const resposta = await api.post('/auth/login', { email, senha });
       localStorage.setItem('token', resposta.data.token);
+      localStorage.setItem('usuario', JSON.stringify(resposta.data.usuario));
       navigate('/dashboard');
     } catch (err) {
       setErro('Email ou senha incorretos.');
@@ -50,7 +51,7 @@ export default function Login() {
             </button>
           </div>
           {erro && <p style={styles.erro}>{erro}</p>}
-          <button style={styles.botao} type="submit">
+          <button style={styles.botao} type="submit" onClick={handleLogin}>
             Entrar
           </button>
         </form>
