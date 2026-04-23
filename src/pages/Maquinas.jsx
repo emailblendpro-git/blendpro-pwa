@@ -13,6 +13,17 @@ export default function Maquinas() {
     const [produtos, setProdutos] = useState([]);
     const [editando, setEditando] = useState(false);
     const [formEdicao, setFormEdicao] = useState({});
+    const [parametrosExistem, setParametrosExistem] = useState(false);
+    const [formParametros, setFormParametros] = useState({
+        icms: '18.00',
+        pis: '3.65',
+        cofins: '2.88',
+        logistico: '4.00',
+        comissionado_1: '1.50',
+        comissionado_2: '0.80',
+        custo_operacional: '10.00',
+        outros: '2.00',
+    });
     const [form, setForm] = useState({
         numero_serie: '',
         modelo: '',
@@ -23,6 +34,20 @@ export default function Maquinas() {
         versao_firmware: '',
         notas_internas: '',
     });
+
+    // Calcula margem em tempo real
+    const calcularMargem = () => {
+    const venda = parseFloat(String(formEdicao.valor_unitario_atual || '0').replace(',', '.')) || 0;
+    const idProduto = formEdicao.id_produto || maquinaSelecionada?.id_produto;
+    const produto = produtos.find(p => String(p.id) === String(idProduto));
+    const custo = parseFloat(produto?.custo_base || 0);
+    const totalPct = ['icms', 'pis', 'cofins', 'logistico', 'comissionado_1', 'comissionado_2', 'custo_operacional', 'outros']
+        .reduce((acc, campo) => acc + (parseFloat(formParametros[campo] || 0)), 0);
+    const deducoes = (venda * totalPct) / 100;
+    const margem = venda - deducoes - custo;
+    const margemPct = venda > 0 ? (margem / venda) * 100 : 0;
+    return { margem, margemPct, venda, custo, deducoes };
+};
 
     const handleSubmit = async () => {
         if (!form.numero_serie || !form.modelo || !form.status) {
@@ -49,6 +74,26 @@ export default function Maquinas() {
         }
     };
 
+    const carregarParametros = async (numero_serie) => {
+        try {
+            const res = await api.get(`/parametros/${numero_serie}`);
+            setFormParametros({
+                icms: res.data.icms,
+                pis: res.data.pis,
+                cofins: res.data.cofins,
+                logistico: res.data.logistico,
+                comissionado_1: res.data.comissionado_1,
+                comissionado_2: res.data.comissionado_2,
+                custo_operacional: res.data.custo_operacional,
+                outros: res.data.outros,
+            });
+            setParametrosExistem(true);
+        } catch {
+            // Não existem ainda — mantém os valores padrão
+            setParametrosExistem(false);
+        }
+    };
+
     useEffect(() => {
         api.get('/maquinas')
             .then((res) => setMaquinas(res.data))
@@ -69,6 +114,9 @@ export default function Maquinas() {
         const apenas_data = data.substring(0, 10);
         return new Date(apenas_data + 'T12:00:00').toLocaleDateString('pt-BR');
     };
+
+    const mostrarParametros = (maquina) =>
+        maquina?.status === 'Ativa' && maquina?.id_cliente;
 
     return (
         <div style={styles.container}>
@@ -127,7 +175,10 @@ export default function Maquinas() {
                         <div style={styles.painelHeader}>
                             <h3 style={styles.painelTitulo}>{maquinaSelecionada.numero_serie}</h3>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                <button style={styles.botaoEditar} onClick={() => setEditando(!editando)}>
+                                <button style={styles.botaoEditar} onClick={() => {
+                                    if (!editando) carregarParametros(maquinaSelecionada.numero_serie);
+                                    setEditando(!editando);
+                                }}>
                                     {editando ? '✕ Cancelar' : '✏️ Editar'}
                                 </button>
                                 <button style={styles.botaoFechar} onClick={() => setMaquinaSelecionada(null)}>
@@ -144,7 +195,6 @@ export default function Maquinas() {
                                 <div style={styles.painelCampo}><span style={styles.painelLabel}>Data de Aquisição</span><span>{formatarData(maquinaSelecionada.data_aquisicao)}</span></div>
                                 <div style={styles.painelCampo}><span style={styles.painelLabel}>Custo de Aquisição</span><span>{maquinaSelecionada.custo_aquisicao ? `R$ ${parseFloat(maquinaSelecionada.custo_aquisicao).toFixed(2).replace('.', ',')}` : '—'}</span></div>
                                 <div style={styles.painelCampo}><span style={styles.painelLabel}>Fornecedor</span><span>{maquinaSelecionada.fornecedor || '—'}</span></div>
-
                                 <div style={styles.painelCampo}><span style={styles.painelLabel}>Versão Firmware</span><span>{maquinaSelecionada.versao_firmware || '—'}</span></div>
                                 <div style={styles.painelCampo}><span style={styles.painelLabel}>Produto Utilizado</span><span>{maquinaSelecionada.nome_produto || '—'}</span></div>
                                 <div style={styles.painelCampo}>
@@ -153,7 +203,6 @@ export default function Maquinas() {
                                     </span>
                                     <span>{maquinaSelecionada.valor_unitario_atual ? `R$ ${parseFloat(maquinaSelecionada.valor_unitario_atual).toFixed(2).replace('.', ',')}` : '—'}</span>
                                 </div>
-
                                 <div style={styles.painelCampo}><span style={styles.painelLabel}>Notas Internas</span><span>{maquinaSelecionada.notas_internas || '—'}</span></div>
                             </div>
                         ) : (
@@ -197,6 +246,56 @@ export default function Maquinas() {
                                 <input style={styles.input} placeholder="Fornecedor" value={formEdicao.fornecedor || ''} onChange={(e) => setFormEdicao({ ...formEdicao, fornecedor: e.target.value })} />
                                 <input style={styles.input} placeholder="Versão do Firmware" value={formEdicao.versao_firmware || ''} onChange={(e) => setFormEdicao({ ...formEdicao, versao_firmware: e.target.value })} />
                                 <textarea style={styles.input} placeholder="Notas Internas" value={formEdicao.notas_internas || ''} onChange={(e) => setFormEdicao({ ...formEdicao, notas_internas: e.target.value })} rows={3} />
+
+                                {/* ── Parâmetros Financeiros ── */}
+                                {mostrarParametros(formEdicao) && (
+                                    <div style={styles.secaoParametros}>
+                                        <h4 style={styles.secaoTitulo}>💰 Parâmetros Financeiros</h4>
+                                        <p style={styles.secaoDesc}>Valores em % sobre o preço de venda</p>
+
+                                        {[
+                                            { campo: 'icms', label: 'ICMS' },
+                                            { campo: 'pis', label: 'PIS' },
+                                            { campo: 'cofins', label: 'COFINS' },
+                                            { campo: 'logistico', label: 'Logístico' },
+                                            { campo: 'comissionado_1', label: 'Comissionado 1' },
+                                            { campo: 'comissionado_2', label: 'Comissionado 2' },
+                                            { campo: 'custo_operacional', label: 'Custo Operacional' },
+                                            { campo: 'outros', label: 'Outros' },
+                                        ].map(({ campo, label }) => (
+                                            <div key={campo} style={styles.campoParametro}>
+                                                <label style={styles.painelLabel}>{label} (%)</label>
+                                                <input
+                                                    style={styles.input}
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={formParametros[campo]}
+                                                    onChange={(e) => setFormParametros({ ...formParametros, [campo]: e.target.value })}
+                                                />
+                                            </div>
+                                        ))}
+
+                                        {/* Resumo da margem */}
+                                        {(() => {
+                                            const { margem, margemPct, venda, custo, deducoes } = calcularMargem();
+                                            return (
+                                                <div style={styles.resumoMargem}>
+                                                    <h5 style={styles.resumoTitulo}>📊 Resumo da Margem</h5>
+                                                    <div style={styles.resumoLinha}><span>Valor de Venda</span><span>R$ {venda.toFixed(2).replace('.', ',')}</span></div>
+                                                    <div style={styles.resumoLinha}><span>Custo do Produto</span><span>- R$ {custo.toFixed(2).replace('.', ',')}</span></div>
+                                                    <div style={styles.resumoLinha}><span>Total Deduções</span><span>- R$ {deducoes.toFixed(2).replace('.', ',')}</span></div>
+                                                    <div style={{ ...styles.resumoLinha, ...styles.resumoDestaque }}>
+                                                        <span>Margem</span>
+                                                        <span style={{ color: margem >= 0 ? '#22c55e' : '#ef4444' }}>
+                                                            R$ {margem.toFixed(2).replace('.', ',')} ({margemPct.toFixed(2)}%)
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                )}
+
                                 <button style={styles.botaoSalvar} onClick={async () => {
                                     try {
                                         await api.patch(`/maquinas/${maquinaSelecionada.numero_serie}`, {
@@ -204,6 +303,26 @@ export default function Maquinas() {
                                             custo_aquisicao: formEdicao.custo_aquisicao ? parseFloat(String(formEdicao.custo_aquisicao).replace(',', '.')) : null,
                                             valor_unitario_atual: formEdicao.valor_unitario_atual ? parseFloat(String(formEdicao.valor_unitario_atual).replace(',', '.')) : null,
                                         });
+
+                                        // Salva ou atualiza parâmetros financeiros se a máquina for Ativa com cliente
+                                        if (mostrarParametros(formEdicao)) {
+                                            const payload = {
+                                                icms: parseFloat(formParametros.icms),
+                                                pis: parseFloat(formParametros.pis),
+                                                cofins: parseFloat(formParametros.cofins),
+                                                logistico: parseFloat(formParametros.logistico),
+                                                comissionado_1: parseFloat(formParametros.comissionado_1),
+                                                comissionado_2: parseFloat(formParametros.comissionado_2),
+                                                custo_operacional: parseFloat(formParametros.custo_operacional),
+                                                outros: parseFloat(formParametros.outros),
+                                            };
+                                            if (parametrosExistem) {
+                                                await api.patch(`/parametros/${maquinaSelecionada.numero_serie}`, payload);
+                                            } else {
+                                                await api.post(`/parametros/${maquinaSelecionada.numero_serie}`, payload);
+                                            }
+                                        }
+
                                         alert('Máquina atualizada com sucesso!');
                                         setEditando(false);
                                         const resMaquina = await api.get(`/maquinas/${maquinaSelecionada.numero_serie}`);
@@ -278,4 +397,12 @@ const styles = {
     painelLabel: { color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase' },
     botaoEditar: { padding: '8px 16px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
     botaoFechar: { padding: '8px 16px', backgroundColor: '#334155', color: '#f1f5f9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
+    secaoParametros: { backgroundColor: '#0f172a', borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #334155' },
+    secaoTitulo: { color: '#38bdf8', margin: '0 0 4px 0', fontSize: '15px' },
+    secaoDesc: { color: '#94a3b8', fontSize: '12px', margin: '0 0 8px 0' },
+    campoParametro: { display: 'flex', flexDirection: 'column', gap: '4px' },
+    resumoMargem: { backgroundColor: '#1e293b', borderRadius: '8px', padding: '16px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #334155' },
+    resumoTitulo: { color: '#f1f5f9', margin: '0 0 8px 0', fontSize: '14px' },
+    resumoLinha: { display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#cbd5e1' },
+    resumoDestaque: { borderTop: '1px solid #334155', paddingTop: '8px', fontWeight: 'bold', color: '#f1f5f9' },
 };
