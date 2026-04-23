@@ -13,9 +13,11 @@ export default function Maquinas() {
     const [maquinaSelecionada, setMaquinaSelecionada] = useState(null);
     const [clientes, setClientes] = useState([]);
     const [produtos, setProdutos] = useState([]);
+    const [usuarios, setUsuarios] = useState([]);
     const [editando, setEditando] = useState(false);
     const [formEdicao, setFormEdicao] = useState({});
     const [parametrosExistem, setParametrosExistem] = useState(false);
+    const [operadorParaAdicionar, setOperadorParaAdicionar] = useState('');
     const [formParametros, setFormParametros] = useState({
         icms: '18.00',
         pis: '3.65',
@@ -94,6 +96,31 @@ export default function Maquinas() {
         }
     };
 
+    const adicionarOperador = async () => {
+        if (!operadorParaAdicionar) return;
+        try {
+            await api.post(`/maquinas/${maquinaSelecionada.numero_serie}/operadores`, {
+                id_operador: operadorParaAdicionar
+            });
+            setOperadorParaAdicionar('');
+            const res = await api.get(`/maquinas/${maquinaSelecionada.numero_serie}`);
+            setMaquinaSelecionada(res.data);
+        } catch {
+            alert('Erro ao adicionar operador.');
+        }
+    };
+
+    const removerOperador = async (id_operador) => {
+        if (!confirm('Remover este operador?')) return;
+        try {
+            await api.delete(`/maquinas/${maquinaSelecionada.numero_serie}/operadores/${id_operador}`);
+            const res = await api.get(`/maquinas/${maquinaSelecionada.numero_serie}`);
+            setMaquinaSelecionada(res.data);
+        } catch {
+            alert('Erro ao remover operador.');
+        }
+    };
+
     useEffect(() => {
         api.get('/maquinas')
             .then((res) => setMaquinas(res.data))
@@ -107,6 +134,10 @@ export default function Maquinas() {
         api.get('/produtos')
             .then((res) => setProdutos(res.data))
             .catch(() => setProdutos([]));
+
+        api.get('/usuarios')
+            .then((res) => setUsuarios(res.data))
+            .catch(() => setUsuarios([]));
     }, []);
 
     const formatarData = (data) => {
@@ -117,6 +148,9 @@ export default function Maquinas() {
 
     const mostrarParametros = (maquina) =>
         maquina?.status === 'Ativa' && maquina?.id_cliente;
+
+    const operadoresExternos = usuarios.filter(u => u.perfil === 'operador_externo');
+    const vendedores = usuarios.filter(u => ['master', 'operador_interno'].includes(u.perfil));
 
     return (
         <div style={styles.container}>
@@ -129,7 +163,6 @@ export default function Maquinas() {
             <div style={styles.conteudo}>
                 <div style={styles.topBar}>
                     <h2 style={styles.pageTitulo}>Máquinas</h2>
-                    {/* Botão Nova Máquina — apenas Master e Operador Interno */}
                     {podeGerenciar && (
                         <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
                             {mostrarForm ? '✕ Fechar' : '+ Nova Máquina'}
@@ -178,7 +211,6 @@ export default function Maquinas() {
                         <div style={styles.painelHeader}>
                             <h3 style={styles.painelTitulo}>{maquinaSelecionada.numero_serie}</h3>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                {/* Botão Editar — apenas Master e Operador Interno */}
                                 {podeGerenciar && (
                                     <button style={styles.botaoEditar} onClick={() => {
                                         if (!editando) carregarParametros(maquinaSelecionada.numero_serie);
@@ -194,22 +226,55 @@ export default function Maquinas() {
                         </div>
 
                         {!editando ? (
-                            <div style={styles.painelGrid}>
-                                <div style={styles.painelCampo}><span style={styles.painelLabel}>Modelo</span><span>{maquinaSelecionada.modelo || '—'}</span></div>
-                                <div style={styles.painelCampo}><span style={styles.painelLabel}>Status</span><span>{maquinaSelecionada.status || '—'}</span></div>
-                                <div style={styles.painelCampo}><span style={styles.painelLabel}>Cliente</span><span>{maquinaSelecionada.nome_cliente || '—'}</span></div>
-                                <div style={styles.painelCampo}><span style={styles.painelLabel}>Data de Aquisição</span><span>{formatarData(maquinaSelecionada.data_aquisicao)}</span></div>
-                                <div style={styles.painelCampo}><span style={styles.painelLabel}>Custo de Aquisição</span><span>{maquinaSelecionada.custo_aquisicao ? `R$ ${parseFloat(maquinaSelecionada.custo_aquisicao).toFixed(2).replace('.', ',')}` : '—'}</span></div>
-                                <div style={styles.painelCampo}><span style={styles.painelLabel}>Fornecedor</span><span>{maquinaSelecionada.fornecedor || '—'}</span></div>
-                                <div style={styles.painelCampo}><span style={styles.painelLabel}>Versão Firmware</span><span>{maquinaSelecionada.versao_firmware || '—'}</span></div>
-                                <div style={styles.painelCampo}><span style={styles.painelLabel}>Produto Utilizado</span><span>{maquinaSelecionada.nome_produto || '—'}</span></div>
-                                <div style={styles.painelCampo}>
-                                    <span style={styles.painelLabel}>
-                                        {maquinaSelecionada.modelo === 'BP-ONE' ? 'Valor por Litro Atual' : 'Valor por Unidade Atual'}
-                                    </span>
-                                    <span>{maquinaSelecionada.valor_unitario_atual ? `R$ ${parseFloat(maquinaSelecionada.valor_unitario_atual).toFixed(2).replace('.', ',')}` : '—'}</span>
+                            <div>
+                                <div style={styles.painelGrid}>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Modelo</span><span>{maquinaSelecionada.modelo || '—'}</span></div>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Status</span><span>{maquinaSelecionada.status || '—'}</span></div>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Cliente</span><span>{maquinaSelecionada.nome_cliente || '—'}</span></div>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Vendedor</span><span>{maquinaSelecionada.nome_vendedor || '—'}</span></div>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Data de Aquisição</span><span>{formatarData(maquinaSelecionada.data_aquisicao)}</span></div>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Custo de Aquisição</span><span>{maquinaSelecionada.custo_aquisicao ? `R$ ${parseFloat(maquinaSelecionada.custo_aquisicao).toFixed(2).replace('.', ',')}` : '—'}</span></div>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Fornecedor</span><span>{maquinaSelecionada.fornecedor || '—'}</span></div>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Versão Firmware</span><span>{maquinaSelecionada.versao_firmware || '—'}</span></div>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Produto Utilizado</span><span>{maquinaSelecionada.nome_produto || '—'}</span></div>
+                                    <div style={styles.painelCampo}>
+                                        <span style={styles.painelLabel}>
+                                            {maquinaSelecionada.modelo === 'BP-ONE' ? 'Valor por Litro Atual' : 'Valor por Unidade Atual'}
+                                        </span>
+                                        <span>{maquinaSelecionada.valor_unitario_atual ? `R$ ${parseFloat(maquinaSelecionada.valor_unitario_atual).toFixed(2).replace('.', ',')}` : '—'}</span>
+                                    </div>
+                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Notas Internas</span><span>{maquinaSelecionada.notas_internas || '—'}</span></div>
                                 </div>
-                                <div style={styles.painelCampo}><span style={styles.painelLabel}>Notas Internas</span><span>{maquinaSelecionada.notas_internas || '—'}</span></div>
+
+                                {/* Seção de Operadores Autorizados */}
+                                {podeGerenciar && (
+                                    <div style={styles.secaoOperadores}>
+                                        <h4 style={styles.secaoTitulo}>👷 Operadores Autorizados</h4>
+                                        <div style={styles.operadoresList}>
+                                            {(maquinaSelecionada.operadores_autorizados || []).length === 0 ? (
+                                                <p style={{ color: '#94a3b8', fontSize: '14px' }}>Nenhum operador autorizado.</p>
+                                            ) : (
+                                                (maquinaSelecionada.operadores_autorizados || []).map((op) => (
+                                                    <div key={op.id} style={styles.operadorItem}>
+                                                        <span>{op.nome} — {op.email}</span>
+                                                        <button style={styles.botaoRemover} onClick={() => removerOperador(op.id)}>✕</button>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                                            <select style={{ ...styles.input, flex: 1 }} value={operadorParaAdicionar} onChange={(e) => setOperadorParaAdicionar(e.target.value)}>
+                                                <option value="">Selecionar Operador Externo</option>
+                                                {operadoresExternos
+                                                    .filter(u => !(maquinaSelecionada.operadores_autorizados || []).some(op => op.id === u.id))
+                                                    .map((u) => (
+                                                        <option key={u.id} value={u.id}>{u.nome}</option>
+                                                    ))}
+                                            </select>
+                                            <button style={styles.botaoAdicionar} onClick={adicionarOperador}>+ Adicionar</button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div style={styles.form}>
@@ -231,6 +296,12 @@ export default function Maquinas() {
                                     <option value="">Vincular a um Cliente</option>
                                     {clientes.map((c) => (
                                         <option key={c.id} value={c.id}>{c.nome_cliente}</option>
+                                    ))}
+                                </select>
+                                <select style={styles.input} value={formEdicao.id_vendedor || ''} onChange={(e) => setFormEdicao({ ...formEdicao, id_vendedor: e.target.value })}>
+                                    <option value="">Vincular Vendedor Responsável</option>
+                                    {vendedores.map((v) => (
+                                        <option key={v.id} value={v.id}>{v.nome}</option>
                                     ))}
                                 </select>
                                 <select style={styles.input} value={formEdicao.id_produto || ''} onChange={(e) => setFormEdicao({ ...formEdicao, id_produto: e.target.value })}>
@@ -351,6 +422,7 @@ export default function Maquinas() {
                                 <th style={styles.th}>Modelo</th>
                                 <th style={styles.th}>Status</th>
                                 <th style={styles.th}>Cliente</th>
+                                <th style={styles.th}>Vendedor</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -360,6 +432,7 @@ export default function Maquinas() {
                                     <td style={styles.td}>{m.modelo}</td>
                                     <td style={styles.td}>{m.status}</td>
                                     <td style={styles.td}>{m.nome_cliente || '—'}</td>
+                                    <td style={styles.td}>{m.nome_vendedor || '—'}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -397,11 +470,16 @@ const styles = {
     botaoEditar: { padding: '8px 16px', backgroundColor: '#f59e0b', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
     botaoFechar: { padding: '8px 16px', backgroundColor: '#334155', color: '#f1f5f9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
     secaoParametros: { backgroundColor: '#0f172a', borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #334155' },
-    secaoTitulo: { color: '#38bdf8', margin: '0 0 4px 0', fontSize: '15px' },
+    secaoTitulo: { color: '#38bdf8', margin: '0 0 8px 0', fontSize: '15px' },
     secaoDesc: { color: '#94a3b8', fontSize: '12px', margin: '0 0 8px 0' },
     campoParametro: { display: 'flex', flexDirection: 'column', gap: '4px' },
     resumoMargem: { backgroundColor: '#1e293b', borderRadius: '8px', padding: '16px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #334155' },
     resumoTitulo: { color: '#f1f5f9', margin: '0 0 8px 0', fontSize: '14px' },
     resumoLinha: { display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#cbd5e1' },
     resumoDestaque: { borderTop: '1px solid #334155', paddingTop: '8px', fontWeight: 'bold', color: '#f1f5f9' },
+    secaoOperadores: { backgroundColor: '#0f172a', borderRadius: '10px', padding: '20px', marginTop: '20px', border: '1px solid #334155' },
+    operadoresList: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' },
+    operadorItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1e293b', padding: '8px 12px', borderRadius: '8px', fontSize: '14px' },
+    botaoRemover: { padding: '4px 10px', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' },
+    botaoAdicionar: { padding: '10px 16px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap' },
 };
