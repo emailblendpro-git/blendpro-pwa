@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useUsuario } from '../hooks/useUsuario';
 
 export default function Produtos() {
   const navigate = useNavigate();
+  const { podeGerenciar } = useUsuario();
   const [produtos, setProdutos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -59,12 +61,14 @@ export default function Produtos() {
       <div style={styles.conteudo}>
         <div style={styles.topBar}>
           <h2 style={styles.pageTitulo}>Produtos</h2>
-          <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
-            {mostrarForm ? '✕ Fechar' : '+ Novo Produto'}
-          </button>
+          {podeGerenciar && (
+            <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
+              {mostrarForm ? '✕ Fechar' : '+ Novo Produto'}
+            </button>
+          )}
         </div>
 
-        {mostrarForm && (
+        {mostrarForm && podeGerenciar && (
           <div style={styles.form}>
             <h3 style={styles.formTitulo}>Novo Produto</h3>
             <input style={styles.input} placeholder="Nome do Produto *" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
@@ -94,9 +98,11 @@ export default function Produtos() {
             <div style={styles.painelHeader}>
               <h3 style={styles.painelTitulo}>{produtoSelecionado.nome}</h3>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button style={styles.botaoEditar} onClick={() => setEditando(!editando)}>
-                  {editando ? '✕ Cancelar' : '✏️ Editar'}
-                </button>
+                {podeGerenciar && (
+                  <button style={styles.botaoEditar} onClick={() => setEditando(!editando)}>
+                    {editando ? '✕ Cancelar' : '✏️ Editar'}
+                  </button>
+                )}
                 <button style={styles.botaoFechar} onClick={() => setProdutoSelecionado(null)}>
                   ✕ Fechar
                 </button>
