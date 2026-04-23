@@ -37,17 +37,17 @@ export default function Maquinas() {
 
     // Calcula margem em tempo real
     const calcularMargem = () => {
-    const venda = parseFloat(String(formEdicao.valor_unitario_atual || '0').replace(',', '.')) || 0;
-    const idProduto = formEdicao.id_produto || maquinaSelecionada?.id_produto;
-    const produto = produtos.find(p => String(p.id) === String(idProduto));
-    const custo = parseFloat(produto?.custo_base || 0);
-    const totalPct = ['icms', 'pis', 'cofins', 'logistico', 'comissionado_1', 'comissionado_2', 'custo_operacional', 'outros']
-        .reduce((acc, campo) => acc + (parseFloat(formParametros[campo] || 0)), 0);
-    const deducoes = (venda * totalPct) / 100;
-    const margem = venda - deducoes - custo;
-    const margemPct = venda > 0 ? (margem / venda) * 100 : 0;
-    return { margem, margemPct, venda, custo, deducoes };
-};
+        const venda = parseFloat(String(formEdicao.valor_unitario_atual || '0').replace(',', '.')) || 0;
+        const idProduto = formEdicao.id_produto || maquinaSelecionada?.id_produto;
+        const produto = produtos.find(p => String(p.id) === String(idProduto));
+        const custo = parseFloat(produto?.custo_base || 0);
+        const totalPct = ['icms', 'pis', 'cofins', 'logistico', 'comissionado_1', 'comissionado_2', 'custo_operacional', 'outros']
+            .reduce((acc, campo) => acc + (parseFloat(formParametros[campo] || 0)), 0);
+        const deducoes = (venda * totalPct) / 100;
+        const margem = venda - deducoes - custo;
+        const margemPct = venda > 0 ? (margem / venda) * 100 : 0;
+        return { margem, margemPct, venda, custo, deducoes };
+    };
 
     const handleSubmit = async () => {
         if (!form.numero_serie || !form.modelo || !form.status) {
@@ -89,7 +89,6 @@ export default function Maquinas() {
             });
             setParametrosExistem(true);
         } catch {
-            // Não existem ainda — mantém os valores padrão
             setParametrosExistem(false);
         }
     };
@@ -247,7 +246,6 @@ export default function Maquinas() {
                                 <input style={styles.input} placeholder="Versão do Firmware" value={formEdicao.versao_firmware || ''} onChange={(e) => setFormEdicao({ ...formEdicao, versao_firmware: e.target.value })} />
                                 <textarea style={styles.input} placeholder="Notas Internas" value={formEdicao.notas_internas || ''} onChange={(e) => setFormEdicao({ ...formEdicao, notas_internas: e.target.value })} rows={3} />
 
-                                {/* ── Parâmetros Financeiros ── */}
                                 {mostrarParametros(formEdicao) && (
                                     <div style={styles.secaoParametros}>
                                         <h4 style={styles.secaoTitulo}>💰 Parâmetros Financeiros</h4>
@@ -275,7 +273,6 @@ export default function Maquinas() {
                                             </div>
                                         ))}
 
-                                        {/* Resumo da margem */}
                                         {(() => {
                                             const { margem, margemPct, venda, custo, deducoes } = calcularMargem();
                                             return (
@@ -304,7 +301,6 @@ export default function Maquinas() {
                                             valor_unitario_atual: formEdicao.valor_unitario_atual ? parseFloat(String(formEdicao.valor_unitario_atual).replace(',', '.')) : null,
                                         });
 
-                                        // Salva ou atualiza parâmetros financeiros se a máquina for Ativa com cliente
                                         if (mostrarParametros(formEdicao)) {
                                             const payload = {
                                                 icms: parseFloat(formParametros.icms),
