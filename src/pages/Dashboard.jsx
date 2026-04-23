@@ -87,6 +87,15 @@ export default function Dashboard() {
             </div>
           )}
 
+{/* Relatórios — apenas Master e Operador Interno */}
+          {podeGerenciar && (
+            <div style={styles.card} onClick={() => navigate('/relatorios')}>
+              <p style={styles.cardTitulo}>Relatórios</p>
+              <p style={styles.cardValor}>📊</p>
+              <p style={styles.cardLink}>Ver relatórios →</p>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
