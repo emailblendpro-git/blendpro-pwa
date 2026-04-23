@@ -14,6 +14,7 @@ export default function Maquinas() {
     const [clientes, setClientes] = useState([]);
     const [produtos, setProdutos] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
+    const [vendedores, setVendedores] = useState([]);
     const [editando, setEditando] = useState(false);
     const [formEdicao, setFormEdicao] = useState({});
     const [parametrosExistem, setParametrosExistem] = useState(false);
@@ -138,6 +139,10 @@ export default function Maquinas() {
         api.get('/usuarios')
             .then((res) => setUsuarios(res.data))
             .catch(() => setUsuarios([]));
+
+        api.get('/vendedores')
+            .then((res) => setVendedores(res.data))
+            .catch(() => setVendedores([]));
     }, []);
 
     const formatarData = (data) => {
@@ -150,7 +155,6 @@ export default function Maquinas() {
         maquina?.status === 'Ativa' && maquina?.id_cliente;
 
     const operadoresExternos = usuarios.filter(u => u.perfil === 'operador_externo');
-    const vendedores = usuarios.filter(u => ['master', 'operador_interno'].includes(u.perfil));
 
     return (
         <div style={styles.container}>
@@ -231,7 +235,10 @@ export default function Maquinas() {
                                     <div style={styles.painelCampo}><span style={styles.painelLabel}>Modelo</span><span>{maquinaSelecionada.modelo || '—'}</span></div>
                                     <div style={styles.painelCampo}><span style={styles.painelLabel}>Status</span><span>{maquinaSelecionada.status || '—'}</span></div>
                                     <div style={styles.painelCampo}><span style={styles.painelLabel}>Cliente</span><span>{maquinaSelecionada.nome_cliente || '—'}</span></div>
-                                    <div style={styles.painelCampo}><span style={styles.painelLabel}>Vendedor</span><span>{maquinaSelecionada.nome_vendedor || '—'}</span></div>
+                                    <div style={styles.painelCampo}>
+                                        <span style={styles.painelLabel}>Vendedor</span>
+                                        <span>{maquinaSelecionada.nome_vendedor ? `${maquinaSelecionada.nome_vendedor} — Carteira ${maquinaSelecionada.carteira_vendedor}` : '—'}</span>
+                                    </div>
                                     <div style={styles.painelCampo}><span style={styles.painelLabel}>Data de Aquisição</span><span>{formatarData(maquinaSelecionada.data_aquisicao)}</span></div>
                                     <div style={styles.painelCampo}><span style={styles.painelLabel}>Custo de Aquisição</span><span>{maquinaSelecionada.custo_aquisicao ? `R$ ${parseFloat(maquinaSelecionada.custo_aquisicao).toFixed(2).replace('.', ',')}` : '—'}</span></div>
                                     <div style={styles.painelCampo}><span style={styles.painelLabel}>Fornecedor</span><span>{maquinaSelecionada.fornecedor || '—'}</span></div>
@@ -246,7 +253,6 @@ export default function Maquinas() {
                                     <div style={styles.painelCampo}><span style={styles.painelLabel}>Notas Internas</span><span>{maquinaSelecionada.notas_internas || '—'}</span></div>
                                 </div>
 
-                                {/* Seção de Operadores Autorizados */}
                                 {podeGerenciar && (
                                     <div style={styles.secaoOperadores}>
                                         <h4 style={styles.secaoTitulo}>👷 Operadores Autorizados</h4>
@@ -301,7 +307,7 @@ export default function Maquinas() {
                                 <select style={styles.input} value={formEdicao.id_vendedor || ''} onChange={(e) => setFormEdicao({ ...formEdicao, id_vendedor: e.target.value })}>
                                     <option value="">Vincular Vendedor Responsável</option>
                                     {vendedores.map((v) => (
-                                        <option key={v.id} value={v.id}>{v.nome}</option>
+                                        <option key={v.id} value={v.id}>{v.nome} — Carteira {v.carteira}</option>
                                     ))}
                                 </select>
                                 <select style={styles.input} value={formEdicao.id_produto || ''} onChange={(e) => setFormEdicao({ ...formEdicao, id_produto: e.target.value })}>
@@ -432,7 +438,7 @@ export default function Maquinas() {
                                     <td style={styles.td}>{m.modelo}</td>
                                     <td style={styles.td}>{m.status}</td>
                                     <td style={styles.td}>{m.nome_cliente || '—'}</td>
-                                    <td style={styles.td}>{m.nome_vendedor || '—'}</td>
+                                    <td style={styles.td}>{m.nome_vendedor ? `${m.nome_vendedor} (${m.carteira_vendedor})` : '—'}</td>
                                 </tr>
                             ))}
                         </tbody>
