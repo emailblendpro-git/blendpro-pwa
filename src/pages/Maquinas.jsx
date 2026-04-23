@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useUsuario } from '../hooks/useUsuario';
 
 export default function Maquinas() {
     const navigate = useNavigate();
+    const { podeGerenciar } = useUsuario();
     const [maquinas, setMaquinas] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [mostrarForm, setMostrarForm] = useState(false);
@@ -35,7 +37,6 @@ export default function Maquinas() {
         notas_internas: '',
     });
 
-    // Calcula margem em tempo real
     const calcularMargem = () => {
         const venda = parseFloat(String(formEdicao.valor_unitario_atual || '0').replace(',', '.')) || 0;
         const idProduto = formEdicao.id_produto || maquinaSelecionada?.id_produto;
@@ -128,12 +129,15 @@ export default function Maquinas() {
             <div style={styles.conteudo}>
                 <div style={styles.topBar}>
                     <h2 style={styles.pageTitulo}>Máquinas</h2>
-                    <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
-                        {mostrarForm ? '✕ Fechar' : '+ Nova Máquina'}
-                    </button>
+                    {/* Botão Nova Máquina — apenas Master e Operador Interno */}
+                    {podeGerenciar && (
+                        <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
+                            {mostrarForm ? '✕ Fechar' : '+ Nova Máquina'}
+                        </button>
+                    )}
                 </div>
 
-                {mostrarForm && (
+                {mostrarForm && podeGerenciar && (
                     <div style={styles.form}>
                         <h3 style={styles.formTitulo}>Nova Máquina</h3>
                         <input style={styles.input} placeholder="Número de Série *" value={form.numero_serie} onChange={(e) => setForm({ ...form, numero_serie: e.target.value })} />
@@ -174,12 +178,15 @@ export default function Maquinas() {
                         <div style={styles.painelHeader}>
                             <h3 style={styles.painelTitulo}>{maquinaSelecionada.numero_serie}</h3>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                <button style={styles.botaoEditar} onClick={() => {
-                                    if (!editando) carregarParametros(maquinaSelecionada.numero_serie);
-                                    setEditando(!editando);
-                                }}>
-                                    {editando ? '✕ Cancelar' : '✏️ Editar'}
-                                </button>
+                                {/* Botão Editar — apenas Master e Operador Interno */}
+                                {podeGerenciar && (
+                                    <button style={styles.botaoEditar} onClick={() => {
+                                        if (!editando) carregarParametros(maquinaSelecionada.numero_serie);
+                                        setEditando(!editando);
+                                    }}>
+                                        {editando ? '✕ Cancelar' : '✏️ Editar'}
+                                    </button>
+                                )}
                                 <button style={styles.botaoFechar} onClick={() => setMaquinaSelecionada(null)}>
                                     ✕ Fechar
                                 </button>
@@ -250,7 +257,6 @@ export default function Maquinas() {
                                     <div style={styles.secaoParametros}>
                                         <h4 style={styles.secaoTitulo}>💰 Parâmetros Financeiros</h4>
                                         <p style={styles.secaoDesc}>Valores em % sobre o preço de venda</p>
-
                                         {[
                                             { campo: 'icms', label: 'ICMS' },
                                             { campo: 'pis', label: 'PIS' },
@@ -272,7 +278,6 @@ export default function Maquinas() {
                                                 />
                                             </div>
                                         ))}
-
                                         {(() => {
                                             const { margem, margemPct, venda, custo, deducoes } = calcularMargem();
                                             return (
@@ -300,7 +305,6 @@ export default function Maquinas() {
                                             custo_aquisicao: formEdicao.custo_aquisicao ? parseFloat(String(formEdicao.custo_aquisicao).replace(',', '.')) : null,
                                             valor_unitario_atual: formEdicao.valor_unitario_atual ? parseFloat(String(formEdicao.valor_unitario_atual).replace(',', '.')) : null,
                                         });
-
                                         if (mostrarParametros(formEdicao)) {
                                             const payload = {
                                                 icms: parseFloat(formParametros.icms),
@@ -318,7 +322,6 @@ export default function Maquinas() {
                                                 await api.post(`/parametros/${maquinaSelecionada.numero_serie}`, payload);
                                             }
                                         }
-
                                         alert('Máquina atualizada com sucesso!');
                                         setEditando(false);
                                         const resMaquina = await api.get(`/maquinas/${maquinaSelecionada.numero_serie}`);
