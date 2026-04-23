@@ -96,6 +96,15 @@ export default function Dashboard() {
             </div>
           )}
 
+{/* Vendedores — apenas Master e Operador Interno */}
+          {podeGerenciar && (
+            <div style={styles.card} onClick={() => navigate('/vendedores')}>
+              <p style={styles.cardTitulo}>Vendedores</p>
+              <p style={styles.cardValor}>🤝</p>
+              <p style={styles.cardLink}>Ver vendedores →</p>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

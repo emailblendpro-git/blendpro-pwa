@@ -8,15 +8,14 @@ import Manutencoes from './pages/Manutencoes';
 import Chamados from './pages/Chamados';
 import Produtos from './pages/Produtos';
 import Relatorios from './pages/Relatorios';
+import Vendedores from './pages/Vendedores';
 import { useUsuario } from './hooks/useUsuario';
 
-// Rota protegida — redireciona para login se não autenticado
 function RotaProtegida({ children }) {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/" />;
 }
 
-// Rota restrita por perfil — redireciona para dashboard se sem permissão
 function RotaRestrita({ children, perfisPermitidos }) {
   const { perfil } = useUsuario();
   if (!perfil) return <Navigate to="/" />;
@@ -78,6 +77,14 @@ export default function App() {
           <RotaProtegida>
             <RotaRestrita perfisPermitidos={['master', 'operador_interno']}>
               <Relatorios />
+            </RotaRestrita>
+          </RotaProtegida>
+        } />
+
+        <Route path="/vendedores" element={
+          <RotaProtegida>
+            <RotaRestrita perfisPermitidos={['master', 'operador_interno']}>
+              <Vendedores />
             </RotaRestrita>
           </RotaProtegida>
         } />
