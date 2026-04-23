@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useUsuario } from '../hooks/useUsuario';
 
 export default function Manutencoes() {
   const navigate = useNavigate();
+  const { podeManutencao } = useUsuario();
   const [manutencoes, setManutencoes] = useState([]);
   const [maquinas, setMaquinas] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -67,12 +69,14 @@ export default function Manutencoes() {
       <div style={styles.conteudo}>
         <div style={styles.topBar}>
           <h2 style={styles.pageTitulo}>Manutenções</h2>
-          <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
-            {mostrarForm ? '✕ Fechar' : '+ Novo Registro'}
-          </button>
+          {podeManutencao && (
+            <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
+              {mostrarForm ? '✕ Fechar' : '+ Novo Registro'}
+            </button>
+          )}
         </div>
 
-        {mostrarForm && (
+        {mostrarForm && podeManutencao && (
           <div style={styles.form}>
             <h3 style={styles.formTitulo}>Novo Registro</h3>
             <select style={styles.input} value={form.numero_serie} onChange={(e) => setForm({ ...form, numero_serie: e.target.value })}>

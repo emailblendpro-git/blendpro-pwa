@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useUsuario } from '../hooks/useUsuario';
 
 export default function Chamados() {
   const navigate = useNavigate();
+  const { podeManutencao } = useUsuario();
   const [chamados, setChamados] = useState([]);
   const [maquinas, setMaquinas] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -134,11 +136,14 @@ export default function Chamados() {
               <div style={styles.painelCampo}><span style={styles.painelLabel}>Status</span><span style={{ color: corStatus(chamadoSelecionado.status) }}>{chamadoSelecionado.status}</span></div>
               <div style={{ ...styles.painelCampo, gridColumn: '1 / -1' }}><span style={styles.painelLabel}>Descrição</span><span>{chamadoSelecionado.descricao || '—'}</span></div>
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-              <button style={{ ...styles.botaoAcao, backgroundColor: '#f59e0b' }} onClick={() => handleAtualizarStatus(chamadoSelecionado.id, 'Em Andamento')}>Em Andamento</button>
-              <button style={{ ...styles.botaoAcao, backgroundColor: '#22c55e' }} onClick={() => handleAtualizarStatus(chamadoSelecionado.id, 'Resolvido')}>Resolvido</button>
-              <button style={{ ...styles.botaoAcao, backgroundColor: '#94a3b8' }} onClick={() => handleAtualizarStatus(chamadoSelecionado.id, 'Fechado')}>Fechado</button>
-            </div>
+            {/* Botões de status — Master, Operador Interno e Operador Externo */}
+            {podeManutencao && (
+              <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                <button style={{ ...styles.botaoAcao, backgroundColor: '#f59e0b' }} onClick={() => handleAtualizarStatus(chamadoSelecionado.id, 'Em Andamento')}>Em Andamento</button>
+                <button style={{ ...styles.botaoAcao, backgroundColor: '#22c55e' }} onClick={() => handleAtualizarStatus(chamadoSelecionado.id, 'Resolvido')}>Resolvido</button>
+                <button style={{ ...styles.botaoAcao, backgroundColor: '#94a3b8' }} onClick={() => handleAtualizarStatus(chamadoSelecionado.id, 'Fechado')}>Fechado</button>
+              </div>
+            )}
           </div>
         )}
 
