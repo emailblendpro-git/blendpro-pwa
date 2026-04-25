@@ -579,6 +579,6 @@ const styles = {
   botaoBuscar: { padding: '10px 20px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' },
   listaCheckbox: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '16px' },
   checkboxHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #334155' },
-  checkboxGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '8px' },
-  checkboxItem: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px' },
+  checkboxGrid: { display: 'flex', flexDirection: 'column', gap: '4px' },
+checkboxItem: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
 };
