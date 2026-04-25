@@ -38,11 +38,8 @@ export default function Relatorios() {
       setCarregando(true);
       const res = await api.get('/relatorios');
       setResumo(res.data);
-    } catch {
-      setResumo(null);
-    } finally {
-      setCarregando(false);
-    }
+    } catch { setResumo(null); }
+    finally { setCarregando(false); }
   };
 
   const carregarRelatorioMaquina = async () => {
@@ -51,11 +48,8 @@ export default function Relatorios() {
       setCarregando(true);
       const res = await api.get(`/relatorios/${serialSelecionado}`);
       setRelatorioMaquina(res.data);
-    } catch {
-      alert('Erro ao carregar relatório da máquina.');
-    } finally {
-      setCarregando(false);
-    }
+    } catch { alert('Erro ao carregar relatório da máquina.'); }
+    finally { setCarregando(false); }
   };
 
   const carregarRelatorioCliente = async () => {
@@ -65,11 +59,8 @@ export default function Relatorios() {
       const res = await api.get(`/relatorios/cliente/${clienteSelecionado}`);
       setRelatorioCliente(res.data);
       setRelatorioFinanceiroCliente(null);
-    } catch {
-      alert('Erro ao carregar relatório do cliente.');
-    } finally {
-      setCarregando(false);
-    }
+    } catch { alert('Erro ao carregar relatório do cliente.'); }
+    finally { setCarregando(false); }
   };
 
   const carregarFinanceiroCliente = async () => {
@@ -78,11 +69,8 @@ export default function Relatorios() {
       setCarregando(true);
       const res = await api.get(`/relatorios/financeiro/cliente/${clienteSelecionado}`);
       setRelatorioFinanceiroCliente(res.data);
-    } catch {
-      alert('Erro ao carregar relatório financeiro do cliente.');
-    } finally {
-      setCarregando(false);
-    }
+    } catch { alert('Erro ao carregar relatório financeiro do cliente.'); }
+    finally { setCarregando(false); }
   };
 
   // Multi-select — Máquinas
@@ -254,44 +242,6 @@ export default function Relatorios() {
     </div>
   );
 
-  const ListaCheckbox = ({ itens, selecionados, onToggle, onSelecionarTodos, onBuscar, labelTodos, labelBotao, renderLabel, renderSub }) => (
-    <div style={styles.listaCheckbox}>
-      <div style={styles.checkboxHeader}>
-        <label style={styles.checkboxItem}>
-          <input type="checkbox"
-            checked={selecionados.length === itens.length && itens.length > 0}
-            onChange={onSelecionarTodos}
-            style={{ marginRight: '8px' }}
-          />
-          <strong>{labelTodos} ({itens.length})</strong>
-        </label>
-        <span style={{ color: '#94a3b8', fontSize: '13px' }}>{selecionados.length} selecionado(s)</span>
-      </div>
-      <div style={styles.checkboxGrid}>
-        {itens.map((item, i) => {
-          const valor = renderLabel(item);
-          const selecionado = selecionados.includes(valor);
-          return (
-            <label key={i} style={{
-              ...styles.checkboxItem,
-              backgroundColor: selecionado ? '#0c4a6e' : '#1e293b',
-              border: selecionado ? '1px solid #0ea5e9' : '1px solid #334155',
-            }}>
-              <input type="checkbox" checked={selecionado} onChange={() => onToggle(valor)} style={{ marginRight: '8px' }} />
-              <div>
-                <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{valor}</div>
-                {renderSub && <div style={{ color: '#94a3b8', fontSize: '12px' }}>{renderSub(item)}</div>}
-              </div>
-            </label>
-          );
-        })}
-      </div>
-      <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={onBuscar}>
-        💰 {labelBotao} ({selecionados.length})
-      </button>
-    </div>
-  );
-
   const tituloConsolidado = () => {
     if (subAbaFin === 'maquinas') return `${seraisSelecionados.length} máquina(s)`;
     if (subAbaFin === 'clientes') return `${clientesSelecionados.length} cliente(s)`;
@@ -460,47 +410,110 @@ export default function Relatorios() {
 
             {/* Sub-aba Máquinas */}
             {subAbaFin === 'maquinas' && (
-              <ListaCheckbox
-                itens={maquinas}
-                selecionados={seraisSelecionados}
-                onToggle={toggleSerial}
-                onSelecionarTodos={selecionarTodosMaquinas}
-                onBuscar={buscarFinanceiroMaquinas}
-                labelTodos="Selecionar todas"
-                labelBotao="Gerar Relatório Financeiro"
-                renderLabel={(m) => m.numero_serie}
-                renderSub={(m) => m.nome_cliente || 'Sem cliente'}
-              />
+              <div style={styles.listaCheckbox}>
+                <div style={styles.checkboxHeader}>
+                  <label style={styles.checkboxItem}>
+                    <input type="checkbox"
+                      checked={seraisSelecionados.length === maquinas.length && maquinas.length > 0}
+                      onChange={selecionarTodosMaquinas}
+                      style={{ marginRight: '8px' }}
+                    />
+                    <strong>Selecionar todas ({maquinas.length})</strong>
+                  </label>
+                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>{seraisSelecionados.length} selecionada(s)</span>
+                </div>
+                <div style={styles.checkboxGrid}>
+                  {maquinas.map((m) => (
+                    <label key={m.numero_serie} style={{
+                      ...styles.checkboxItem,
+                      backgroundColor: seraisSelecionados.includes(m.numero_serie) ? '#0c4a6e' : '#1e293b',
+                      border: seraisSelecionados.includes(m.numero_serie) ? '1px solid #0ea5e9' : '1px solid #334155',
+                    }}>
+                      <input type="checkbox" checked={seraisSelecionados.includes(m.numero_serie)}
+                        onChange={() => toggleSerial(m.numero_serie)} style={{ marginRight: '8px' }} />
+                      <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{m.numero_serie}</div>
+                        <div style={{ color: '#94a3b8', fontSize: '12px' }}>{m.nome_cliente || 'Sem cliente'}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={buscarFinanceiroMaquinas}>
+                  💰 Gerar Relatório Financeiro ({seraisSelecionados.length})
+                </button>
+              </div>
             )}
 
             {/* Sub-aba Clientes */}
             {subAbaFin === 'clientes' && (
-              <ListaCheckbox
-                itens={clientes}
-                selecionados={clientesSelecionados}
-                onToggle={toggleCliente}
-                onSelecionarTodos={selecionarTodosClientes}
-                onBuscar={buscarFinanceiroClientes}
-                labelTodos="Selecionar todos"
-                labelBotao="Gerar Relatório Financeiro"
-                renderLabel={(c) => c.id}
-                renderSub={(c) => `${c.nome_cliente} — ${c.cidade || '—'}`}
-              />
+              <div style={styles.listaCheckbox}>
+                <div style={styles.checkboxHeader}>
+                  <label style={styles.checkboxItem}>
+                    <input type="checkbox"
+                      checked={clientesSelecionados.length === clientes.length && clientes.length > 0}
+                      onChange={selecionarTodosClientes}
+                      style={{ marginRight: '8px' }}
+                    />
+                    <strong>Selecionar todos ({clientes.length})</strong>
+                  </label>
+                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>{clientesSelecionados.length} selecionado(s)</span>
+                </div>
+                <div style={styles.checkboxGrid}>
+                  {clientes.map((c) => (
+                    <label key={c.id} style={{
+                      ...styles.checkboxItem,
+                      backgroundColor: clientesSelecionados.includes(c.id) ? '#0c4a6e' : '#1e293b',
+                      border: clientesSelecionados.includes(c.id) ? '1px solid #0ea5e9' : '1px solid #334155',
+                    }}>
+                      <input type="checkbox" checked={clientesSelecionados.includes(c.id)}
+                        onChange={() => toggleCliente(c.id)} style={{ marginRight: '8px' }} />
+                      <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.nome_cliente}</div>
+                        <div style={{ color: '#94a3b8', fontSize: '12px' }}>{c.cidade || '—'}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={buscarFinanceiroClientes}>
+                  💰 Gerar Relatório Financeiro ({clientesSelecionados.length})
+                </button>
+              </div>
             )}
 
             {/* Sub-aba Cidades */}
             {subAbaFin === 'cidades' && (
-              <ListaCheckbox
-                itens={cidades}
-                selecionados={cidadesSelecionadas}
-                onToggle={toggleCidade}
-                onSelecionarTodos={selecionarTodasCidades}
-                onBuscar={buscarFinanceiroCidades}
-                labelTodos="Selecionar todas"
-                labelBotao="Gerar Relatório Financeiro"
-                renderLabel={(c) => c.cidade}
-                renderSub={(c) => `${c.total_clientes} cliente(s) · ${c.total_maquinas} máquina(s)`}
-              />
+              <div style={styles.listaCheckbox}>
+                <div style={styles.checkboxHeader}>
+                  <label style={styles.checkboxItem}>
+                    <input type="checkbox"
+                      checked={cidadesSelecionadas.length === cidades.length && cidades.length > 0}
+                      onChange={selecionarTodasCidades}
+                      style={{ marginRight: '8px' }}
+                    />
+                    <strong>Selecionar todas ({cidades.length})</strong>
+                  </label>
+                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>{cidadesSelecionadas.length} selecionada(s)</span>
+                </div>
+                <div style={styles.checkboxGrid}>
+                  {cidades.map((c, i) => (
+                    <label key={i} style={{
+                      ...styles.checkboxItem,
+                      backgroundColor: cidadesSelecionadas.includes(c.cidade) ? '#0c4a6e' : '#1e293b',
+                      border: cidadesSelecionadas.includes(c.cidade) ? '1px solid #0ea5e9' : '1px solid #334155',
+                    }}>
+                      <input type="checkbox" checked={cidadesSelecionadas.includes(c.cidade)}
+                        onChange={() => toggleCidade(c.cidade)} style={{ marginRight: '8px' }} />
+                      <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.cidade}</div>
+                        <div style={{ color: '#94a3b8', fontSize: '12px' }}>{c.total_clientes} cliente(s) · {c.total_maquinas} máquina(s)</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={buscarFinanceiroCidades}>
+                  💰 Gerar Relatório Financeiro ({cidadesSelecionadas.length})
+                </button>
+              </div>
             )}
 
             {carregando && <p style={styles.mensagem}>Carregando...</p>}
