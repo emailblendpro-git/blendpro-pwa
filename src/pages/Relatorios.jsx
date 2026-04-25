@@ -3,17 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
 
+const moeda = (v) => `R$ ${parseFloat(v || 0).toFixed(2).replace('.', ',')}`;
+const num = (v, dec = 1) => parseFloat(v || 0).toFixed(dec);
+
 export default function Relatorios() {
   const navigate = useNavigate();
   const { podeGerenciar } = useUsuario();
-  const [aba, setAba] = useState('geral'); // 'geral' | 'maquina' | 'cliente'
+  const [aba, setAba] = useState('geral'); // 'geral' | 'maquina' | 'cliente' | 'financeiro'
   const [maquinas, setMaquinas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [resumo, setResumo] = useState(null);
   const [relatorioMaquina, setRelatorioMaquina] = useState(null);
   const [relatorioCliente, setRelatorioCliente] = useState(null);
+  const [relatorioFinanceiro, setRelatorioFinanceiro] = useState(null);
   const [serialSelecionado, setSerialSelecionado] = useState('');
+  const [serialFinanceiro, setSerialFinanceiro] = useState('');
   const [clienteSelecionado, setClienteSelecionado] = useState('');
 
   useEffect(() => {
@@ -60,6 +65,19 @@ export default function Relatorios() {
     }
   };
 
+  const carregarRelatorioFinanceiro = async () => {
+    if (!serialFinanceiro) return;
+    try {
+      setCarregando(true);
+      const res = await api.get(`/relatorios/financeiro/${serialFinanceiro}`);
+      setRelatorioFinanceiro(res.data);
+    } catch {
+      alert('Erro ao carregar relatório financeiro.');
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   const formatarData = (data) => {
     if (!data) return '—';
     return new Date(data).toLocaleString('pt-BR');
@@ -93,6 +111,11 @@ export default function Relatorios() {
           <button style={{ ...styles.aba, ...(aba === 'cliente' ? styles.abaAtiva : {}) }} onClick={() => setAba('cliente')}>
             🏢 Por Cliente
           </button>
+          {podeGerenciar && (
+            <button style={{ ...styles.aba, ...(aba === 'financeiro' ? styles.abaAtiva : {}) }} onClick={() => setAba('financeiro')}>
+              💰 Financeiro
+            </button>
+          )}
         </div>
 
         {/* ABA GERAL */}
@@ -189,7 +212,7 @@ export default function Relatorios() {
                   </div>
                   <div style={styles.card}>
                     <p style={styles.cardTitulo}>Volume Total (L)</p>
-                    <p style={styles.cardValor}>{parseFloat(relatorioMaquina.totais.volume_total_geral || 0).toFixed(1)}</p>
+                    <p style={styles.cardValor}>{num(relatorioMaquina.totais.volume_total_geral)}</p>
                   </div>
                   <div style={styles.card}>
                     <p style={styles.cardTitulo}>Média Mensal</p>
@@ -213,7 +236,7 @@ export default function Relatorios() {
                           <tr key={i} style={styles.tr}>
                             <td style={styles.td}>{formatarMes(h.mes)}</td>
                             <td style={styles.td}>{h.acionamentos}</td>
-                            <td style={styles.td}>{parseFloat(h.volume_total || 0).toFixed(1)}</td>
+                            <td style={styles.td}>{num(h.volume_total)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -297,7 +320,7 @@ export default function Relatorios() {
                             <td style={styles.td}>{m.modelo}</td>
                             <td style={styles.td}>{m.status}</td>
                             <td style={styles.td}>{m.total_acionamentos || 0}</td>
-                            <td style={styles.td}>{parseFloat(m.volume_total || 0).toFixed(1)}</td>
+                            <td style={styles.td}>{num(m.volume_total)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -305,6 +328,119 @@ export default function Relatorios() {
                   </div>
                 ) : (
                   <p style={styles.mensagem}>Nenhuma máquina vinculada a este cliente.</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ABA FINANCEIRO */}
+        {aba === 'financeiro' && podeGerenciar && (
+          <div>
+            <div style={styles.filtro}>
+              <select style={styles.input} value={serialFinanceiro} onChange={(e) => setSerialFinanceiro(e.target.value)}>
+                <option value="">Selecionar Máquina</option>
+                {maquinas.map((m) => (
+                  <option key={m.id} value={m.numero_serie}>
+                    {m.numero_serie} — {m.nome_cliente || 'Sem cliente'}
+                  </option>
+                ))}
+              </select>
+              <button style={styles.botaoBuscar} onClick={carregarRelatorioFinanceiro}>
+                🔍 Buscar
+              </button>
+            </div>
+
+            {carregando && <p style={styles.mensagem}>Carregando...</p>}
+
+            {relatorioFinanceiro && !carregando && (
+              <div>
+                {/* Cards de totais */}
+                <div style={styles.cards}>
+                  <div style={{ ...styles.card, borderTop: '3px solid #38bdf8' }}>
+                    <p style={styles.cardTitulo}>Total Abastecimentos</p>
+                    <p style={styles.cardValor}>{relatorioFinanceiro.totais.total_abastecimentos}</p>
+                  </div>
+                  <div style={{ ...styles.card, borderTop: '3px solid #38bdf8' }}>
+                    <p style={styles.cardTitulo}>Volume Total (L)</p>
+                    <p style={styles.cardValor}>{num(relatorioFinanceiro.totais.volume_total)}</p>
+                  </div>
+                  <div style={{ ...styles.card, borderTop: '3px solid #22c55e' }}>
+                    <p style={styles.cardTitulo}>Receita Total</p>
+                    <p style={{ ...styles.cardValor, fontSize: '20px', color: '#22c55e' }}>{moeda(relatorioFinanceiro.totais.receita_total)}</p>
+                  </div>
+                  <div style={{ ...styles.card, borderTop: '3px solid #ef4444' }}>
+                    <p style={styles.cardTitulo}>Custo Total</p>
+                    <p style={{ ...styles.cardValor, fontSize: '20px', color: '#ef4444' }}>{moeda(relatorioFinanceiro.totais.custo_total)}</p>
+                  </div>
+                  <div style={{ ...styles.card, borderTop: '3px solid #f59e0b' }}>
+                    <p style={styles.cardTitulo}>Total Deduções</p>
+                    <p style={{ ...styles.cardValor, fontSize: '20px', color: '#f59e0b' }}>{moeda(relatorioFinanceiro.totais.deducoes_total)}</p>
+                  </div>
+                  <div style={{ ...styles.card, borderTop: '3px solid #22c55e' }}>
+                    <p style={styles.cardTitulo}>Margem Total</p>
+                    <p style={{ ...styles.cardValor, fontSize: '20px', color: '#22c55e' }}>
+                      {moeda(relatorioFinanceiro.totais.margem_total)}
+                      <span style={{ fontSize: '14px', marginLeft: '6px' }}>({num(relatorioFinanceiro.totais.margem_media_pct, 2)}%)</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Deduções detalhadas */}
+                <div style={styles.secao}>
+                  <h3 style={styles.secaoTitulo}>📋 Deduções Detalhadas (Total Histórico)</h3>
+                  <div style={styles.cards}>
+                    {[
+                      { label: 'ICMS', key: 'icms' },
+                      { label: 'PIS', key: 'pis' },
+                      { label: 'COFINS', key: 'cofins' },
+                      { label: 'Logístico', key: 'logistico' },
+                      { label: 'Comissionado 1', key: 'comissionado_1' },
+                      { label: 'Comissionado 2', key: 'comissionado_2' },
+                      { label: 'Custo Operacional', key: 'custo_operacional' },
+                      { label: 'Outros', key: 'outros' },
+                    ].map(({ label, key }) => (
+                      <div key={key} style={{ ...styles.card, minWidth: '140px', borderTop: '3px solid #f59e0b' }}>
+                        <p style={styles.cardTitulo}>{label}</p>
+                        <p style={{ ...styles.cardValor, fontSize: '18px', color: '#f59e0b' }}>
+                          {moeda(relatorioFinanceiro.deducoes_detalhadas[key])}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Histórico mensal */}
+                {relatorioFinanceiro.historico_mensal.length > 0 && (
+                  <div style={styles.secao}>
+                    <h3 style={styles.secaoTitulo}>📅 Histórico Mensal Financeiro</h3>
+                    <table style={styles.tabela}>
+                      <thead>
+                        <tr>
+                          <th style={styles.th}>Mês</th>
+                          <th style={styles.th}>Volume (L)</th>
+                          <th style={styles.th}>Receita</th>
+                          <th style={styles.th}>Custo</th>
+                          <th style={styles.th}>Deduções</th>
+                          <th style={styles.th}>Margem</th>
+                          <th style={styles.th}>Margem %</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {relatorioFinanceiro.historico_mensal.map((h, i) => (
+                          <tr key={i} style={styles.tr}>
+                            <td style={styles.td}>{formatarMes(h.mes)}</td>
+                            <td style={styles.td}>{num(h.volume)}</td>
+                            <td style={styles.td}>{moeda(h.receita)}</td>
+                            <td style={styles.td}>{moeda(h.custo)}</td>
+                            <td style={styles.td}>{moeda(h.deducoes)}</td>
+                            <td style={{ ...styles.td, color: '#22c55e', fontWeight: 'bold' }}>{moeda(h.margem)}</td>
+                            <td style={{ ...styles.td, color: '#22c55e' }}>{num(h.margem_pct, 2)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             )}
@@ -324,7 +460,7 @@ const styles = {
   conteudo: { padding: '40px 32px' },
   pageTitulo: { color: '#f1f5f9', marginBottom: '24px' },
   mensagem: { color: '#94a3b8' },
-  abas: { display: 'flex', gap: '8px', marginBottom: '32px' },
+  abas: { display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' },
   aba: { padding: '10px 20px', backgroundColor: '#1e293b', color: '#94a3b8', border: '1px solid #334155', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' },
   abaAtiva: { backgroundColor: '#0ea5e9', color: '#fff', border: '1px solid #0ea5e9' },
   cards: { display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '32px' },
