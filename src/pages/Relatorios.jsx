@@ -10,9 +10,10 @@ export default function Relatorios() {
   const navigate = useNavigate();
   const { podeGerenciar } = useUsuario();
   const [aba, setAba] = useState('geral');
-  const [subAbaFin, setSubAbaFin] = useState('maquinas'); // 'maquinas' | 'clientes'
+  const [subAbaFin, setSubAbaFin] = useState('maquinas');
   const [maquinas, setMaquinas] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [cidades, setCidades] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [resumo, setResumo] = useState(null);
   const [relatorioMaquina, setRelatorioMaquina] = useState(null);
@@ -21,14 +22,14 @@ export default function Relatorios() {
   const [relatorioFinanceiro, setRelatorioFinanceiro] = useState(null);
   const [serialSelecionado, setSerialSelecionado] = useState('');
   const [clienteSelecionado, setClienteSelecionado] = useState('');
-
-  // Multi-select para aba financeiro
   const [seraisSelecionados, setSeraisSelecionados] = useState([]);
   const [clientesSelecionados, setClientesSelecionados] = useState([]);
+  const [cidadesSelecionadas, setCidadesSelecionadas] = useState([]);
 
   useEffect(() => {
     api.get('/maquinas').then((res) => setMaquinas(res.data)).catch(() => setMaquinas([]));
     api.get('/clientes').then((res) => setClientes(res.data)).catch(() => setClientes([]));
+    api.get('/relatorios/cidades').then((res) => setCidades(res.data.cidades)).catch(() => setCidades([]));
     carregarResumo();
   }, []);
 
@@ -84,102 +85,79 @@ export default function Relatorios() {
     }
   };
 
-  // Multi-select financeiro — Máquinas
+  // Multi-select — Máquinas
   const toggleSerial = (serial) => {
-    setSeraisSelecionados(prev =>
-      prev.includes(serial) ? prev.filter(s => s !== serial) : [...prev, serial]
-    );
+    setSeraisSelecionados(prev => prev.includes(serial) ? prev.filter(s => s !== serial) : [...prev, serial]);
     setRelatorioFinanceiro(null);
   };
-
   const selecionarTodosMaquinas = () => {
-    if (seraisSelecionados.length === maquinas.length) {
-      setSeraisSelecionados([]);
-    } else {
-      setSeraisSelecionados(maquinas.map(m => m.numero_serie));
-    }
+    setSeraisSelecionados(seraisSelecionados.length === maquinas.length ? [] : maquinas.map(m => m.numero_serie));
     setRelatorioFinanceiro(null);
   };
-
   const buscarFinanceiroMaquinas = async () => {
-    if (seraisSelecionados.length === 0) {
-      alert('Selecione ao menos uma máquina.');
-      return;
-    }
+    if (seraisSelecionados.length === 0) { alert('Selecione ao menos uma máquina.'); return; }
     try {
       setCarregando(true);
       const res = await api.post('/relatorios/financeiro/maquinas', { seriais: seraisSelecionados });
       setRelatorioFinanceiro(res.data);
-    } catch {
-      alert('Erro ao carregar relatório financeiro.');
-    } finally {
-      setCarregando(false);
-    }
+    } catch { alert('Erro ao carregar relatório financeiro.'); }
+    finally { setCarregando(false); }
   };
 
-  // Multi-select financeiro — Clientes
+  // Multi-select — Clientes
   const toggleCliente = (id) => {
-    setClientesSelecionados(prev =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
+    setClientesSelecionados(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
     setRelatorioFinanceiro(null);
   };
-
   const selecionarTodosClientes = () => {
-    if (clientesSelecionados.length === clientes.length) {
-      setClientesSelecionados([]);
-    } else {
-      setClientesSelecionados(clientes.map(c => c.id));
-    }
+    setClientesSelecionados(clientesSelecionados.length === clientes.length ? [] : clientes.map(c => c.id));
     setRelatorioFinanceiro(null);
   };
-
   const buscarFinanceiroClientes = async () => {
-    if (clientesSelecionados.length === 0) {
-      alert('Selecione ao menos um cliente.');
-      return;
-    }
+    if (clientesSelecionados.length === 0) { alert('Selecione ao menos um cliente.'); return; }
     try {
       setCarregando(true);
       const res = await api.post('/relatorios/financeiro/clientes', { ids: clientesSelecionados });
       setRelatorioFinanceiro(res.data);
-    } catch {
-      alert('Erro ao carregar relatório financeiro.');
-    } finally {
-      setCarregando(false);
-    }
+    } catch { alert('Erro ao carregar relatório financeiro.'); }
+    finally { setCarregando(false); }
   };
 
-  const formatarData = (data) => {
-    if (!data) return '—';
-    return new Date(data).toLocaleString('pt-BR');
+  // Multi-select — Cidades
+  const toggleCidade = (cidade) => {
+    setCidadesSelecionadas(prev => prev.includes(cidade) ? prev.filter(c => c !== cidade) : [...prev, cidade]);
+    setRelatorioFinanceiro(null);
+  };
+  const selecionarTodasCidades = () => {
+    setCidadesSelecionadas(cidadesSelecionadas.length === cidades.length ? [] : cidades.map(c => c.cidade));
+    setRelatorioFinanceiro(null);
+  };
+  const buscarFinanceiroCidades = async () => {
+    if (cidadesSelecionadas.length === 0) { alert('Selecione ao menos uma cidade.'); return; }
+    try {
+      setCarregando(true);
+      const res = await api.post('/relatorios/financeiro/cidades', { cidades: cidadesSelecionadas });
+      setRelatorioFinanceiro(res.data);
+    } catch { alert('Erro ao carregar relatório financeiro por cidades.'); }
+    finally { setCarregando(false); }
   };
 
-  const formatarMes = (mes) => {
-    if (!mes) return '—';
-    const [ano, m] = mes.split('-');
-    return `${m}/${ano}`;
-  };
+  const formatarData = (data) => { if (!data) return '—'; return new Date(data).toLocaleString('pt-BR'); };
+  const formatarMes = (mes) => { if (!mes) return '—'; const [ano, m] = mes.split('-'); return `${m}/${ano}`; };
 
   const SecaoDeducoes = ({ deducoes }) => (
     <div style={styles.secao}>
       <h3 style={styles.secaoTitulo}>📋 Deduções Detalhadas (Total Histórico)</h3>
       <div style={styles.cards}>
         {[
-          { label: 'ICMS', key: 'icms' },
-          { label: 'PIS', key: 'pis' },
-          { label: 'COFINS', key: 'cofins' },
-          { label: 'Logístico', key: 'logistico' },
-          { label: 'Comissionado 1', key: 'comissionado_1' },
-          { label: 'Comissionado 2', key: 'comissionado_2' },
-          { label: 'Custo Operacional', key: 'custo_operacional' },
-          { label: 'Outros', key: 'outros' },
+          { label: 'ICMS', key: 'icms' }, { label: 'PIS', key: 'pis' },
+          { label: 'COFINS', key: 'cofins' }, { label: 'Logístico', key: 'logistico' },
+          { label: 'Comissionado 1', key: 'comissionado_1' }, { label: 'Comissionado 2', key: 'comissionado_2' },
+          { label: 'Custo Operacional', key: 'custo_operacional' }, { label: 'Outros', key: 'outros' },
         ].map(({ label, key }) => (
           <div key={key} style={{ ...styles.card, minWidth: '140px', borderTop: '3px solid #f59e0b' }}>
             <p style={styles.cardTitulo}>{label}</p>
-            <p style={{ ...styles.cardValor, fontSize: '18px', color: '#f59e0b' }}>
-              {moeda(deducoes[key])}
-            </p>
+            <p style={{ ...styles.cardValor, fontSize: '18px', color: '#f59e0b' }}>{moeda(deducoes[key])}</p>
           </div>
         ))}
       </div>
@@ -192,13 +170,9 @@ export default function Relatorios() {
       <table style={styles.tabela}>
         <thead>
           <tr>
-            <th style={styles.th}>Mês</th>
-            <th style={styles.th}>Volume (L)</th>
-            <th style={styles.th}>Receita</th>
-            <th style={styles.th}>Custo</th>
-            <th style={styles.th}>Deduções</th>
-            <th style={styles.th}>Margem</th>
-            <th style={styles.th}>Margem %</th>
+            <th style={styles.th}>Mês</th><th style={styles.th}>Volume (L)</th>
+            <th style={styles.th}>Receita</th><th style={styles.th}>Custo</th>
+            <th style={styles.th}>Deduções</th><th style={styles.th}>Margem</th><th style={styles.th}>Margem %</th>
           </tr>
         </thead>
         <tbody>
@@ -252,18 +226,14 @@ export default function Relatorios() {
 
   const TabelaPorItem = ({ itens, labelTitulo }) => (
     <div style={styles.secao}>
-      <h3 style={styles.secaoTitulo}>🖨️ {labelTitulo}</h3>
+      <h3 style={styles.secaoTitulo}>📊 {labelTitulo}</h3>
       <table style={styles.tabela}>
         <thead>
           <tr>
-            <th style={styles.th}>Nome</th>
-            <th style={styles.th}>Abastec.</th>
-            <th style={styles.th}>Volume (L)</th>
-            <th style={styles.th}>Receita</th>
-            <th style={styles.th}>Custo</th>
-            <th style={styles.th}>Deduções</th>
-            <th style={styles.th}>Margem</th>
-            <th style={styles.th}>Margem %</th>
+            <th style={styles.th}>Nome</th><th style={styles.th}>Abastec.</th>
+            <th style={styles.th}>Volume (L)</th><th style={styles.th}>Receita</th>
+            <th style={styles.th}>Custo</th><th style={styles.th}>Deduções</th>
+            <th style={styles.th}>Margem</th><th style={styles.th}>Margem %</th>
           </tr>
         </thead>
         <tbody>
@@ -283,6 +253,56 @@ export default function Relatorios() {
       </table>
     </div>
   );
+
+  const ListaCheckbox = ({ itens, selecionados, onToggle, onSelecionarTodos, onBuscar, labelTodos, labelBotao, renderLabel, renderSub }) => (
+    <div style={styles.listaCheckbox}>
+      <div style={styles.checkboxHeader}>
+        <label style={styles.checkboxItem}>
+          <input type="checkbox"
+            checked={selecionados.length === itens.length && itens.length > 0}
+            onChange={onSelecionarTodos}
+            style={{ marginRight: '8px' }}
+          />
+          <strong>{labelTodos} ({itens.length})</strong>
+        </label>
+        <span style={{ color: '#94a3b8', fontSize: '13px' }}>{selecionados.length} selecionado(s)</span>
+      </div>
+      <div style={styles.checkboxGrid}>
+        {itens.map((item, i) => {
+          const valor = renderLabel(item);
+          const selecionado = selecionados.includes(valor);
+          return (
+            <label key={i} style={{
+              ...styles.checkboxItem,
+              backgroundColor: selecionado ? '#0c4a6e' : '#1e293b',
+              border: selecionado ? '1px solid #0ea5e9' : '1px solid #334155',
+            }}>
+              <input type="checkbox" checked={selecionado} onChange={() => onToggle(valor)} style={{ marginRight: '8px' }} />
+              <div>
+                <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{valor}</div>
+                {renderSub && <div style={{ color: '#94a3b8', fontSize: '12px' }}>{renderSub(item)}</div>}
+              </div>
+            </label>
+          );
+        })}
+      </div>
+      <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={onBuscar}>
+        💰 {labelBotao} ({selecionados.length})
+      </button>
+    </div>
+  );
+
+  const tituloConsolidado = () => {
+    if (subAbaFin === 'maquinas') return `${seraisSelecionados.length} máquina(s)`;
+    if (subAbaFin === 'clientes') return `${clientesSelecionados.length} cliente(s)`;
+    return `${cidadesSelecionadas.length} cidade(s)`;
+  };
+
+  const labelDetalhamento = () => {
+    if (subAbaFin === 'maquinas') return 'Detalhamento por Máquina';
+    if (subAbaFin === 'clientes') return 'Detalhamento por Cliente';
+    return 'Detalhamento por Cidade';
+  };
 
   return (
     <div style={styles.container}>
@@ -419,107 +439,68 @@ export default function Relatorios() {
           </div>
         )}
 
-        {/* ABA FINANCEIRO — com sub-abas e checkboxes */}
+        {/* ABA FINANCEIRO */}
         {aba === 'financeiro' && podeGerenciar && (
           <div>
             {/* Sub-abas */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-              <button
-                style={{ ...styles.aba, ...(subAbaFin === 'maquinas' ? styles.abaAtiva : {}) }}
-                onClick={() => { setSubAbaFin('maquinas'); setRelatorioFinanceiro(null); setSeraisSelecionados([]); }}
-              >🖨️ Máquinas</button>
-              <button
-                style={{ ...styles.aba, ...(subAbaFin === 'clientes' ? styles.abaAtiva : {}) }}
-                onClick={() => { setSubAbaFin('clientes'); setRelatorioFinanceiro(null); setClientesSelecionados([]); }}
-              >🏢 Clientes</button>
+              <button style={{ ...styles.aba, ...(subAbaFin === 'maquinas' ? styles.abaAtiva : {}) }}
+                onClick={() => { setSubAbaFin('maquinas'); setRelatorioFinanceiro(null); setSeraisSelecionados([]); }}>
+                🖨️ Máquinas
+              </button>
+              <button style={{ ...styles.aba, ...(subAbaFin === 'clientes' ? styles.abaAtiva : {}) }}
+                onClick={() => { setSubAbaFin('clientes'); setRelatorioFinanceiro(null); setClientesSelecionados([]); }}>
+                🏢 Clientes
+              </button>
+              <button style={{ ...styles.aba, ...(subAbaFin === 'cidades' ? styles.abaAtiva : {}) }}
+                onClick={() => { setSubAbaFin('cidades'); setRelatorioFinanceiro(null); setCidadesSelecionadas([]); }}>
+                📍 Cidades
+              </button>
             </div>
 
             {/* Sub-aba Máquinas */}
             {subAbaFin === 'maquinas' && (
-              <div>
-                <div style={styles.listaCheckbox}>
-                  <div style={styles.checkboxHeader}>
-                    <label style={styles.checkboxItem}>
-                      <input type="checkbox"
-                        checked={seraisSelecionados.length === maquinas.length && maquinas.length > 0}
-                        onChange={selecionarTodosMaquinas}
-                        style={{ marginRight: '8px' }}
-                      />
-                      <strong>Selecionar todas ({maquinas.length})</strong>
-                    </label>
-                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>
-                      {seraisSelecionados.length} selecionada(s)
-                    </span>
-                  </div>
-                  <div style={styles.checkboxGrid}>
-                    {maquinas.map((m) => (
-                      <label key={m.numero_serie} style={{
-                        ...styles.checkboxItem,
-                        backgroundColor: seraisSelecionados.includes(m.numero_serie) ? '#0c4a6e' : '#1e293b',
-                        border: seraisSelecionados.includes(m.numero_serie) ? '1px solid #0ea5e9' : '1px solid #334155',
-                      }}>
-                        <input
-                          type="checkbox"
-                          checked={seraisSelecionados.includes(m.numero_serie)}
-                          onChange={() => toggleSerial(m.numero_serie)}
-                          style={{ marginRight: '8px' }}
-                        />
-                        <div>
-                          <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{m.numero_serie}</div>
-                          <div style={{ color: '#94a3b8', fontSize: '12px' }}>{m.nome_cliente || 'Sem cliente'}</div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                  <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={buscarFinanceiroMaquinas}>
-                    💰 Gerar Relatório Financeiro ({seraisSelecionados.length})
-                  </button>
-                </div>
-              </div>
+              <ListaCheckbox
+                itens={maquinas}
+                selecionados={seraisSelecionados}
+                onToggle={toggleSerial}
+                onSelecionarTodos={selecionarTodosMaquinas}
+                onBuscar={buscarFinanceiroMaquinas}
+                labelTodos="Selecionar todas"
+                labelBotao="Gerar Relatório Financeiro"
+                renderLabel={(m) => m.numero_serie}
+                renderSub={(m) => m.nome_cliente || 'Sem cliente'}
+              />
             )}
 
             {/* Sub-aba Clientes */}
             {subAbaFin === 'clientes' && (
-              <div>
-                <div style={styles.listaCheckbox}>
-                  <div style={styles.checkboxHeader}>
-                    <label style={styles.checkboxItem}>
-                      <input type="checkbox"
-                        checked={clientesSelecionados.length === clientes.length && clientes.length > 0}
-                        onChange={selecionarTodosClientes}
-                        style={{ marginRight: '8px' }}
-                      />
-                      <strong>Selecionar todos ({clientes.length})</strong>
-                    </label>
-                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>
-                      {clientesSelecionados.length} selecionado(s)
-                    </span>
-                  </div>
-                  <div style={styles.checkboxGrid}>
-                    {clientes.map((c) => (
-                      <label key={c.id} style={{
-                        ...styles.checkboxItem,
-                        backgroundColor: clientesSelecionados.includes(c.id) ? '#0c4a6e' : '#1e293b',
-                        border: clientesSelecionados.includes(c.id) ? '1px solid #0ea5e9' : '1px solid #334155',
-                      }}>
-                        <input
-                          type="checkbox"
-                          checked={clientesSelecionados.includes(c.id)}
-                          onChange={() => toggleCliente(c.id)}
-                          style={{ marginRight: '8px' }}
-                        />
-                        <div>
-                          <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.nome_cliente}</div>
-                          <div style={{ color: '#94a3b8', fontSize: '12px' }}>{c.cidade || '—'}</div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                  <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={buscarFinanceiroClientes}>
-                    💰 Gerar Relatório Financeiro ({clientesSelecionados.length})
-                  </button>
-                </div>
-              </div>
+              <ListaCheckbox
+                itens={clientes}
+                selecionados={clientesSelecionados}
+                onToggle={toggleCliente}
+                onSelecionarTodos={selecionarTodosClientes}
+                onBuscar={buscarFinanceiroClientes}
+                labelTodos="Selecionar todos"
+                labelBotao="Gerar Relatório Financeiro"
+                renderLabel={(c) => c.id}
+                renderSub={(c) => `${c.nome_cliente} — ${c.cidade || '—'}`}
+              />
+            )}
+
+            {/* Sub-aba Cidades */}
+            {subAbaFin === 'cidades' && (
+              <ListaCheckbox
+                itens={cidades}
+                selecionados={cidadesSelecionadas}
+                onToggle={toggleCidade}
+                onSelecionarTodos={selecionarTodasCidades}
+                onBuscar={buscarFinanceiroCidades}
+                labelTodos="Selecionar todas"
+                labelBotao="Gerar Relatório Financeiro"
+                renderLabel={(c) => c.cidade}
+                renderSub={(c) => `${c.total_clientes} cliente(s) · ${c.total_maquinas} máquina(s)`}
+              />
             )}
 
             {carregando && <p style={styles.mensagem}>Carregando...</p>}
@@ -528,16 +509,11 @@ export default function Relatorios() {
             {relatorioFinanceiro && !carregando && (
               <div style={{ marginTop: '32px' }}>
                 <div style={styles.secao}>
-                  <h3 style={styles.secaoTitulo}>
-                    💰 Relatório Consolidado — {subAbaFin === 'maquinas' ? `${seraisSelecionados.length} máquina(s)` : `${clientesSelecionados.length} cliente(s)`}
-                  </h3>
+                  <h3 style={styles.secaoTitulo}>💰 Relatório Consolidado — {tituloConsolidado()}</h3>
                 </div>
                 <CardsFinanceiros totais={relatorioFinanceiro.totais} />
                 {relatorioFinanceiro.por_item.length > 1 && (
-                  <TabelaPorItem
-                    itens={relatorioFinanceiro.por_item}
-                    labelTitulo={subAbaFin === 'maquinas' ? 'Detalhamento por Máquina' : 'Detalhamento por Cliente'}
-                  />
+                  <TabelaPorItem itens={relatorioFinanceiro.por_item} labelTitulo={labelDetalhamento()} />
                 )}
                 <SecaoDeducoes deducoes={relatorioFinanceiro.deducoes_detalhadas} />
                 {relatorioFinanceiro.historico_mensal.length > 0 && (
@@ -580,5 +556,5 @@ const styles = {
   listaCheckbox: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '16px' },
   checkboxHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #334155' },
   checkboxGrid: { display: 'flex', flexDirection: 'column', gap: '4px' },
-checkboxItem: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
+  checkboxItem: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
 };
