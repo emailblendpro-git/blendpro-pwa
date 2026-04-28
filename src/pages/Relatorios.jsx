@@ -433,6 +433,7 @@ export default function Relatorios() {
                           <span style={{ color: '#38bdf8' }}>Receita: {moeda(m.total_receita)}</span>
                           <span style={{ color: '#ef4444' }}>Custo+Ded: {moeda(parseFloat(m.total_custo || 0) + parseFloat(m.total_deducoes || 0))}</span>
                           <span style={{ color: '#22c55e' }}>Margem: {moeda(m.total_margem)} ({parseFloat(m.margem_pct || 0).toFixed(1)}%)</span>
+                          <span style={{ color: '#94a3b8' }}>Meses trabalhados: {m.meses_trabalhados || 0}</span>
                         </div>
                       </div>
                     </label>
