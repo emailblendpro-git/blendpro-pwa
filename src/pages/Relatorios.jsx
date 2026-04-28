@@ -467,9 +467,14 @@ export default function Relatorios() {
                     }}>
                       <input type="checkbox" checked={clientesSelecionados.includes(c.id)}
                         onChange={() => toggleCliente(c.id)} style={{ marginRight: '8px' }} />
-                      <div>
+                      <div style={{ flex: 1, textAlign: 'left' }}>
                         <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.nome_cliente}</div>
                         <div style={{ color: '#94a3b8', fontSize: '12px' }}>{c.cidade || '—'}</div>
+                        <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '11px', flexWrap: 'wrap' }}>
+                          <span style={{ color: '#22c55e' }}>Receita: {moeda(c.total_receita)}</span>
+                          <span style={{ color: '#ef4444' }}>Custo+Ded: {moeda(parseFloat(c.total_custo) + parseFloat(c.total_deducoes))}</span>
+                          <span style={{ color: '#38bdf8' }}>Margem: {moeda(c.total_margem)} ({parseFloat(c.margem_pct || 0).toFixed(1)}%)</span>
+                        </div>
                       </div>
                     </label>
                   ))}
@@ -569,5 +574,5 @@ const styles = {
   listaCheckbox: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '16px' },
   checkboxHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #334155' },
   checkboxGrid: { display: 'flex', flexDirection: 'column', gap: '4px' },
-  checkboxItem: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
+  checkboxItem: { display: 'flex', alignItems: 'flex-start', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
 };
