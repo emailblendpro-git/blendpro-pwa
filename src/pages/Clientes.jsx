@@ -240,7 +240,13 @@ export default function Clientes() {
                   <td style={styles.td}>{c.rede_nome || '—'}</td>
                   <td style={styles.td}>{c.segmento_nome || '—'}</td>
                   <td style={styles.td}>{c.cidade || '—'}</td>
-                  <td style={styles.td}>{c.total_maquinas || '0'}</td>
+                  <td style={styles.td}>
+                    {c.maquinas && c.maquinas.length > 0
+                      ? c.maquinas.map((serial) => (
+                        <div key={serial}>{serial}</div>
+                      ))
+                      : '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>
