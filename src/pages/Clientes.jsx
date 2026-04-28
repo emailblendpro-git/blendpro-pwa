@@ -223,7 +223,14 @@ export default function Clientes() {
         ) : clientesFiltrados.length === 0 ? (
           <p style={styles.mensagem}>Nenhum cliente encontrado.</p>
         ) : (
-          <table style={styles.tabela}>
+          <table style={{ ...styles.tabela, tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '30%' }} />
+              <col style={{ width: '25%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '15%' }} />
+            </colgroup>
             <thead>
               <tr>
                 <th style={styles.th}>Nome</th>
@@ -240,11 +247,11 @@ export default function Clientes() {
                   <td style={styles.td}>{c.rede_nome || '—'}</td>
                   <td style={styles.td}>{c.segmento_nome || '—'}</td>
                   <td style={styles.td}>{c.cidade || '—'}</td>
-                  <td style={styles.td}>
+                  <td style={{ ...styles.td, whiteSpace: 'nowrap' }}>
                     {c.maquinas && c.maquinas.length > 0
                       ? c.maquinas.map((serial) => (
-                        <div key={serial}>{serial}</div>
-                      ))
+                          <div key={serial}>{serial}</div>
+                        ))
                       : '—'}
                   </td>
                 </tr>
@@ -266,7 +273,7 @@ const styles = {
   pageTitulo: { color: '#f1f5f9', marginBottom: 0 },
   mensagem: { color: '#94a3b8' },
   tabela: { width: '100%', borderCollapse: 'collapse' },
-  th: { textAlign: 'left', padding: '12px 16px', backgroundColor: '#1e293b', color: '#94a3b8', fontSize: '13px', borderBottom: '1px solid #334155' },
+  th: { textAlign: 'left', padding: '12px 16px', backgroundColor: '#1e293b', color: '#94a3b8', fontSize: '13px', borderBottom: '1px solid #334155', whiteSpace: 'nowrap' },
   tr: { borderBottom: '1px solid #1e293b' },
   td: { padding: '12px 16px', color: '#f1f5f9', fontSize: '14px' },
   topBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
