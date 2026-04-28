@@ -73,7 +73,6 @@ export default function Relatorios() {
     finally { setCarregando(false); }
   };
 
-  // Multi-select — Máquinas
   const toggleSerial = (serial) => {
     setSeraisSelecionados(prev => prev.includes(serial) ? prev.filter(s => s !== serial) : [...prev, serial]);
     setRelatorioFinanceiro(null);
@@ -92,7 +91,6 @@ export default function Relatorios() {
     finally { setCarregando(false); }
   };
 
-  // Multi-select — Clientes
   const toggleCliente = (id) => {
     setClientesSelecionados(prev => prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]);
     setRelatorioFinanceiro(null);
@@ -111,7 +109,6 @@ export default function Relatorios() {
     finally { setCarregando(false); }
   };
 
-  // Multi-select — Cidades
   const toggleCidade = (cidade) => {
     setCidadesSelecionadas(prev => prev.includes(cidade) ? prev.filter(c => c !== cidade) : [...prev, cidade]);
     setRelatorioFinanceiro(null);
@@ -263,7 +260,6 @@ export default function Relatorios() {
       <div style={styles.conteudo}>
         <h2 style={styles.pageTitulo}>Relatórios</h2>
 
-        {/* Abas principais */}
         <div style={styles.abas}>
           <button style={{ ...styles.aba, ...(aba === 'geral' ? styles.abaAtiva : {}) }} onClick={() => setAba('geral')}>📊 Geral</button>
           <button style={{ ...styles.aba, ...(aba === 'maquina' ? styles.abaAtiva : {}) }} onClick={() => setAba('maquina')}>🖨️ Por Máquina</button>
@@ -392,7 +388,6 @@ export default function Relatorios() {
         {/* ABA FINANCEIRO */}
         {aba === 'financeiro' && podeGerenciar && (
           <div>
-            {/* Sub-abas */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
               <button style={{ ...styles.aba, ...(subAbaFin === 'maquinas' ? styles.abaAtiva : {}) }}
                 onClick={() => { setSubAbaFin('maquinas'); setRelatorioFinanceiro(null); setSeraisSelecionados([]); }}>
@@ -431,9 +426,14 @@ export default function Relatorios() {
                     }}>
                       <input type="checkbox" checked={seraisSelecionados.includes(m.numero_serie)}
                         onChange={() => toggleSerial(m.numero_serie)} style={{ marginRight: '8px' }} />
-                      <div>
+                      <div style={{ flex: 1, textAlign: 'left' }}>
                         <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{m.numero_serie}</div>
                         <div style={{ color: '#94a3b8', fontSize: '12px' }}>{m.nome_cliente || 'Sem cliente'}</div>
+                        <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '11px', flexWrap: 'wrap' }}>
+                          <span style={{ color: '#38bdf8' }}>Receita: {moeda(m.total_receita)}</span>
+                          <span style={{ color: '#ef4444' }}>Custo+Ded: {moeda(parseFloat(m.total_custo || 0) + parseFloat(m.total_deducoes || 0))}</span>
+                          <span style={{ color: '#22c55e' }}>Margem: {moeda(m.total_margem)} ({parseFloat(m.margem_pct || 0).toFixed(1)}%)</span>
+                        </div>
                       </div>
                     </label>
                   ))}
@@ -471,9 +471,9 @@ export default function Relatorios() {
                         <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.nome_cliente}</div>
                         <div style={{ color: '#94a3b8', fontSize: '12px' }}>{c.cidade || '—'}</div>
                         <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '11px', flexWrap: 'wrap' }}>
-                          <span style={{ color: '#22c55e' }}>Receita: {moeda(c.total_receita)}</span>
-                          <span style={{ color: '#ef4444' }}>Custo+Ded: {moeda(parseFloat(c.total_custo) + parseFloat(c.total_deducoes))}</span>
-                          <span style={{ color: '#38bdf8' }}>Margem: {moeda(c.total_margem)} ({parseFloat(c.margem_pct || 0).toFixed(1)}%)</span>
+                          <span style={{ color: '#38bdf8' }}>Receita: {moeda(c.total_receita)}</span>
+                          <span style={{ color: '#ef4444' }}>Custo+Ded: {moeda(parseFloat(c.total_custo || 0) + parseFloat(c.total_deducoes || 0))}</span>
+                          <span style={{ color: '#22c55e' }}>Margem: {moeda(c.total_margem)} ({parseFloat(c.margem_pct || 0).toFixed(1)}%)</span>
                         </div>
                       </div>
                     </label>
@@ -523,7 +523,6 @@ export default function Relatorios() {
 
             {carregando && <p style={styles.mensagem}>Carregando...</p>}
 
-            {/* Resultado financeiro */}
             {relatorioFinanceiro && !carregando && (
               <div style={{ marginTop: '32px' }}>
                 <div style={styles.secao}>
