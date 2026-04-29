@@ -19,6 +19,8 @@ export default function Relatorios() {
   const [filtroStatusGeral, setFiltroStatusGeral] = useState(null);
   const [semMovimentacao, setSemMovimentacao] = useState(null);
   const [mesSemMov, setMesSemMov] = useState('');
+  const [selectMes, setSelectMes] = useState('');
+  const [selectAno, setSelectAno] = useState('');
   const [relatorioMaquina, setRelatorioMaquina] = useState(null);
   const [relatorioCliente, setRelatorioCliente] = useState(null);
   const [relatorioFinanceiroCliente, setRelatorioFinanceiroCliente] = useState(null);
@@ -36,6 +38,9 @@ export default function Relatorios() {
     carregarResumo();
     const mesAnterior = new Date(new Date().setMonth(new Date().getMonth() - 1))
       .toISOString().substring(0, 7);
+    const [anoInicial, mesInicial] = mesAnterior.split('-');
+    setSelectAno(anoInicial);
+    setSelectMes(mesInicial);
     carregarSemMovimentacao(mesAnterior);
   }, []);
 
@@ -58,6 +63,8 @@ export default function Relatorios() {
       const res = await api.get(`/relatorios/sem-movimentacao${params}`);
       setSemMovimentacao(res.data);
       setMesSemMov(res.data.mes);
+      if (!selectMes) setSelectMes(res.data.mes.split('-')[1]);
+      if (!selectAno) setSelectAno(res.data.mes.split('-')[0]);
     } catch { setSemMovimentacao(null); }
   };
 
@@ -332,10 +339,10 @@ export default function Relatorios() {
                           <h3 style={{ ...styles.secaoTitulo, margin: 0 }}>⚠️ Máquinas sem movimentação — {formatarMes(mesSemMov)}</h3>
                           <select
                             style={{ ...styles.input, flex: 'none', width: 'auto' }}
-                            value={mesSemMov ? mesSemMov.split('-')[1] : '03'}
+                            value={selectMes}
                             onChange={(e) => {
-                              const ano = mesSemMov ? mesSemMov.split('-')[0] : new Date().getFullYear();
-                              carregarSemMovimentacao(`${ano}-${e.target.value}`);
+                              setSelectMes(e.target.value);
+                              carregarSemMovimentacao(`${selectAno}-${e.target.value}`);
                             }}
                           >
                             <option value="01">Janeiro</option>
@@ -353,14 +360,14 @@ export default function Relatorios() {
                           </select>
                           <select
                             style={{ ...styles.input, flex: 'none', width: 'auto' }}
-                            value={mesSemMov ? mesSemMov.split('-')[0] : new Date().getFullYear()}
+                            value={selectAno}
                             onChange={(e) => {
-                              const mes = mesSemMov ? mesSemMov.split('-')[1] : '01';
-                              carregarSemMovimentacao(`${e.target.value}-${mes}`);
+                              setSelectAno(e.target.value);
+                              carregarSemMovimentacao(`${e.target.value}-${selectMes}`);
                             }}
                           >
                             {Array.from({ length: 10 }, (_, i) => 2021 + i).map(ano => (
-                              <option key={ano} value={ano}>{ano}</option>
+                              <option key={ano} value={String(ano)}>{ano}</option>
                             ))}
                           </select>
                         </div>
