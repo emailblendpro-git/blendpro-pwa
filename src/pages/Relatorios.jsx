@@ -35,8 +35,8 @@ export default function Relatorios() {
     api.get('/relatorios/cidades').then((res) => setCidades(res.data.cidades)).catch(() => setCidades([]));
     carregarResumo();
     const mesAnterior = new Date(new Date().setMonth(new Date().getMonth() - 1))
-  .toISOString().substring(0, 7);
-carregarSemMovimentacao(mesAnterior);
+      .toISOString().substring(0, 7);
+    carregarSemMovimentacao(mesAnterior);
   }, []);
 
   const carregarResumo = async () => {
@@ -329,12 +329,39 @@ carregarSemMovimentacao(mesAnterior);
                       <>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
                           <h3 style={{ ...styles.secaoTitulo, margin: 0 }}>⚠️ Máquinas sem movimentação — {formatarMes(mesSemMov)}</h3>
-                          <input
-                            type="month"
+                          <select
                             style={{ ...styles.input, flex: 'none', width: 'auto' }}
-                            value={mesSemMov}
-                            onChange={(e) => carregarSemMovimentacao(e.target.value)}
-                          />
+                            value={mesSemMov ? mesSemMov.split('-')[1] : ''}
+                            onChange={(e) => {
+                              const ano = mesSemMov ? mesSemMov.split('-')[0] : new Date().getFullYear();
+                              carregarSemMovimentacao(`${ano}-${e.target.value}`);
+                            }}
+                          >
+                            <option value="01">Janeiro</option>
+                            <option value="02">Fevereiro</option>
+                            <option value="03">Março</option>
+                            <option value="04">Abril</option>
+                            <option value="05">Maio</option>
+                            <option value="06">Junho</option>
+                            <option value="07">Julho</option>
+                            <option value="08">Agosto</option>
+                            <option value="09">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                          </select>
+                          <select
+                            style={{ ...styles.input, flex: 'none', width: 'auto' }}
+                            value={mesSemMov ? mesSemMov.split('-')[0] : new Date().getFullYear()}
+                            onChange={(e) => {
+                              const mes = mesSemMov ? mesSemMov.split('-')[1] : '01';
+                              carregarSemMovimentacao(`${e.target.value}-${mes}`);
+                            }}
+                          >
+                            {Array.from({ length: 10 }, (_, i) => 2021 + i).map(ano => (
+                              <option key={ano} value={ano}>{ano}</option>
+                            ))}
+                          </select>
                         </div>
                         <table style={styles.tabela}>
                           <thead>
