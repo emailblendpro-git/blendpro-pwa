@@ -17,6 +17,8 @@ export default function Relatorios() {
   const [carregando, setCarregando] = useState(false);
   const [resumo, setResumo] = useState(null);
   const [filtroStatusGeral, setFiltroStatusGeral] = useState(null);
+  const [semMovimentacao, setSemMovimentacao] = useState(null);
+  const [mesSemMov, setMesSemMov] = useState('');
   const [relatorioMaquina, setRelatorioMaquina] = useState(null);
   const [relatorioCliente, setRelatorioCliente] = useState(null);
   const [relatorioFinanceiroCliente, setRelatorioFinanceiroCliente] = useState(null);
@@ -32,6 +34,7 @@ export default function Relatorios() {
     api.get('/clientes').then((res) => setClientes(res.data)).catch(() => setClientes([]));
     api.get('/relatorios/cidades').then((res) => setCidades(res.data.cidades)).catch(() => setCidades([]));
     carregarResumo();
+    carregarSemMovimentacao('');
   }, []);
 
   const carregarResumo = async () => {
@@ -41,6 +44,15 @@ export default function Relatorios() {
       setResumo(res.data);
     } catch { setResumo(null); }
     finally { setCarregando(false); }
+  };
+
+  const carregarSemMovimentacao = async (mesAno) => {
+    try {
+      const params = mesAno ? `?mes=${mesAno.split('-')[1]}&ano=${mesAno.split('-')[0]}` : '';
+      const res = await api.get(`/relatorios/sem-movimentacao${params}`);
+      setSemMovimentacao(res.data);
+      setMesSemMov(res.data.mes);
+    } catch { setSemMovimentacao(null); }
   };
 
   const carregarRelatorioMaquina = async () => {
@@ -286,11 +298,19 @@ export default function Relatorios() {
                     { label: 'Em Teste', valor: resumo.resumo.em_teste, cor: '#f97316', status: 'Em Teste' },
                     { label: 'Sem Comunicação', valor: resumo.resumo.sem_comunicacao, cor: '#ef4444', status: null },
                     { label: 'Nível Baixo', valor: resumo.resumo.nivel_baixo, cor: '#f59e0b', status: null },
+                    { label: 'Sem Movimentação', valor: semMovimentacao ? semMovimentacao.maquinas.length : 0, cor: '#ef4444', status: 'sem-movimentacao' },
                   ].map(({ label, valor, cor, status }) => (
                     <div
                       key={label}
                       style={{ ...styles.card, borderTop: `3px solid ${cor}`, cursor: status ? 'pointer' : 'default', outline: filtroStatusGeral === status && status ? `2px solid ${cor}` : 'none' }}
-                      onClick={() => status && setFiltroStatusGeral(filtroStatusGeral === status ? null : status)}
+                      onClick={() => {
+                        if (!status) return;
+                        if (status === 'sem-movimentacao') {
+                          setFiltroStatusGeral(filtroStatusGeral === 'sem-movimentacao' ? null : 'sem-movimentacao');
+                        } else {
+                          setFiltroStatusGeral(filtroStatusGeral === status ? null : status);
+                        }
+                      }}
                     >
                       <p style={styles.cardTitulo}>{label}</p>
                       <p style={{ ...styles.cardValor, color: cor }}>{valor}</p>
@@ -300,27 +320,61 @@ export default function Relatorios() {
 
                 {filtroStatusGeral && (
                   <div style={styles.secao}>
-                    <h3 style={styles.secaoTitulo}>🖨️ Máquinas — {filtroStatusGeral}</h3>
-                    <table style={styles.tabela}>
-                      <thead>
-                        <tr>
-                          <th style={styles.th}>Serial</th>
-                          <th style={styles.th}>Modelo</th>
-                          <th style={styles.th}>Cliente</th>
-                          <th style={styles.th}>Vendedor</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {maquinas.filter(m => m.status === filtroStatusGeral).map((m, i) => (
-                          <tr key={i} style={styles.tr}>
-                            <td style={styles.td}>{m.numero_serie}</td>
-                            <td style={styles.td}>{m.modelo}</td>
-                            <td style={styles.td}>{m.nome_cliente || '—'}</td>
-                            <td style={styles.td}>{m.nome_vendedor || '—'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    {filtroStatusGeral === 'sem-movimentacao' ? (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                          <h3 style={{ ...styles.secaoTitulo, margin: 0 }}>⚠️ Máquinas sem movimentação — {formatarMes(mesSemMov)}</h3>
+                          <input
+                            type="month"
+                            style={{ ...styles.input, flex: 'none', width: 'auto' }}
+                            value={mesSemMov}
+                            onChange={(e) => carregarSemMovimentacao(e.target.value)}
+                          />
+                        </div>
+                        <table style={styles.tabela}>
+                          <thead>
+                            <tr>
+                              <th style={styles.th}>Serial</th>
+                              <th style={styles.th}>Modelo</th>
+                              <th style={styles.th}>Cliente</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {semMovimentacao?.maquinas.map((m, i) => (
+                              <tr key={i} style={styles.tr}>
+                                <td style={styles.td}>{m.numero_serie}</td>
+                                <td style={styles.td}>{m.modelo}</td>
+                                <td style={styles.td}>{m.nome_cliente || '—'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </>
+                    ) : (
+                      <>
+                        <h3 style={styles.secaoTitulo}>🖨️ Máquinas — {filtroStatusGeral}</h3>
+                        <table style={styles.tabela}>
+                          <thead>
+                            <tr>
+                              <th style={styles.th}>Serial</th>
+                              <th style={styles.th}>Modelo</th>
+                              <th style={styles.th}>Cliente</th>
+                              <th style={styles.th}>Vendedor</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {maquinas.filter(m => m.status === filtroStatusGeral).map((m, i) => (
+                              <tr key={i} style={styles.tr}>
+                                <td style={styles.td}>{m.numero_serie}</td>
+                                <td style={styles.td}>{m.modelo}</td>
+                                <td style={styles.td}>{m.nome_cliente || '—'}</td>
+                                <td style={styles.td}>{m.nome_vendedor || '—'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -475,26 +529,26 @@ export default function Relatorios() {
                           <span style={{ color: '#ef4444' }}>Custo+Ded: {moeda(parseFloat(m.total_custo || 0) + parseFloat(m.total_deducoes || 0))}</span>
                           <span style={{ color: '#22c55e' }}>Margem: {moeda(m.total_margem)} ({parseFloat(m.margem_pct || 0).toFixed(1)}%)</span>
                           <span style={{ color: '#94a3b8' }}>Meses trabalhados: {m.meses_trabalhados || 0}</span>
-{(() => {
-  const hoje = new Date();
-  const primeiraInstalacao = m.primeira_instalacao ? new Date(m.primeira_instalacao) : null;
-  const mesesDesdeInstalacao = primeiraInstalacao
-    ? Math.floor((hoje - primeiraInstalacao) / (1000 * 60 * 60 * 24 * 30.44))
-    : 0;
-  const mesesParada = Math.max(0, mesesDesdeInstalacao - parseInt(m.meses_trabalhados || 0));
-  const custoEquip = parseFloat(m.custo_aquisicao || 0);
-  const margemMensal = parseInt(m.meses_trabalhados || 0) > 0
-    ? parseFloat(m.total_margem || 0) / parseInt(m.meses_trabalhados)
-    : 0;
-  const amortizacao = margemMensal > 0 ? (custoEquip / margemMensal).toFixed(1) : '—';
-  return (
-    <>
-      <span style={{ color: '#94a3b8' }}>Meses parada: {mesesParada}</span>
-      <span style={{ color: '#94a3b8' }}>Custo equip.: {moeda(custoEquip)}</span>
-      <span style={{ color: '#f97316' }}>Amortização: {amortizacao} meses</span>
-    </>
-  );
-})()}
+                          {(() => {
+                            const hoje = new Date();
+                            const primeiraInstalacao = m.primeira_instalacao ? new Date(m.primeira_instalacao) : null;
+                            const mesesDesdeInstalacao = primeiraInstalacao
+                              ? Math.floor((hoje - primeiraInstalacao) / (1000 * 60 * 60 * 24 * 30.44))
+                              : 0;
+                            const mesesParada = Math.max(0, mesesDesdeInstalacao - parseInt(m.meses_trabalhados || 0));
+                            const custoEquip = parseFloat(m.custo_aquisicao || 0);
+                            const margemMensal = parseInt(m.meses_trabalhados || 0) > 0
+                              ? parseFloat(m.total_margem || 0) / parseInt(m.meses_trabalhados)
+                              : 0;
+                            const amortizacao = margemMensal > 0 ? (custoEquip / margemMensal).toFixed(1) : '—';
+                            return (
+                              <>
+                                <span style={{ color: '#94a3b8' }}>Meses parada: {mesesParada}</span>
+                                <span style={{ color: '#94a3b8' }}>Custo equip.: {moeda(custoEquip)}</span>
+                                <span style={{ color: '#f97316' }}>Amortização: {amortizacao} meses</span>
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     </label>
@@ -634,4 +688,4 @@ const styles = {
   checkboxHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #334155' },
   checkboxGrid: { display: 'flex', flexDirection: 'column', gap: '4px' },
   checkboxItem: { display: 'flex', alignItems: 'flex-start', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
-}; 
+};
