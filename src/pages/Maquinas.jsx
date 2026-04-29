@@ -190,6 +190,7 @@ export default function Maquinas() {
                             <option value="Manutenção">Manutenção</option>
                             <option value="Bloqueada">Bloqueada</option>
                             <option value="Em Montagem">Em Montagem</option>
+                            <option value="Em Teste">Em Teste</option>
                         </select>
                         <input style={styles.input} type="date" value={form.data_aquisicao} onChange={(e) => setForm({ ...form, data_aquisicao: e.target.value })} />
                         <input
@@ -297,6 +298,7 @@ export default function Maquinas() {
                                     <option value="Manutenção">Manutenção</option>
                                     <option value="Bloqueada">Bloqueada</option>
                                     <option value="Em Montagem">Em Montagem</option>
+                                    <option value="Em Teste">Em Teste</option>
                                 </select>
                                 <input style={styles.input} type="date" value={formEdicao.data_aquisicao ? formEdicao.data_aquisicao.substring(0, 10) : ''} onChange={(e) => setFormEdicao({ ...formEdicao, data_aquisicao: e.target.value })} />
                                 <input style={styles.input} placeholder="Custo de Aquisição" value={formEdicao.custo_aquisicao || ''} onChange={(e) => setFormEdicao({ ...formEdicao, custo_aquisicao: e.target.value })} />
