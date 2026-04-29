@@ -16,6 +16,7 @@ export default function Relatorios() {
   const [cidades, setCidades] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [resumo, setResumo] = useState(null);
+  const [filtroStatusGeral, setFiltroStatusGeral] = useState(null);
   const [relatorioMaquina, setRelatorioMaquina] = useState(null);
   const [relatorioCliente, setRelatorioCliente] = useState(null);
   const [relatorioFinanceiroCliente, setRelatorioFinanceiroCliente] = useState(null);
@@ -275,15 +276,54 @@ export default function Relatorios() {
             {carregando ? <p style={styles.mensagem}>Carregando...</p> : resumo ? (
               <div>
                 <div style={styles.cards}>
-                  <div style={styles.card}><p style={styles.cardTitulo}>Total de Máquinas</p><p style={styles.cardValor}>{resumo.resumo.total_maquinas}</p></div>
-                  <div style={{ ...styles.card, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Ativas</p><p style={{ ...styles.cardValor, color: '#22c55e' }}>{resumo.resumo.maquinas_ativas}</p></div>
-                  <div style={{ ...styles.card, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Em Manutenção</p><p style={{ ...styles.cardValor, color: '#f59e0b' }}>{resumo.resumo.em_manutencao}</p></div>
-                  <div style={{ ...styles.card, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>Bloqueadas</p><p style={{ ...styles.cardValor, color: '#ef4444' }}>{resumo.resumo.bloqueadas}</p></div>
-                  <div style={{ ...styles.card, borderTop: '3px solid #94a3b8' }}><p style={styles.cardTitulo}>Em Estoque</p><p style={{ ...styles.cardValor, color: '#94a3b8' }}>{resumo.resumo.em_estoque}</p></div>
-                  <div style={{ ...styles.card, borderTop: '3px solid #a855f7' }}><p style={styles.cardTitulo}>Em Montagem</p><p style={{ ...styles.cardValor, color: '#a855f7' }}>{resumo.resumo.em_montagem}</p></div>
-                  <div style={{ ...styles.card, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>Sem Comunicação</p><p style={{ ...styles.cardValor, color: '#ef4444' }}>{resumo.resumo.sem_comunicacao}</p></div>
-                  <div style={{ ...styles.card, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Nível Baixo</p><p style={{ ...styles.cardValor, color: '#f59e0b' }}>{resumo.resumo.nivel_baixo}</p></div>
+                  {[
+                    { label: 'Total de Máquinas', valor: resumo.resumo.total_maquinas, cor: '#38bdf8', status: null },
+                    { label: 'Ativas', valor: resumo.resumo.maquinas_ativas, cor: '#22c55e', status: 'Ativa' },
+                    { label: 'Em Manutenção', valor: resumo.resumo.em_manutencao, cor: '#f59e0b', status: 'Manutenção' },
+                    { label: 'Bloqueadas', valor: resumo.resumo.bloqueadas, cor: '#ef4444', status: 'Bloqueada' },
+                    { label: 'Em Estoque', valor: resumo.resumo.em_estoque, cor: '#94a3b8', status: 'Em Estoque' },
+                    { label: 'Em Montagem', valor: resumo.resumo.em_montagem, cor: '#a855f7', status: 'Em Montagem' },
+                    { label: 'Em Teste', valor: resumo.resumo.em_teste, cor: '#f97316', status: 'Em Teste' },
+                    { label: 'Sem Comunicação', valor: resumo.resumo.sem_comunicacao, cor: '#ef4444', status: null },
+                    { label: 'Nível Baixo', valor: resumo.resumo.nivel_baixo, cor: '#f59e0b', status: null },
+                  ].map(({ label, valor, cor, status }) => (
+                    <div
+                      key={label}
+                      style={{ ...styles.card, borderTop: `3px solid ${cor}`, cursor: status ? 'pointer' : 'default', outline: filtroStatusGeral === status && status ? `2px solid ${cor}` : 'none' }}
+                      onClick={() => status && setFiltroStatusGeral(filtroStatusGeral === status ? null : status)}
+                    >
+                      <p style={styles.cardTitulo}>{label}</p>
+                      <p style={{ ...styles.cardValor, color: cor }}>{valor}</p>
+                    </div>
+                  ))}
                 </div>
+
+                {filtroStatusGeral && (
+                  <div style={styles.secao}>
+                    <h3 style={styles.secaoTitulo}>🖨️ Máquinas — {filtroStatusGeral}</h3>
+                    <table style={styles.tabela}>
+                      <thead>
+                        <tr>
+                          <th style={styles.th}>Serial</th>
+                          <th style={styles.th}>Modelo</th>
+                          <th style={styles.th}>Cliente</th>
+                          <th style={styles.th}>Vendedor</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {maquinas.filter(m => m.status === filtroStatusGeral).map((m, i) => (
+                          <tr key={i} style={styles.tr}>
+                            <td style={styles.td}>{m.numero_serie}</td>
+                            <td style={styles.td}>{m.modelo}</td>
+                            <td style={styles.td}>{m.nome_cliente || '—'}</td>
+                            <td style={styles.td}>{m.nome_vendedor || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
                 {resumo.top_maquinas_mes.length > 0 && (
                   <div style={styles.secao}>
                     <h3 style={styles.secaoTitulo}>🏆 Top Máquinas do Mês</h3>
@@ -405,7 +445,6 @@ export default function Relatorios() {
               </button>
             </div>
 
-            {/* Sub-aba Máquinas */}
             {subAbaFin === 'maquinas' && (
               <div style={styles.listaCheckbox}>
                 <div style={styles.checkboxHeader}>
@@ -447,7 +486,6 @@ export default function Relatorios() {
               </div>
             )}
 
-            {/* Sub-aba Clientes */}
             {subAbaFin === 'clientes' && (
               <div style={styles.listaCheckbox}>
                 <div style={styles.checkboxHeader}>
@@ -488,7 +526,6 @@ export default function Relatorios() {
               </div>
             )}
 
-            {/* Sub-aba Cidades */}
             {subAbaFin === 'cidades' && (
               <div style={styles.listaCheckbox}>
                 <div style={styles.checkboxHeader}>
