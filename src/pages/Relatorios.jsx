@@ -52,7 +52,8 @@ export default function Relatorios() {
     try {
       let params = '';
       if (mesAno && mesAno.includes('-')) {
-        params = `?mes=${mesAno.split('-')[1]}&ano=${mesAno.split('-')[0]}`;
+        const [ano, mes] = mesAno.split('-');
+        params = `?mes=${mes}&ano=${ano}`;
       }
       const res = await api.get(`/relatorios/sem-movimentacao${params}`);
       setSemMovimentacao(res.data);
@@ -331,7 +332,7 @@ export default function Relatorios() {
                           <h3 style={{ ...styles.secaoTitulo, margin: 0 }}>⚠️ Máquinas sem movimentação — {formatarMes(mesSemMov)}</h3>
                           <select
                             style={{ ...styles.input, flex: 'none', width: 'auto' }}
-                            value={mesSemMov ? mesSemMov.split('-')[1] : ''}
+                            value={mesSemMov ? mesSemMov.split('-')[1] : '03'}
                             onChange={(e) => {
                               const ano = mesSemMov ? mesSemMov.split('-')[0] : new Date().getFullYear();
                               carregarSemMovimentacao(`${ano}-${e.target.value}`);
