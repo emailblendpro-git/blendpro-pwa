@@ -634,4 +634,4 @@ const styles = {
   checkboxHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #334155' },
   checkboxGrid: { display: 'flex', flexDirection: 'column', gap: '4px' },
   checkboxItem: { display: 'flex', alignItems: 'flex-start', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
-};
+}; 
