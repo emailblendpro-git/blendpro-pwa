@@ -34,7 +34,9 @@ export default function Relatorios() {
     api.get('/clientes').then((res) => setClientes(res.data)).catch(() => setClientes([]));
     api.get('/relatorios/cidades').then((res) => setCidades(res.data.cidades)).catch(() => setCidades([]));
     carregarResumo();
-    carregarSemMovimentacao('');
+    const mesAnterior = new Date(new Date().setMonth(new Date().getMonth() - 1))
+  .toISOString().substring(0, 7);
+carregarSemMovimentacao(mesAnterior);
   }, []);
 
   const carregarResumo = async () => {
@@ -48,7 +50,10 @@ export default function Relatorios() {
 
   const carregarSemMovimentacao = async (mesAno) => {
     try {
-      const params = mesAno ? `?mes=${mesAno.split('-')[1]}&ano=${mesAno.split('-')[0]}` : '';
+      let params = '';
+      if (mesAno && mesAno.includes('-')) {
+        params = `?mes=${mesAno.split('-')[1]}&ano=${mesAno.split('-')[0]}`;
+      }
       const res = await api.get(`/relatorios/sem-movimentacao${params}`);
       setSemMovimentacao(res.data);
       setMesSemMov(res.data.mes);
