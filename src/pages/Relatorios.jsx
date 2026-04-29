@@ -279,6 +279,8 @@ export default function Relatorios() {
                   <div style={{ ...styles.card, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Ativas</p><p style={{ ...styles.cardValor, color: '#22c55e' }}>{resumo.resumo.maquinas_ativas}</p></div>
                   <div style={{ ...styles.card, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Em Manutenção</p><p style={{ ...styles.cardValor, color: '#f59e0b' }}>{resumo.resumo.em_manutencao}</p></div>
                   <div style={{ ...styles.card, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>Bloqueadas</p><p style={{ ...styles.cardValor, color: '#ef4444' }}>{resumo.resumo.bloqueadas}</p></div>
+                  <div style={{ ...styles.card, borderTop: '3px solid #94a3b8' }}><p style={styles.cardTitulo}>Em Estoque</p><p style={{ ...styles.cardValor, color: '#94a3b8' }}>{resumo.resumo.em_estoque}</p></div>
+                  <div style={{ ...styles.card, borderTop: '3px solid #a855f7' }}><p style={styles.cardTitulo}>Em Montagem</p><p style={{ ...styles.cardValor, color: '#a855f7' }}>{resumo.resumo.em_montagem}</p></div>
                   <div style={{ ...styles.card, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>Sem Comunicação</p><p style={{ ...styles.cardValor, color: '#ef4444' }}>{resumo.resumo.sem_comunicacao}</p></div>
                   <div style={{ ...styles.card, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Nível Baixo</p><p style={{ ...styles.cardValor, color: '#f59e0b' }}>{resumo.resumo.nivel_baixo}</p></div>
                 </div>
