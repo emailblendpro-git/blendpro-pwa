@@ -86,7 +86,7 @@ export default function Manutencoes() {
       setSelecionados((resPend.data.registros || []).map(r => r.id));
 
       // Máquinas sem abastecimento = ativas + em teste que não têm pendente neste mês
-      const resSem = await api.get(`/relatorios/sem-movimentacao?mes=${mes}&ano=${ano}`);
+      const resSem = await api.get(`/manutencoes/sem-abastecimento?mes=${mes}&ano=${ano}`);
       setMaquinasSemAbast(resSem.data.maquinas || []);
     } catch { setPendentes([]); setMaquinasSemAbast([]); }
     finally { setCarregandoAbast(false); }
