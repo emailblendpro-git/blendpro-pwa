@@ -19,6 +19,7 @@ export default function Manutencoes() {
   const [salvando, setSalvando] = useState(false);
   const [filtroSerial, setFiltroSerial] = useState('');
   const [filtroTipo, setFiltroTipo] = useState('');
+  const [filtroDataInicio, setFiltroDataInicio] = useState('');
   const [temCusto, setTemCusto] = useState(false);
 
   // Estados — Abastecimentos
@@ -32,7 +33,7 @@ export default function Manutencoes() {
   const [selectAno, setSelectAno] = useState('');
 
   // Estados — Novo abastecimento emergencial
-  const [mostrarFormEmerg, setMostrarFormEmerg] = useState(null); // numero_serie
+  const [mostrarFormEmerg, setMostrarFormEmerg] = useState(null);
   const [formEmerg, setFormEmerg] = useState({ qtd_abastecida: '', observacao: '', nome_assinante: '' });
   const [salvandoEmerg, setSalvandoEmerg] = useState(false);
 
@@ -53,11 +54,12 @@ export default function Manutencoes() {
     setSelectAno(ano);
   }, []);
 
-  const carregarRegistros = async () => {
+  const carregarRegistros = async (dataInicio = '') => {
     try {
       setCarregando(true);
+      const params = dataInicio ? `?data_inicio=${dataInicio}` : '';
       const [resMan, resCustos] = await Promise.all([
-        api.get('/manutencoes'),
+        api.get(`/manutencoes${params}`),
         api.get('/custos'),
       ]);
       const manutencoes = resMan.data.map(m => ({ ...m, _tipo: 'manutencao' }));
@@ -84,8 +86,6 @@ export default function Manutencoes() {
       (resPend.data.registros || []).forEach(r => { qtds[r.id] = r.qtd_abastecida; });
       setQtdEditada(qtds);
       setSelecionados((resPend.data.registros || []).map(r => r.id));
-
-      // Máquinas sem abastecimento = ativas + em teste que não têm pendente neste mês
       const resSem = await api.get(`/manutencoes/sem-abastecimento?mes=${mes}&ano=${ano}`);
       setMaquinasSemAbast(resSem.data.maquinas || []);
     } catch { setPendentes([]); setMaquinasSemAbast([]); }
@@ -249,10 +249,12 @@ export default function Manutencoes() {
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
           <button style={{ ...styles.aba, ...(aba === 'registros' ? styles.abaAtiva : {}) }}
             onClick={() => setAba('registros')}>📋 Todos os Registros</button>
-          <button style={{ ...styles.aba, ...(aba === 'abastecimentos' ? styles.abaAtiva : {}) }}
-            onClick={() => { setAba('abastecimentos'); carregarAbastecimentos(selectMes, selectAno); }}>
-            💧 Abastecimentos
-          </button>
+          {podeGerenciar && (
+            <button style={{ ...styles.aba, ...(aba === 'abastecimentos' ? styles.abaAtiva : {}) }}
+              onClick={() => { setAba('abastecimentos'); carregarAbastecimentos(selectMes, selectAno); }}>
+              💧 Abastecimentos
+            </button>
+          )}
           {podeGerenciar && (
             <button style={{ ...styles.aba, ...(aba === 'custos' ? styles.abaAtiva : {}) }}
               onClick={() => setAba('custos')}>💰 Custos</button>
@@ -310,6 +312,7 @@ export default function Manutencoes() {
                 </button>
               </div>
             )}
+
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
               <select style={styles.inputFiltro} value={filtroSerial} onChange={(e) => setFiltroSerial(e.target.value)}>
                 <option value="">Todas as Máquinas</option>
@@ -323,7 +326,14 @@ export default function Manutencoes() {
                 <option value="Retirada">📦 Retirada</option>
                 <option value="custo">💰 Custo</option>
               </select>
+              <input
+                type="date"
+                style={styles.inputFiltro}
+                value={filtroDataInicio}
+                onChange={(e) => { setFiltroDataInicio(e.target.value); carregarRegistros(e.target.value); }}
+              />
             </div>
+
             {carregando ? <p style={styles.mensagem}>Carregando...</p> :
               registrosFiltrados.length === 0 ? <p style={styles.mensagem}>Nenhum registro encontrado.</p> : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -379,7 +389,6 @@ export default function Manutencoes() {
 
             {carregandoAbast ? <p style={styles.mensagem}>Carregando...</p> : (
               <>
-                {/* SUB-ABA ABASTECIDAS */}
                 {subAbaAbast === 'abastecidas' && (
                   <>
                     {pendentes.length === 0 ? (
@@ -437,7 +446,6 @@ export default function Manutencoes() {
                   </>
                 )}
 
-                {/* SUB-ABA SEM ABASTECIMENTO */}
                 {subAbaAbast === 'sem' && (
                   <>
                     {maquinasSemAbast.length === 0 ? (
