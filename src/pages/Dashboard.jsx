@@ -65,8 +65,8 @@ export default function Dashboard() {
           {/* Manutenções — todos exceto Cliente */}
           {podeManutencao && (
             <div style={styles.card} onClick={() => navigate('/manutencoes')}>
-              <p style={styles.cardTitulo}>Manutenções</p>
-              <p style={styles.cardValor}>🔧</p>
+              <p style={styles.cardTitulo}>Registros</p>
+              <p style={styles.cardValor}>📋</p>
               <p style={styles.cardLink}>Ver registros →</p>
             </div>
           )}
@@ -87,7 +87,7 @@ export default function Dashboard() {
             </div>
           )}
 
-{/* Relatórios — apenas Master e Operador Interno */}
+          {/* Relatórios — apenas Master e Operador Interno */}
           {podeGerenciar && (
             <div style={styles.card} onClick={() => navigate('/relatorios')}>
               <p style={styles.cardTitulo}>Relatórios</p>
@@ -96,7 +96,7 @@ export default function Dashboard() {
             </div>
           )}
 
-{/* Vendedores — apenas Master e Operador Interno */}
+          {/* Vendedores — apenas Master e Operador Interno */}
           {podeGerenciar && (
             <div style={styles.card} onClick={() => navigate('/vendedores')}>
               <p style={styles.cardTitulo}>Vendedores</p>
