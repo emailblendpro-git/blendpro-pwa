@@ -8,13 +8,24 @@ export default function Dashboard() {
   const [maquinas, setMaquinas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [pendentesCount, setPendentesCount] = useState(0);
+  const [semComunicacao, setSemComunicacao] = useState(0);
   const { usuario, podeGerenciar, podeManutencao, isCliente } = useUsuario();
 
   useEffect(() => {
-    api.get('/maquinas').then((res) => setMaquinas(res.data)).catch(() => setMaquinas([]));
+    api.get('/maquinas').then((res) => {
+      setMaquinas(res.data);
+      setSemComunicacao(res.data.filter(m => m.status === 'Ativa' && m.sem_comunicacao).length);
+    }).catch(() => setMaquinas([]));
     if (podeGerenciar) {
       api.get('/clientes').then((res) => setClientes(res.data)).catch(() => setClientes([]));
       api.get('/usuarios').then((res) => setUsuarios(res.data)).catch(() => setUsuarios([]));
+      const agora = new Date();
+      const mes = String(agora.getMonth() + 1).padStart(2, '0');
+      const ano = String(agora.getFullYear());
+      api.get(`/manutencoes/pendentes?mes=${mes}&ano=${ano}`)
+        .then((res) => setPendentesCount(res.data.registros?.length || 0))
+        .catch(() => setPendentesCount(0));
     }
   }, []);
 
@@ -39,7 +50,12 @@ export default function Dashboard() {
 
           {/* Máquinas — todos veem */}
           <div style={styles.card} onClick={() => navigate('/maquinas')}>
-            <p style={styles.cardTitulo}>Total de Máquinas</p>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <p style={styles.cardTitulo}>Total de Máquinas</p>
+              {semComunicacao > 0 && (
+                <span style={{ ...styles.badge, backgroundColor: '#ef4444' }}>{semComunicacao}</span>
+              )}
+            </div>
             <p style={styles.cardValor}>{maquinas.length}</p>
             <p style={styles.cardLink}>Ver todas →</p>
           </div>
@@ -62,10 +78,15 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Manutenções — todos exceto Cliente */}
+          {/* Registros — todos exceto Cliente */}
           {podeManutencao && (
             <div style={styles.card} onClick={() => navigate('/manutencoes')}>
-              <p style={styles.cardTitulo}>Registros</p>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                <p style={styles.cardTitulo}>Registros</p>
+                {podeGerenciar && pendentesCount > 0 && (
+                  <span style={styles.badge}>{pendentesCount}</span>
+                )}
+              </div>
               <p style={styles.cardValor}>📋</p>
               <p style={styles.cardLink}>Ver registros →</p>
             </div>
@@ -124,4 +145,5 @@ const styles = {
   cardTitulo: { color: '#94a3b8', margin: '0 0 8px 0', fontSize: '14px' },
   cardValor: { color: '#38bdf8', margin: 0, fontSize: '36px', fontWeight: 'bold' },
   cardLink: { color: '#38bdf8', margin: '8px 0 0 0', fontSize: '13px' },
+  badge: { position: 'absolute', top: '-8px', right: '-16px', backgroundColor: '#f59e0b', color: '#fff', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', padding: '2px 7px', minWidth: '18px', textAlign: 'center' },
 };
