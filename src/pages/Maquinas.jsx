@@ -437,7 +437,13 @@ export default function Maquinas() {
                         </thead>
                         <tbody>
                             {maquinas.map((m) => (
-                                <tr key={m.id} style={{ ...styles.tr, cursor: 'pointer' }} onClick={() => { setMaquinaSelecionada(m); setFormEdicao(m); setEditando(false); }}>
+                                <tr key={m.id} style={{ ...styles.tr, cursor: 'pointer' }} onClick={async () => {
+  const res = await api.get(`/maquinas/${m.numero_serie}`);
+  setMaquinaSelecionada(res.data);
+  setFormEdicao(res.data);
+  setEditando(false);
+  carregarParametros(m.numero_serie);
+}}>
                                     <td style={styles.td}>{m.numero_serie}</td>
                                     <td style={styles.td}>{m.modelo}</td>
                                     <td style={styles.td}>{m.status}</td>
