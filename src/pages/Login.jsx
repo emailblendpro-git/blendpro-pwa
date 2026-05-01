@@ -15,7 +15,8 @@ export default function Login() {
       const resposta = await api.post('/auth/login', { email, senha });
       localStorage.setItem('token', resposta.data.token);
       localStorage.setItem('usuario', JSON.stringify(resposta.data.usuario));
-      navigate('/dashboard');
+      const destino = new URLSearchParams(window.location.search).get('redirect') || '/dashboard';
+      navigate(destino);
     } catch (err) {
       setErro('Email ou senha incorretos.');
     }

@@ -9,11 +9,16 @@ import Chamados from './pages/Chamados';
 import Produtos from './pages/Produtos';
 import Relatorios from './pages/Relatorios';
 import Vendedores from './pages/Vendedores';
+import Abastecer from './pages/Abastecer';
 import { useUsuario } from './hooks/useUsuario';
 
 function RotaProtegida({ children }) {
   const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/" />;
+  if (!token) {
+    const destino = window.location.pathname;
+    return <Navigate to={`/?redirect=${encodeURIComponent(destino)}`} />;
+  }
+  return children;
 }
 
 function RotaRestrita({ children, perfisPermitidos }) {
@@ -89,6 +94,9 @@ export default function App() {
           </RotaProtegida>
         } />
 
+      <Route path="/abastecer/:serial" element={
+          <RotaProtegida><Abastecer /></RotaProtegida>
+        } />
       </Routes>
     </BrowserRouter>
   );
