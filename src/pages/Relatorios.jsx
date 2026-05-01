@@ -31,6 +31,11 @@ export default function Relatorios() {
   const [clientesSelecionados, setClientesSelecionados] = useState([]);
   const [cidadesSelecionadas, setCidadesSelecionadas] = useState([]);
 
+  // Dashboard rápido de máquina na aba Geral
+  const [serialDashboard, setSerialDashboard] = useState('');
+  const [dashboardMaquina, setDashboardMaquina] = useState(null);
+  const [carregandoDashboard, setCarregandoDashboard] = useState(false);
+
   useEffect(() => {
     api.get('/maquinas').then((res) => setMaquinas(res.data)).catch(() => setMaquinas([]));
     api.get('/clientes').then((res) => setClientes(res.data)).catch(() => setClientes([]));
@@ -66,6 +71,25 @@ export default function Relatorios() {
       if (!selectMes) setSelectMes(res.data.mes.split('-')[1]);
       if (!selectAno) setSelectAno(res.data.mes.split('-')[0]);
     } catch { setSemMovimentacao(null); }
+  };
+
+  const carregarDashboardMaquina = async () => {
+    if (!serialDashboard) return;
+    try {
+      setCarregandoDashboard(true);
+      setDashboardMaquina(null);
+      const [resMaq, resRel, resFin] = await Promise.all([
+        api.get(`/maquinas/${serialDashboard}`),
+        api.get(`/relatorios/${serialDashboard}`),
+        api.post('/relatorios/financeiro/maquinas', { seriais: [serialDashboard] }),
+      ]);
+      setDashboardMaquina({
+        maquina: resMaq.data,
+        relatorio: resRel.data,
+        financeiro: resFin.data,
+      });
+    } catch { alert('Erro ao carregar dashboard da máquina.'); }
+    finally { setCarregandoDashboard(false); }
   };
 
   const carregarRelatorioMaquina = async () => {
@@ -153,8 +177,43 @@ export default function Relatorios() {
     finally { setCarregando(false); }
   };
 
-  const formatarData = (data) => { if (!data) return '—'; return new Date(data).toLocaleString('pt-BR'); };
+  const formatarData = (data) => { if (!data) return '—'; return new Date(data).toLocaleDateString('pt-BR'); };
   const formatarMes = (mes) => { if (!mes) return '—'; const [ano, m] = mes.split('-'); return `${m}/${ano}`; };
+
+  const calcularDashboard = (dm) => {
+    const m = dm.maquina;
+    const fin = dm.financeiro;
+    const hoje = new Date();
+
+    const dataRef = m.data_instalacao || m.data_aquisicao;
+    const dataInst = dataRef ? new Date(dataRef) : null;
+    const mesesDesdeInstalacao = dataInst
+      ? Math.floor((hoje - dataInst) / (1000 * 60 * 60 * 24 * 30.44))
+      : 0;
+
+    const mesesFaturados = parseInt(m.meses_trabalhados || 0);
+    const mesesParada = Math.max(0, mesesDesdeInstalacao - mesesFaturados);
+    const custoEquip = parseFloat(m.custo_aquisicao || 0);
+    const margemTotal = parseFloat(fin?.totais?.margem_total || 0);
+    const margemMensal = mesesFaturados > 0 ? margemTotal / mesesFaturados : 0;
+    const mesesAmortizacao = margemMensal > 0 ? (custoEquip / margemMensal).toFixed(1) : '—';
+    const volumeTotal = parseFloat(fin?.totais?.volume_total || 0);
+    const mediaMensal = mesesFaturados > 0 ? (volumeTotal / mesesFaturados).toFixed(1) : '—';
+
+    return {
+      mesesDesdeInstalacao,
+      mesesFaturados,
+      mesesParada,
+      custoEquip,
+      margemTotal,
+      margemMensal: margemMensal.toFixed(2),
+      mesesAmortizacao,
+      volumeTotal,
+      mediaMensal,
+      receita: parseFloat(fin?.totais?.receita_total || 0),
+      dataInstalacao: dataRef ? new Date(dataRef + 'T12:00:00').toLocaleDateString('pt-BR') : '—',
+    };
+  };
 
   const SecaoDeducoes = ({ deducoes }) => (
     <div style={styles.secao}>
@@ -300,6 +359,7 @@ export default function Relatorios() {
           <div>
             {carregando ? <p style={styles.mensagem}>Carregando...</p> : resumo ? (
               <div>
+                {/* Cards de status */}
                 <div style={styles.cards}>
                   {[
                     { label: 'Total de Máquinas', valor: resumo.resumo.total_maquinas, cor: '#38bdf8', status: 'todas' },
@@ -338,84 +398,132 @@ export default function Relatorios() {
                       <>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
                           <h3 style={{ ...styles.secaoTitulo, margin: 0 }}>⚠️ Máquinas sem movimentação — {formatarMes(mesSemMov)}</h3>
-                          <select
-                            style={{ ...styles.input, flex: 'none', width: 'auto' }}
-                            value={selectMes}
-                            onChange={(e) => {
-                              setSelectMes(e.target.value);
-                              carregarSemMovimentacao(`${selectAno}-${e.target.value}`);
-                            }}
-                          >
-                            <option value="01">Janeiro</option>
-                            <option value="02">Fevereiro</option>
-                            <option value="03">Março</option>
-                            <option value="04">Abril</option>
-                            <option value="05">Maio</option>
-                            <option value="06">Junho</option>
-                            <option value="07">Julho</option>
-                            <option value="08">Agosto</option>
-                            <option value="09">Setembro</option>
-                            <option value="10">Outubro</option>
-                            <option value="11">Novembro</option>
-                            <option value="12">Dezembro</option>
+                          <select style={{ ...styles.input, flex: 'none', width: 'auto' }} value={selectMes}
+                            onChange={(e) => { setSelectMes(e.target.value); carregarSemMovimentacao(`${selectAno}-${e.target.value}`); }}>
+                            {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
+                              <option key={m} value={m}>{['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][i]}</option>
+                            ))}
                           </select>
-                          <select
-                            style={{ ...styles.input, flex: 'none', width: 'auto' }}
-                            value={selectAno}
-                            onChange={(e) => {
-                              setSelectAno(e.target.value);
-                              carregarSemMovimentacao(`${e.target.value}-${selectMes}`);
-                            }}
-                          >
+                          <select style={{ ...styles.input, flex: 'none', width: 'auto' }} value={selectAno}
+                            onChange={(e) => { setSelectAno(e.target.value); carregarSemMovimentacao(`${e.target.value}-${selectMes}`); }}>
                             {Array.from({ length: 10 }, (_, i) => 2021 + i).map(ano => (
                               <option key={ano} value={String(ano)}>{ano}</option>
                             ))}
                           </select>
                         </div>
                         <table style={styles.tabela}>
-                          <thead>
-                            <tr>
-                              <th style={styles.th}>Serial</th>
-                              <th style={styles.th}>Modelo</th>
-                              <th style={styles.th}>Cliente</th>
+                          <thead><tr><th style={styles.th}>Serial</th><th style={styles.th}>Modelo</th><th style={styles.th}>Cliente</th></tr></thead>
+                          <tbody>{semMovimentacao?.maquinas.map((m, i) => (
+                            <tr key={i} style={styles.tr}>
+                              <td style={styles.td}>{m.numero_serie}</td>
+                              <td style={styles.td}>{m.modelo}</td>
+                              <td style={styles.td}>{m.nome_cliente || '—'}</td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {semMovimentacao?.maquinas.map((m, i) => (
-                              <tr key={i} style={styles.tr}>
-                                <td style={styles.td}>{m.numero_serie}</td>
-                                <td style={styles.td}>{m.modelo}</td>
-                                <td style={styles.td}>{m.nome_cliente || '—'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
+                          ))}</tbody>
                         </table>
                       </>
                     ) : (
                       <>
                         <h3 style={styles.secaoTitulo}>🖨️ Máquinas — {filtroStatusGeral}</h3>
                         <table style={styles.tabela}>
-                          <thead>
-                            <tr>
-                              <th style={styles.th}>Serial</th>
-                              <th style={styles.th}>Modelo</th>
-                              <th style={styles.th}>Cliente</th>
-                              <th style={styles.th}>Vendedor</th>
+                          <thead><tr><th style={styles.th}>Serial</th><th style={styles.th}>Modelo</th><th style={styles.th}>Cliente</th><th style={styles.th}>Vendedor</th></tr></thead>
+                          <tbody>{maquinas.filter(m => m.status === filtroStatusGeral).map((m, i) => (
+                            <tr key={i} style={styles.tr}>
+                              <td style={styles.td}>{m.numero_serie}</td>
+                              <td style={styles.td}>{m.modelo}</td>
+                              <td style={styles.td}>{m.nome_cliente || '—'}</td>
+                              <td style={styles.td}>{m.nome_vendedor || '—'}</td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {maquinas.filter(m => m.status === filtroStatusGeral).map((m, i) => (
-                              <tr key={i} style={styles.tr}>
-                                <td style={styles.td}>{m.numero_serie}</td>
-                                <td style={styles.td}>{m.modelo}</td>
-                                <td style={styles.td}>{m.nome_cliente || '—'}</td>
-                                <td style={styles.td}>{m.nome_vendedor || '—'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
+                          ))}</tbody>
                         </table>
                       </>
                     )}
+                  </div>
+                )}
+
+                {/* Dashboard rápido de Máquina */}
+                {podeGerenciar && (
+                  <div style={styles.secaoDashboard}>
+                    <h3 style={styles.secaoTitulo}>🖨️ Dashboard Rápido — Máquina</h3>
+                    <div style={styles.filtro}>
+                      <select style={styles.input} value={serialDashboard} onChange={(e) => { setSerialDashboard(e.target.value); setDashboardMaquina(null); }}>
+                        <option value="">Selecionar Máquina</option>
+                        {maquinas.map((m) => (
+                          <option key={m.numero_serie} value={m.numero_serie}>{m.numero_serie} — {m.nome_cliente || 'Sem cliente'}</option>
+                        ))}
+                      </select>
+                      <button style={styles.botaoBuscar} onClick={carregarDashboardMaquina} disabled={carregandoDashboard}>
+                        {carregandoDashboard ? 'Carregando...' : '🔍 Buscar'}
+                      </button>
+                    </div>
+
+                    {dashboardMaquina && (() => {
+                      const d = calcularDashboard(dashboardMaquina);
+                      const m = dashboardMaquina.maquina;
+                      const fin = dashboardMaquina.financeiro;
+                      return (
+                        <div>
+                          {/* Dados gerais */}
+                          <div style={{ backgroundColor: '#0f172a', borderRadius: '10px', padding: '16px', marginBottom: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                            <div><p style={styles.cardTitulo}>Máquina</p><p style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '15px', margin: 0 }}>{m.numero_serie}</p></div>
+                            <div><p style={styles.cardTitulo}>Cliente</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.nome_cliente || '—'}</p></div>
+                            <div><p style={styles.cardTitulo}>Status</p><p style={{ color: '#22c55e', fontSize: '14px', margin: 0 }}>{m.status}</p></div>
+                            <div><p style={styles.cardTitulo}>Modelo</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.modelo}</p></div>
+                            <div><p style={styles.cardTitulo}>Firmware</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.versao_firmware || '—'}</p></div>
+                            <div><p style={styles.cardTitulo}>Data Instalação</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{d.dataInstalacao}</p></div>
+                          </div>
+
+                          {/* Cards financeiros e de tempo */}
+                          <div style={styles.cards}>
+                            <div style={{ ...styles.card, borderTop: '3px solid #38bdf8' }}>
+                              <p style={styles.cardTitulo}>Volume Total (L)</p>
+                              <p style={{ ...styles.cardValor, fontSize: '22px' }}>{num(d.volumeTotal)}</p>
+                            </div>
+                            <div style={{ ...styles.card, borderTop: '3px solid #38bdf8' }}>
+                              <p style={styles.cardTitulo}>Média Mensal (L)</p>
+                              <p style={{ ...styles.cardValor, fontSize: '22px' }}>{d.mediaMensal}</p>
+                            </div>
+                            <div style={{ ...styles.card, borderTop: '3px solid #22c55e' }}>
+                              <p style={styles.cardTitulo}>Receita Total</p>
+                              <p style={{ ...styles.cardValor, fontSize: '18px', color: '#22c55e' }}>{moeda(d.receita)}</p>
+                            </div>
+                            <div style={{ ...styles.card, borderTop: '3px solid #22c55e' }}>
+                              <p style={styles.cardTitulo}>Margem Total</p>
+                              <p style={{ ...styles.cardValor, fontSize: '18px', color: '#22c55e' }}>{moeda(d.margemTotal)}</p>
+                            </div>
+                            <div style={{ ...styles.card, borderTop: '3px solid #22c55e' }}>
+                              <p style={styles.cardTitulo}>Margem Mensal Média</p>
+                              <p style={{ ...styles.cardValor, fontSize: '18px', color: '#22c55e' }}>{moeda(d.margemMensal)}</p>
+                            </div>
+                            <div style={{ ...styles.card, borderTop: '3px solid #94a3b8' }}>
+                              <p style={styles.cardTitulo}>Tempo de Vida</p>
+                              <p style={{ ...styles.cardValor, fontSize: '22px', color: '#94a3b8' }}>{d.mesesDesdeInstalacao} <span style={{ fontSize: '13px' }}>meses</span></p>
+                            </div>
+                            <div style={{ ...styles.card, borderTop: '3px solid #22c55e' }}>
+                              <p style={styles.cardTitulo}>Meses Faturados</p>
+                              <p style={{ ...styles.cardValor, fontSize: '22px', color: '#22c55e' }}>{d.mesesFaturados}</p>
+                            </div>
+                            <div style={{ ...styles.card, borderTop: '3px solid #ef4444' }}>
+                              <p style={styles.cardTitulo}>Meses Parada</p>
+                              <p style={{ ...styles.cardValor, fontSize: '22px', color: '#ef4444' }}>{d.mesesParada}</p>
+                            </div>
+                            <div style={{ ...styles.card, borderTop: '3px solid #94a3b8' }}>
+                              <p style={styles.cardTitulo}>Custo Equipamento</p>
+                              <p style={{ ...styles.cardValor, fontSize: '18px', color: '#94a3b8' }}>{moeda(d.custoEquip)}</p>
+                            </div>
+                            <div style={{ ...styles.card, borderTop: '3px solid #f97316' }}>
+                              <p style={styles.cardTitulo}>Amortização</p>
+                              <p style={{ ...styles.cardValor, fontSize: '22px', color: '#f97316' }}>{d.mesesAmortizacao} <span style={{ fontSize: '13px' }}>meses</span></p>
+                            </div>
+                          </div>
+
+                          {/* Histórico mensal */}
+                          {fin?.historico_mensal?.length > 0 && (
+                            <SecaoHistoricoMensal historico={fin.historico_mensal} />
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -424,7 +532,14 @@ export default function Relatorios() {
                     <h3 style={styles.secaoTitulo}>🏆 Top Máquinas do Mês</h3>
                     <table style={styles.tabela}>
                       <thead><tr><th style={styles.th}>Serial</th><th style={styles.th}>Local</th><th style={styles.th}>Modelo</th><th style={styles.th}>Acionamentos</th></tr></thead>
-                      <tbody>{resumo.top_maquinas_mes.map((m, i) => (<tr key={i} style={styles.tr}><td style={styles.td}>{m.numero_serie}</td><td style={styles.td}>{m.nome_local || '—'}</td><td style={styles.td}>{m.modelo}</td><td style={styles.td}>{m.acionamentos_mes}</td></tr>))}</tbody>
+                      <tbody>{resumo.top_maquinas_mes.map((m, i) => (
+                        <tr key={i} style={styles.tr}>
+                          <td style={styles.td}>{m.numero_serie}</td>
+                          <td style={styles.td}>{m.nome_local || '—'}</td>
+                          <td style={styles.td}>{m.modelo}</td>
+                          <td style={styles.td}>{m.acionamentos_mes}</td>
+                        </tr>
+                      ))}</tbody>
                     </table>
                   </div>
                 )}
@@ -456,7 +571,13 @@ export default function Relatorios() {
                     <h3 style={styles.secaoTitulo}>📅 Histórico Mensal</h3>
                     <table style={styles.tabela}>
                       <thead><tr><th style={styles.th}>Mês</th><th style={styles.th}>Acionamentos</th><th style={styles.th}>Volume (L)</th></tr></thead>
-                      <tbody>{relatorioMaquina.historico_mensal.map((h, i) => (<tr key={i} style={styles.tr}><td style={styles.td}>{formatarMes(h.mes)}</td><td style={styles.td}>{h.acionamentos}</td><td style={styles.td}>{num(h.volume_total)}</td></tr>))}</tbody>
+                      <tbody>{relatorioMaquina.historico_mensal.map((h, i) => (
+                        <tr key={i} style={styles.tr}>
+                          <td style={styles.td}>{formatarMes(h.mes)}</td>
+                          <td style={styles.td}>{h.acionamentos}</td>
+                          <td style={styles.td}>{num(h.volume_total)}</td>
+                        </tr>
+                      ))}</tbody>
                     </table>
                   </div>
                 )}
@@ -465,7 +586,13 @@ export default function Relatorios() {
                     <h3 style={styles.secaoTitulo}>🔧 Últimas Manutenções</h3>
                     <table style={styles.tabela}>
                       <thead><tr><th style={styles.th}>Data</th><th style={styles.th}>Tipo</th><th style={styles.th}>Técnico</th></tr></thead>
-                      <tbody>{relatorioMaquina.ultimas_manutencoes.map((m, i) => (<tr key={i} style={styles.tr}><td style={styles.td}>{formatarData(m.created_at)}</td><td style={styles.td}>{m.tipo_servico}</td><td style={styles.td}>{m.tecnico_nome || '—'}</td></tr>))}</tbody>
+                      <tbody>{relatorioMaquina.ultimas_manutencoes.map((m, i) => (
+                        <tr key={i} style={styles.tr}>
+                          <td style={styles.td}>{formatarData(m.created_at)}</td>
+                          <td style={styles.td}>{m.tipo_servico}</td>
+                          <td style={styles.td}>{m.tecnico_nome || '—'}</td>
+                        </tr>
+                      ))}</tbody>
                     </table>
                   </div>
                 )}
@@ -499,7 +626,15 @@ export default function Relatorios() {
                     <h3 style={styles.secaoTitulo}>🖨️ Máquinas do Cliente (mês atual)</h3>
                     <table style={styles.tabela}>
                       <thead><tr><th style={styles.th}>Serial</th><th style={styles.th}>Modelo</th><th style={styles.th}>Status</th><th style={styles.th}>Acionamentos</th><th style={styles.th}>Volume (L)</th></tr></thead>
-                      <tbody>{relatorioCliente.maquinas.map((m, i) => (<tr key={i} style={styles.tr}><td style={styles.td}>{m.numero_serie}</td><td style={styles.td}>{m.modelo}</td><td style={styles.td}>{m.status}</td><td style={styles.td}>{m.total_acionamentos || 0}</td><td style={styles.td}>{num(m.volume_total)}</td></tr>))}</tbody>
+                      <tbody>{relatorioCliente.maquinas.map((m, i) => (
+                        <tr key={i} style={styles.tr}>
+                          <td style={styles.td}>{m.numero_serie}</td>
+                          <td style={styles.td}>{m.modelo}</td>
+                          <td style={styles.td}>{m.status}</td>
+                          <td style={styles.td}>{m.total_acionamentos || 0}</td>
+                          <td style={styles.td}>{num(m.volume_total)}</td>
+                        </tr>
+                      ))}</tbody>
                     </table>
                   </div>
                 ) : <p style={styles.mensagem}>Nenhuma máquina vinculada a este cliente.</p>}
@@ -572,7 +707,8 @@ export default function Relatorios() {
                           <span style={{ color: '#94a3b8' }}>Meses trabalhados: {m.meses_trabalhados || 0}</span>
                           {(() => {
                             const hoje = new Date();
-                            const primeiraInstalacao = m.primeira_instalacao ? new Date(m.primeira_instalacao) : null;
+                            const dataRef = m.data_instalacao || m.primeira_instalacao;
+                            const primeiraInstalacao = dataRef ? new Date(dataRef) : null;
                             const mesesDesdeInstalacao = primeiraInstalacao
                               ? Math.floor((hoje - primeiraInstalacao) / (1000 * 60 * 60 * 24 * 30.44))
                               : 0;
@@ -717,6 +853,7 @@ const styles = {
   cardTitulo: { color: '#94a3b8', margin: '0 0 8px 0', fontSize: '13px' },
   cardValor: { color: '#38bdf8', margin: 0, fontSize: '26px', fontWeight: 'bold' },
   secao: { marginBottom: '32px' },
+  secaoDashboard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '32px' },
   secaoTitulo: { color: '#38bdf8', marginBottom: '16px' },
   tabela: { width: '100%', borderCollapse: 'collapse' },
   th: { textAlign: 'left', padding: '12px 16px', backgroundColor: '#1e293b', color: '#94a3b8', fontSize: '13px', borderBottom: '1px solid #334155' },
