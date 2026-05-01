@@ -304,14 +304,14 @@ export default function Relatorios() {
                   {[
                     { label: 'Total de Máquinas', valor: resumo.resumo.total_maquinas, cor: '#38bdf8', status: null },
                     { label: 'Ativas', valor: resumo.resumo.maquinas_ativas, cor: '#22c55e', status: 'Ativa' },
-                    { label: 'Em Manutenção', valor: resumo.resumo.em_manutencao, cor: '#f59e0b', status: 'Manutenção' },
-                    { label: 'Bloqueadas', valor: resumo.resumo.bloqueadas, cor: '#ef4444', status: 'Bloqueada' },
+                    { label: 'Em Teste', valor: resumo.resumo.em_teste, cor: '#f97316', status: 'Em Teste' },
                     { label: 'Em Estoque', valor: resumo.resumo.em_estoque, cor: '#94a3b8', status: 'Em Estoque' },
                     { label: 'Em Montagem', valor: resumo.resumo.em_montagem, cor: '#a855f7', status: 'Em Montagem' },
-                    { label: 'Em Teste', valor: resumo.resumo.em_teste, cor: '#f97316', status: 'Em Teste' },
-                    { label: 'Sem Comunicação', valor: resumo.resumo.sem_comunicacao, cor: '#ef4444', status: null },
-                    { label: 'Nível Baixo', valor: resumo.resumo.nivel_baixo, cor: '#f59e0b', status: null },
                     { label: 'Sem Movimentação', valor: semMovimentacao ? semMovimentacao.maquinas.length : 0, cor: '#ef4444', status: 'sem-movimentacao' },
+                    { label: 'Em Manutenção', valor: resumo.resumo.em_manutencao, cor: '#f59e0b', status: 'Manutenção' },
+                    { label: 'Nível Baixo', valor: resumo.resumo.nivel_baixo, cor: '#f59e0b', status: null },
+                    { label: 'Bloqueadas', valor: resumo.resumo.bloqueadas, cor: '#ef4444', status: 'Bloqueada' },
+                    { label: 'Sem Comunicação', valor: resumo.resumo.sem_comunicacao, cor: '#ef4444', status: null },
                   ].map(({ label, valor, cor, status }) => (
                     <div
                       key={label}
