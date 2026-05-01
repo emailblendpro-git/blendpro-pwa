@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function Maquinas() {
     const navigate = useNavigate();
@@ -120,6 +121,28 @@ export default function Maquinas() {
         } catch {
             alert('Erro ao remover operador.');
         }
+    };
+
+    const imprimirQRCode = () => {
+        const url = `https://blendpro-pwa.vercel.app/abastecer/${maquinaSelecionada.numero_serie}`;
+        const svgEl = document.getElementById('qrcode-svg');
+        const svgHTML = svgEl ? svgEl.outerHTML : '';
+        const win = window.open('', '_blank');
+        win.document.write(`
+            <html>
+            <head><title>QR Code — ${maquinaSelecionada.numero_serie}</title></head>
+            <body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#fff;font-family:Arial,sans-serif;">
+                <div style="text-align:center;padding:32px;border:2px solid #e2e8f0;border-radius:16px;">
+                    ${svgHTML}
+                    <p style="font-size:16px;font-weight:bold;margin:12px 0 4px 0;color:#0f172a">${maquinaSelecionada.numero_serie}</p>
+                    <p style="font-size:13px;color:#64748b;margin:0">${maquinaSelecionada.nome_cliente || ''}</p>
+                    <p style="font-size:11px;color:#94a3b8;margin:8px 0 0 0">${url}</p>
+                </div>
+            </body>
+            </html>
+        `);
+        win.document.close();
+        win.print();
     };
 
     useEffect(() => {
@@ -283,6 +306,28 @@ export default function Maquinas() {
                                         </div>
                                     </div>
                                 )}
+
+                                {podeGerenciar && (
+                                    <div style={styles.secaoOperadores}>
+                                        <h4 style={styles.secaoTitulo}>📱 QR Code de Abastecimento</h4>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                                            <div id="qrcode-svg">
+                                                <QRCodeSVG
+                                                    value={`https://blendpro-pwa.vercel.app/abastecer/${maquinaSelecionada.numero_serie}`}
+                                                    size={180}
+                                                    bgColor="#ffffff"
+                                                    fgColor="#0f172a"
+                                                />
+                                            </div>
+                                            <p style={{ color: '#94a3b8', fontSize: '12px', margin: 0 }}>
+                                                {maquinaSelecionada.numero_serie}
+                                            </p>
+                                            <button style={styles.botaoAdicionar} onClick={imprimirQRCode}>
+                                                🖨️ Imprimir QR Code
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div style={styles.form}>
@@ -438,12 +483,12 @@ export default function Maquinas() {
                         <tbody>
                             {maquinas.map((m) => (
                                 <tr key={m.id} style={{ ...styles.tr, cursor: 'pointer' }} onClick={async () => {
-  const res = await api.get(`/maquinas/${m.numero_serie}`);
-  setMaquinaSelecionada(res.data);
-  setFormEdicao(res.data);
-  setEditando(false);
-  carregarParametros(m.numero_serie);
-}}>
+                                    const res = await api.get(`/maquinas/${m.numero_serie}`);
+                                    setMaquinaSelecionada(res.data);
+                                    setFormEdicao(res.data);
+                                    setEditando(false);
+                                    carregarParametros(m.numero_serie);
+                                }}>
                                     <td style={styles.td}>{m.numero_serie}</td>
                                     <td style={styles.td}>{m.modelo}</td>
                                     <td style={styles.td}>{m.status}</td>
