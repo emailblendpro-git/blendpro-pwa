@@ -302,7 +302,7 @@ export default function Relatorios() {
               <div>
                 <div style={styles.cards}>
                   {[
-                    { label: 'Total de Máquinas', valor: resumo.resumo.total_maquinas, cor: '#38bdf8', status: null },
+                    { label: 'Total de Máquinas', valor: resumo.resumo.total_maquinas, cor: '#38bdf8', status: 'todas' },
                     { label: 'Ativas', valor: resumo.resumo.maquinas_ativas, cor: '#22c55e', status: 'Ativa' },
                     { label: 'Em Teste', valor: resumo.resumo.em_teste, cor: '#f97316', status: 'Em Teste' },
                     { label: 'Em Estoque', valor: resumo.resumo.em_estoque, cor: '#94a3b8', status: 'Em Estoque' },
@@ -318,6 +318,7 @@ export default function Relatorios() {
                       style={{ ...styles.card, borderTop: `3px solid ${cor}`, cursor: status ? 'pointer' : 'default', outline: filtroStatusGeral === status && status ? `2px solid ${cor}` : 'none' }}
                       onClick={() => {
                         if (!status) return;
+                        if (status === 'todas') { navigate('/maquinas'); return; }
                         if (status === 'sem-movimentacao') {
                           setFiltroStatusGeral(filtroStatusGeral === 'sem-movimentacao' ? null : 'sem-movimentacao');
                         } else {
