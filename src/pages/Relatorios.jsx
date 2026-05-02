@@ -474,45 +474,45 @@ export default function Relatorios() {
                 {/* 3 painéis de controle lado a lado + resultados em largura total */}
                 {podeGerenciar && (
                   <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px', alignItems: 'stretch', minWidth: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px', alignItems: 'start' }}>
 
-                      {/* Painel 1 — Dashboard Rápido de Máquina */}
-                      <div style={styles.secaoDashboard}>
-                        <h3 style={styles.secaoTitulo}>🖨️ Dashboard Rápido — Máquina</h3>
-                        <div style={{ ...styles.filtro, flexWrap: 'wrap' }}>
-                          <select style={{ ...styles.input, minWidth: 0 }} value={serialDashboard} onChange={(e) => { setSerialDashboard(e.target.value); setDashboardMaquina(null); }}>
-                            <option value="">Selecionar Máquina</option>
-                            {maquinas.map((m) => (
-                              <option key={m.numero_serie} value={m.numero_serie}>{m.numero_serie} — {m.nome_cliente || 'Sem cliente'}</option>
-                            ))}
-                          </select>
-                          <button style={styles.botaoBuscar} onClick={carregarDashboardMaquina} disabled={carregandoDashboard}>
-                            {carregandoDashboard ? 'Carregando...' : '🔍 Buscar'}
-                          </button>
-                        </div>
+                    {/* Painel 1 — Dashboard Rápido de Máquina */}
+                    <div style={styles.secaoDashboard}>
+                      <h3 style={styles.secaoTitulo}>🖨️ Dashboard Rápido — Máquina</h3>
+                      <div style={{ ...styles.filtro, flexWrap: 'wrap' }}>
+                        <select style={{ ...styles.input, minWidth: 0 }} value={serialDashboard} onChange={(e) => { setSerialDashboard(e.target.value); setDashboardMaquina(null); }}>
+                          <option value="">Selecionar Máquina</option>
+                          {maquinas.map((m) => (
+                            <option key={m.numero_serie} value={m.numero_serie}>{m.numero_serie} — {m.nome_cliente || 'Sem cliente'}</option>
+                          ))}
+                        </select>
+                        <button style={styles.botaoBuscar} onClick={carregarDashboardMaquina} disabled={carregandoDashboard}>
+                          {carregandoDashboard ? 'Carregando...' : '🔍 Buscar'}
+                        </button>
                       </div>
+                    </div>
 
-                      {/* Painel 2 — Desempenho Anual */}
-                      <div style={styles.secaoDashboard}>
-                        <h3 style={styles.secaoTitulo}>📈 Desempenho Anual</h3>
-                        <div style={styles.filtro}>
-                          <button style={styles.botaoBuscar} onClick={carregarDesempenhoAnual} disabled={carregandoDesempenho}>
-                            {carregandoDesempenho ? 'Carregando...' : '🔍 Carregar'}
-                          </button>
-                        </div>
+                    {/* Painel 2 — Desempenho Anual */}
+                    <div style={styles.secaoDashboard}>
+                      <h3 style={styles.secaoTitulo}>📈 Desempenho Anual</h3>
+                      <div style={styles.filtro}>
+                        <button style={styles.botaoBuscar} onClick={carregarDesempenhoAnual} disabled={carregandoDesempenho}>
+                          {carregandoDesempenho ? 'Carregando...' : '🔍 Carregar'}
+                        </button>
                       </div>
+                    </div>
 
-                      {/* Painel 3 — Impostos e Deduções por Período */}
-                      <div style={styles.secaoDashboard}>
-                        <h3 style={styles.secaoTitulo}>🧾 Impostos e Deduções por Período</h3>
-                        <div style={{ ...styles.filtro, flexWrap: 'wrap', gap: '8px' }}>
-                          <input type="date" style={{ ...styles.input, flex: '1', minWidth: '130px' }} value={impostoDataInicio} onChange={(e) => setImpostoDataInicio(e.target.value)} />
-                          <input type="date" style={{ ...styles.input, flex: '1', minWidth: '130px' }} value={impostoDataFim} onChange={(e) => setImpostoDataFim(e.target.value)} />
-                          <button style={styles.botaoBuscar} onClick={carregarImpostos} disabled={carregandoImpostos}>
-                            {carregandoImpostos ? 'Carregando...' : '🔍 Buscar'}
-                          </button>
-                        </div>
+                    {/* Painel 3 — Impostos e Deduções por Período */}
+                    <div style={styles.secaoDashboard}>
+                      <h3 style={styles.secaoTitulo}>🧾 Impostos e Deduções por Período</h3>
+                      <div style={styles.filtro}>
+                        <input type="date" style={styles.input} value={impostoDataInicio} onChange={(e) => setImpostoDataInicio(e.target.value)} />
+                        <input type="date" style={styles.input} value={impostoDataFim} onChange={(e) => setImpostoDataFim(e.target.value)} />
+                        <button style={styles.botaoBuscar} onClick={carregarImpostos} disabled={carregandoImpostos}>
+                          {carregandoImpostos ? 'Carregando...' : '🔍 Buscar'}
+                        </button>
                       </div>
+                    </div>
 
                     </div>{/* fecha grid 3 colunas */}
 
@@ -523,7 +523,10 @@ export default function Relatorios() {
                       const fin = dashboardMaquina.financeiro;
                       return (
                         <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
-                          <h3 style={styles.secaoTitulo}>🖨️ {m.numero_serie} — {m.nome_cliente || '—'}</h3>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <h3 style={{ ...styles.secaoTitulo, marginBottom: 0 }}>🖨️ {m.numero_serie} — {m.nome_cliente || '—'}</h3>
+                            <button onClick={() => setDashboardMaquina(null)} style={styles.botaoFechar}>✕ Fechar</button>
+                          </div>
                           <div style={styles.painelInfo}>
                             <div><p style={styles.cardTitulo}>Máquina</p><p style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '15px', margin: 0 }}>{m.numero_serie}</p></div>
                             <div><p style={styles.cardTitulo}>Cliente</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.nome_cliente || '—'}</p></div>
@@ -552,7 +555,10 @@ export default function Relatorios() {
                     {/* Resultado em largura total — Desempenho Anual */}
                     {desempenhoAnual && (
                       <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
-                        <h3 style={styles.secaoTitulo}>📈 Desempenho Anual</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                          <h3 style={{ ...styles.secaoTitulo, marginBottom: 0 }}>📈 Desempenho Anual</h3>
+                          <button onClick={() => setDesempenhoAnual(null)} style={styles.botaoFechar}>✕ Fechar</button>
+                        </div>
                         <table style={styles.tabela}>
                           <thead><tr><th style={styles.th}>Ano</th><th style={styles.th}>Faturamento</th><th style={styles.th}>Máquinas</th><th style={styles.th}>Média/Máquina</th><th style={styles.th}>Previsão Anual</th></tr></thead>
                           <tbody>{desempenhoAnual.dados.map((row, i) => (
@@ -571,7 +577,10 @@ export default function Relatorios() {
                     {/* Resultado em largura total — Impostos */}
                     {impostos && (
                       <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
-                        <h3 style={styles.secaoTitulo}>🧾 Impostos e Deduções — {impostoDataInicio} a {impostoDataFim}</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                          <h3 style={{ ...styles.secaoTitulo, marginBottom: 0 }}>🧾 Impostos e Deduções — {impostoDataInicio} a {impostoDataFim}</h3>
+                          <button onClick={() => setImpostos(null)} style={styles.botaoFechar}>✕ Fechar</button>
+                        </div>
                         <div style={styles.cardsGrid3}>
                           <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>ICMS</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.icms)}</p></div>
                           <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>PIS</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.pis)}</p></div>
@@ -903,7 +912,7 @@ const styles = {
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 32px', backgroundColor: '#1e293b', borderBottom: '1px solid #334155' },
   titulo: { color: '#38bdf8', margin: 0 },
   botaoVoltar: { padding: '8px 16px', backgroundColor: '#334155', color: '#f1f5f9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
-  conteudo: { padding: '40px 32px', boxSizing: 'border-box', overflowX: 'hidden' },
+  conteudo: { padding: '40px 32px' },
   pageTitulo: { color: '#f1f5f9', marginBottom: '24px' },
   mensagem: { color: '#94a3b8' },
   abas: { display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' },
@@ -916,7 +925,7 @@ const styles = {
   cardTitulo: { color: '#94a3b8', margin: '0 0 8px 0', fontSize: '13px' },
   cardValor: { color: '#38bdf8', margin: 0, fontSize: '26px', fontWeight: 'bold' },
   secao: { marginBottom: '32px' },
-  secaoDashboard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '0', boxSizing: 'border-box', minWidth: 0, overflow: 'hidden' },
+  secaoDashboard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '0' },
   painelInfo: { backgroundColor: '#0f172a', borderRadius: '10px', padding: '16px', marginBottom: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' },
   secaoTitulo: { color: '#38bdf8', marginBottom: '16px' },
   tabela: { width: '100%', borderCollapse: 'collapse' },
@@ -930,4 +939,5 @@ const styles = {
   checkboxHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #334155' },
   checkboxGrid: { display: 'flex', flexDirection: 'column', gap: '4px' },
   checkboxItem: { display: 'flex', alignItems: 'flex-start', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
+  botaoFechar: { padding: '6px 14px', backgroundColor: '#334155', color: '#94a3b8', border: '1px solid #475569', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' },
 };
