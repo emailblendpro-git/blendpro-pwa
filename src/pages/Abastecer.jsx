@@ -27,12 +27,16 @@ export default function Abastecer() {
     setEnviando(true);
     setErro('');
     try {
+      const agora = new Date();
+      const dataLocal = `${agora.getFullYear()}-${String(agora.getMonth()+1).padStart(2,'0')}-${String(agora.getDate()).padStart(2,'0')}`;
+
       await api.post('/manutencoes', {
         numero_serie: serial,
         tipo_servico: 'Abastecimento',
         qtd_abastecida: parseFloat(qtd),
         observacao: observacao || null,
         nome_assinante: nomeAssinante || null,
+        data_registro: dataLocal,
       });
       setSucesso(true);
     } catch {
