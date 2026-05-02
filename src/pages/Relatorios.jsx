@@ -181,7 +181,7 @@ export default function Relatorios() {
     const hoje = new Date();
 
     const dataRef = m.data_instalacao || m.data_aquisicao;
-    const dataInst = dataRef ? new Date(dataRef + 'T12:00:00') : null;
+    const dataInst = dataRef ? new Date(dataRef.substring(0, 10) + 'T12:00:00') : null;
     const mesesDesdeInstalacao = dataInst
       ? Math.floor((hoje - dataInst) / (1000 * 60 * 60 * 24 * 30.44))
       : 0;
@@ -207,7 +207,7 @@ export default function Relatorios() {
       volumeTotal,
       mediaMensal,
       receita: parseFloat(fin?.totais?.receita_total || 0),
-      dataInstalacao: dataRef ? new Date(dataRef + 'T12:00:00').toLocaleDateString('pt-BR') : '—',
+      dataInstalacao: dataRef ? new Date(dataRef.substring(0, 10) + 'T12:00:00').toLocaleDateString('pt-BR') : '—',
     };
   };
 
