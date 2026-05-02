@@ -214,13 +214,9 @@ export default function Relatorios() {
     const m = dm.maquina;
     const fin = dm.financeiro;
     const hoje = new Date();
-
     const dataRef = m.data_instalacao || m.data_aquisicao;
     const dataInst = dataRef ? new Date(dataRef.substring(0, 10) + 'T12:00:00') : null;
-    const mesesDesdeInstalacao = dataInst
-      ? Math.floor((hoje - dataInst) / (1000 * 60 * 60 * 24 * 30.44))
-      : 0;
-
+    const mesesDesdeInstalacao = dataInst ? Math.floor((hoje - dataInst) / (1000 * 60 * 60 * 24 * 30.44)) : 0;
     const mesesFaturados = fin?.historico_mensal?.length || 0;
     const mesesParada = Math.max(0, mesesDesdeInstalacao - mesesFaturados);
     const custoEquip = parseFloat(m.custo_aquisicao || 0);
@@ -229,17 +225,9 @@ export default function Relatorios() {
     const mesesAmortizacao = margemMensal > 0 ? (custoEquip / margemMensal).toFixed(1) : '—';
     const volumeTotal = parseFloat(fin?.totais?.volume_total || 0);
     const mediaMensal = mesesFaturados > 0 ? (volumeTotal / mesesFaturados).toFixed(1) : '—';
-
     return {
-      mesesDesdeInstalacao,
-      mesesFaturados,
-      mesesParada,
-      custoEquip,
-      margemTotal,
-      margemMensal: margemMensal.toFixed(2),
-      mesesAmortizacao,
-      volumeTotal,
-      mediaMensal,
+      mesesDesdeInstalacao, mesesFaturados, mesesParada, custoEquip, margemTotal,
+      margemMensal: margemMensal.toFixed(2), mesesAmortizacao, volumeTotal, mediaMensal,
       receita: parseFloat(fin?.totais?.receita_total || 0),
       dataInstalacao: dataRef ? new Date(dataRef.substring(0, 10) + 'T12:00:00').toLocaleDateString('pt-BR') : '—',
     };
@@ -374,7 +362,6 @@ export default function Relatorios() {
       </div>
       <div style={styles.conteudo}>
         <h2 style={styles.pageTitulo}>Relatórios</h2>
-
         <div style={styles.abas}>
           <button style={{ ...styles.aba, ...(aba === 'geral' ? styles.abaAtiva : {}) }} onClick={() => setAba('geral')}>📊 Geral</button>
           <button style={{ ...styles.aba, ...(aba === 'maquina' ? styles.abaAtiva : {}) }} onClick={() => setAba('maquina')}>🖨️ Por Máquina</button>
@@ -389,7 +376,6 @@ export default function Relatorios() {
           <div>
             {carregando ? <p style={styles.mensagem}>Carregando...</p> : resumo ? (
               <div>
-                {/* Cards de status */}
                 <div style={styles.cards}>
                   {[
                     { label: 'Total de Máquinas', valor: resumo.resumo.total_maquinas, cor: '#38bdf8', status: 'todas' },
@@ -421,7 +407,6 @@ export default function Relatorios() {
                   ))}
                 </div>
 
-                {/* Filtro de status */}
                 {filtroStatusGeral && (
                   <div style={styles.secao}>
                     {filtroStatusGeral === 'sem-movimentacao' ? (
@@ -430,8 +415,8 @@ export default function Relatorios() {
                           <h3 style={{ ...styles.secaoTitulo, margin: 0 }}>⚠️ Máquinas sem movimentação — {formatarMes(mesSemMov)}</h3>
                           <select style={{ ...styles.input, flex: 'none', width: 'auto' }} value={selectMes}
                             onChange={(e) => { setSelectMes(e.target.value); carregarSemMovimentacao(`${selectAno}-${e.target.value}`); }}>
-                            {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((m, i) => (
-                              <option key={m} value={m}>{['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][i]}</option>
+                            {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
+                              <option key={m} value={m}>{['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][i]}</option>
                             ))}
                           </select>
                           <select style={{ ...styles.input, flex: 'none', width: 'auto' }} value={selectAno}
@@ -476,45 +461,45 @@ export default function Relatorios() {
                   <div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px', alignItems: 'stretch', minWidth: 0 }}>
 
-                    {/* Painel 1 — Dashboard Rápido de Máquina */}
-                    <div style={styles.secaoDashboard}>
-                      <h3 style={styles.secaoTitulo}>🖨️ Dashboard Rápido — Máquina</h3>
-                      <div style={{ ...styles.filtro, flexWrap: 'wrap' }}>
-                        <select style={{ ...styles.input, minWidth: 0 }} value={serialDashboard} onChange={(e) => { setSerialDashboard(e.target.value); setDashboardMaquina(null); }}>
-                          <option value="">Selecionar Máquina</option>
-                          {maquinas.map((m) => (
-                            <option key={m.numero_serie} value={m.numero_serie}>{m.numero_serie} — {m.nome_cliente || 'Sem cliente'}</option>
-                          ))}
-                        </select>
-                        <button style={styles.botaoBuscar} onClick={carregarDashboardMaquina} disabled={carregandoDashboard}>
-                          {carregandoDashboard ? 'Carregando...' : '🔍 Buscar'}
-                        </button>
+                      {/* Painel 1 — Dashboard Rápido de Máquina */}
+                      <div style={styles.secaoDashboard}>
+                        <h3 style={styles.secaoTitulo}>🖨️ Dashboard Rápido — Máquina</h3>
+                        <div style={{ ...styles.filtro, flexWrap: 'wrap' }}>
+                          <select style={{ ...styles.input, minWidth: 0 }} value={serialDashboard} onChange={(e) => { setSerialDashboard(e.target.value); setDashboardMaquina(null); }}>
+                            <option value="">Selecionar Máquina</option>
+                            {maquinas.map((m) => (
+                              <option key={m.numero_serie} value={m.numero_serie}>{m.numero_serie} — {m.nome_cliente || 'Sem cliente'}</option>
+                            ))}
+                          </select>
+                          <button style={styles.botaoBuscar} onClick={carregarDashboardMaquina} disabled={carregandoDashboard}>
+                            {carregandoDashboard ? 'Carregando...' : '🔍 Buscar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Painel 2 — Desempenho Anual */}
-                    <div style={styles.secaoDashboard}>
-                      <h3 style={styles.secaoTitulo}>📈 Desempenho Anual</h3>
-                      <div style={styles.filtro}>
-                        <button style={styles.botaoBuscar} onClick={carregarDesempenhoAnual} disabled={carregandoDesempenho}>
-                          {carregandoDesempenho ? 'Carregando...' : '🔍 Carregar'}
-                        </button>
+                      {/* Painel 2 — Desempenho Anual */}
+                      <div style={styles.secaoDashboard}>
+                        <h3 style={styles.secaoTitulo}>📈 Desempenho Anual</h3>
+                        <div style={styles.filtro}>
+                          <button style={styles.botaoBuscar} onClick={carregarDesempenhoAnual} disabled={carregandoDesempenho}>
+                            {carregandoDesempenho ? 'Carregando...' : '🔍 Carregar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Painel 3 — Impostos e Deduções por Período */}
-                    <div style={styles.secaoDashboard}>
-                      <h3 style={styles.secaoTitulo}>🧾 Impostos e Deduções por Período</h3>
-                      <div style={styles.filtro}>
-                        <input type="date" style={styles.input} value={impostoDataInicio} onChange={(e) => setImpostoDataInicio(e.target.value)} />
-                        <input type="date" style={styles.input} value={impostoDataFim} onChange={(e) => setImpostoDataFim(e.target.value)} />
-                        <button style={styles.botaoBuscar} onClick={carregarImpostos} disabled={carregandoImpostos}>
-                          {carregandoImpostos ? 'Carregando...' : '🔍 Buscar'}
-                        </button>
+                      {/* Painel 3 — Impostos e Deduções por Período */}
+                      <div style={styles.secaoDashboard}>
+                        <h3 style={styles.secaoTitulo}>🧾 Impostos e Deduções por Período</h3>
+                        <div style={{ ...styles.filtro, flexWrap: 'wrap', gap: '8px' }}>
+                          <input type="date" style={{ ...styles.input, flex: '1', minWidth: '120px' }} value={impostoDataInicio} onChange={(e) => setImpostoDataInicio(e.target.value)} />
+                          <input type="date" style={{ ...styles.input, flex: '1', minWidth: '120px' }} value={impostoDataFim} onChange={(e) => setImpostoDataFim(e.target.value)} />
+                          <button style={{ ...styles.botaoBuscar, whiteSpace: 'nowrap' }} onClick={carregarImpostos} disabled={carregandoImpostos}>
+                            {carregandoImpostos ? 'Carregando...' : '🔍 Buscar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    </div>{/* fecha grid 3 colunas */}
+                    </div>
 
                     {/* Resultado em largura total — Dashboard Máquina */}
                     {dashboardMaquina && (() => {
