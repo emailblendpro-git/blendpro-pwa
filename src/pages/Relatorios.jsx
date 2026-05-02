@@ -474,7 +474,7 @@ export default function Relatorios() {
                 {/* 3 painéis de controle lado a lado + resultados em largura total */}
                 {podeGerenciar && (
                   <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px', alignItems: 'start' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '16px', alignItems: 'stretch', minWidth: 0 }}>
 
                     {/* Painel 1 — Dashboard Rápido de Máquina */}
                     <div style={styles.secaoDashboard}>
