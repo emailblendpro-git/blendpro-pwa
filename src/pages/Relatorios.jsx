@@ -474,7 +474,7 @@ export default function Relatorios() {
                 {/* 3 painéis de controle lado a lado + resultados em largura total */}
                 {podeGerenciar && (
                   <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px', alignItems: 'stretch' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px', alignItems: 'stretch', width: '100%' }}>
 
                     {/* Painel 1 — Dashboard Rápido de Máquina */}
                     <div style={styles.secaoDashboard}>
@@ -916,7 +916,7 @@ const styles = {
   cardTitulo: { color: '#94a3b8', margin: '0 0 8px 0', fontSize: '13px' },
   cardValor: { color: '#38bdf8', margin: 0, fontSize: '26px', fontWeight: 'bold' },
   secao: { marginBottom: '32px' },
-  secaoDashboard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '0', minHeight: '140px', boxSizing: 'border-box' },
+  secaoDashboard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '0', boxSizing: 'border-box' },
   painelInfo: { backgroundColor: '#0f172a', borderRadius: '10px', padding: '16px', marginBottom: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' },
   secaoTitulo: { color: '#38bdf8', marginBottom: '16px' },
   tabela: { width: '100%', borderCollapse: 'collapse' },
