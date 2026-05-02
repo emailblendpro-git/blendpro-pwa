@@ -580,6 +580,31 @@ export default function Relatorios() {
                           <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Margem</p><p style={{ ...styles.cardValor, color: '#22c55e', fontSize: '20px' }}>{moeda(impostos.margem)}</p></div>
                           <div style={{ ...styles.cardGrid, borderTop: '3px solid #38bdf8' }}><p style={styles.cardTitulo}>Total Registros</p><p style={{ ...styles.cardValor, color: '#38bdf8' }}>{impostos.total_registros}</p></div>
                         </div>
+                        {impostos.registros?.length > 0 && (
+                          <div style={{ marginTop: '24px' }}>
+                            <h4 style={{ color: '#94a3b8', marginBottom: '12px', fontSize: '14px' }}>📋 Registros do Período</h4>
+                            <table style={styles.tabela}>
+                              <thead>
+                                <tr>
+                                  <th style={styles.th}>Serial</th>
+                                  <th style={styles.th}>Data</th>
+                                  <th style={styles.th}>Cliente</th>
+                                  <th style={styles.th}>Valor Faturado</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {impostos.registros.map((r, i) => (
+                                  <tr key={i} style={styles.tr}>
+                                    <td style={styles.td}>{r.numero_serie}</td>
+                                    <td style={styles.td}>{new Date(r.data_referencia).toLocaleDateString('pt-BR')}</td>
+                                    <td style={styles.td}>{r.nome_cliente || '—'}</td>
+                                    <td style={{ ...styles.td, color: '#22c55e', fontWeight: 'bold' }}>{moeda(r.total_venda)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                       </div>
                     )}
 
