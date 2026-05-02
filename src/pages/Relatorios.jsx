@@ -474,45 +474,45 @@ export default function Relatorios() {
                 {/* 3 painéis de controle lado a lado + resultados em largura total */}
                 {podeGerenciar && (
                   <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px', alignItems: 'stretch', width: '100%' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px', alignItems: 'stretch', boxSizing: 'border-box' }}>
 
-                    {/* Painel 1 — Dashboard Rápido de Máquina */}
-                    <div style={styles.secaoDashboard}>
-                      <h3 style={styles.secaoTitulo}>🖨️ Dashboard Rápido — Máquina</h3>
-                      <div style={{ ...styles.filtro, flexWrap: 'wrap' }}>
-                        <select style={{ ...styles.input, minWidth: 0 }} value={serialDashboard} onChange={(e) => { setSerialDashboard(e.target.value); setDashboardMaquina(null); }}>
-                          <option value="">Selecionar Máquina</option>
-                          {maquinas.map((m) => (
-                            <option key={m.numero_serie} value={m.numero_serie}>{m.numero_serie} — {m.nome_cliente || 'Sem cliente'}</option>
-                          ))}
-                        </select>
-                        <button style={styles.botaoBuscar} onClick={carregarDashboardMaquina} disabled={carregandoDashboard}>
-                          {carregandoDashboard ? 'Carregando...' : '🔍 Buscar'}
-                        </button>
+                      {/* Painel 1 — Dashboard Rápido de Máquina */}
+                      <div style={styles.secaoDashboard}>
+                        <h3 style={styles.secaoTitulo}>🖨️ Dashboard Rápido — Máquina</h3>
+                        <div style={{ ...styles.filtro, flexWrap: 'wrap' }}>
+                          <select style={{ ...styles.input, minWidth: 0 }} value={serialDashboard} onChange={(e) => { setSerialDashboard(e.target.value); setDashboardMaquina(null); }}>
+                            <option value="">Selecionar Máquina</option>
+                            {maquinas.map((m) => (
+                              <option key={m.numero_serie} value={m.numero_serie}>{m.numero_serie} — {m.nome_cliente || 'Sem cliente'}</option>
+                            ))}
+                          </select>
+                          <button style={styles.botaoBuscar} onClick={carregarDashboardMaquina} disabled={carregandoDashboard}>
+                            {carregandoDashboard ? 'Carregando...' : '🔍 Buscar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Painel 2 — Desempenho Anual */}
-                    <div style={styles.secaoDashboard}>
-                      <h3 style={styles.secaoTitulo}>📈 Desempenho Anual</h3>
-                      <div style={styles.filtro}>
-                        <button style={styles.botaoBuscar} onClick={carregarDesempenhoAnual} disabled={carregandoDesempenho}>
-                          {carregandoDesempenho ? 'Carregando...' : '🔍 Carregar'}
-                        </button>
+                      {/* Painel 2 — Desempenho Anual */}
+                      <div style={styles.secaoDashboard}>
+                        <h3 style={styles.secaoTitulo}>📈 Desempenho Anual</h3>
+                        <div style={styles.filtro}>
+                          <button style={styles.botaoBuscar} onClick={carregarDesempenhoAnual} disabled={carregandoDesempenho}>
+                            {carregandoDesempenho ? 'Carregando...' : '🔍 Carregar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Painel 3 — Impostos e Deduções por Período */}
-                    <div style={styles.secaoDashboard}>
-                      <h3 style={styles.secaoTitulo}>🧾 Impostos e Deduções por Período</h3>
-                      <div style={styles.filtro}>
-                        <input type="date" style={styles.input} value={impostoDataInicio} onChange={(e) => setImpostoDataInicio(e.target.value)} />
-                        <input type="date" style={styles.input} value={impostoDataFim} onChange={(e) => setImpostoDataFim(e.target.value)} />
-                        <button style={styles.botaoBuscar} onClick={carregarImpostos} disabled={carregandoImpostos}>
-                          {carregandoImpostos ? 'Carregando...' : '🔍 Buscar'}
-                        </button>
+                      {/* Painel 3 — Impostos e Deduções por Período */}
+                      <div style={styles.secaoDashboard}>
+                        <h3 style={styles.secaoTitulo}>🧾 Impostos e Deduções por Período</h3>
+                        <div style={{ ...styles.filtro, flexWrap: 'wrap', gap: '8px' }}>
+                          <input type="date" style={{ ...styles.input, flex: '1', minWidth: '130px' }} value={impostoDataInicio} onChange={(e) => setImpostoDataInicio(e.target.value)} />
+                          <input type="date" style={{ ...styles.input, flex: '1', minWidth: '130px' }} value={impostoDataFim} onChange={(e) => setImpostoDataFim(e.target.value)} />
+                          <button style={styles.botaoBuscar} onClick={carregarImpostos} disabled={carregandoImpostos}>
+                            {carregandoImpostos ? 'Carregando...' : '🔍 Buscar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
 
                     </div>{/* fecha grid 3 colunas */}
 
@@ -903,7 +903,7 @@ const styles = {
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 32px', backgroundColor: '#1e293b', borderBottom: '1px solid #334155' },
   titulo: { color: '#38bdf8', margin: 0 },
   botaoVoltar: { padding: '8px 16px', backgroundColor: '#334155', color: '#f1f5f9', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
-  conteudo: { padding: '40px 32px' },
+  conteudo: { padding: '40px 32px', boxSizing: 'border-box', overflowX: 'hidden' },
   pageTitulo: { color: '#f1f5f9', marginBottom: '24px' },
   mensagem: { color: '#94a3b8' },
   abas: { display: 'flex', gap: '8px', marginBottom: '32px', flexWrap: 'wrap' },
