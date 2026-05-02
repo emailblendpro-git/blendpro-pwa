@@ -43,8 +43,11 @@ export default function Relatorios() {
   // Relatório de Impostos
   const [impostos, setImpostos] = useState(null);
   const [carregandoImpostos, setCarregandoImpostos] = useState(false);
-  const [impostoDataInicio, setImpostoDataInicio] = useState('');
-  const [impostoDataFim, setImpostoDataFim] = useState('');
+  const hoje = new Date();
+  const hojeStr = hoje.toISOString().substring(0, 10);
+  const inicioMesStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
+  const [impostoDataInicio, setImpostoDataInicio] = useState(inicioMesStr);
+  const [impostoDataFim, setImpostoDataFim] = useState(hojeStr);
 
   useEffect(() => {
     api.get('/maquinas').then((res) => setMaquinas(res.data)).catch(() => setMaquinas([]));
@@ -468,15 +471,16 @@ export default function Relatorios() {
                   </div>
                 )}
 
-                {/* Grid dos 3 painéis lado a lado */}
+                {/* 3 painéis de controle lado a lado + resultados em largura total */}
                 {podeGerenciar && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px', alignItems: 'start' }}>
+                  <div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px', alignItems: 'start' }}>
 
                     {/* Painel 1 — Dashboard Rápido de Máquina */}
                     <div style={styles.secaoDashboard}>
                       <h3 style={styles.secaoTitulo}>🖨️ Dashboard Rápido — Máquina</h3>
-                      <div style={styles.filtro}>
-                        <select style={styles.input} value={serialDashboard} onChange={(e) => { setSerialDashboard(e.target.value); setDashboardMaquina(null); }}>
+                      <div style={{ ...styles.filtro, flexWrap: 'wrap' }}>
+                        <select style={{ ...styles.input, minWidth: 0 }} value={serialDashboard} onChange={(e) => { setSerialDashboard(e.target.value); setDashboardMaquina(null); }}>
                           <option value="">Selecionar Máquina</option>
                           {maquinas.map((m) => (
                             <option key={m.numero_serie} value={m.numero_serie}>{m.numero_serie} — {m.nome_cliente || 'Sem cliente'}</option>
@@ -486,68 +490,6 @@ export default function Relatorios() {
                           {carregandoDashboard ? 'Carregando...' : '🔍 Buscar'}
                         </button>
                       </div>
-                      {dashboardMaquina && (() => {
-                        const d = calcularDashboard(dashboardMaquina);
-                        const m = dashboardMaquina.maquina;
-                        const fin = dashboardMaquina.financeiro;
-                        return (
-                          <div>
-                            <div style={styles.painelInfo}>
-                              <div><p style={styles.cardTitulo}>Máquina</p><p style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '15px', margin: 0 }}>{m.numero_serie}</p></div>
-                              <div><p style={styles.cardTitulo}>Cliente</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.nome_cliente || '—'}</p></div>
-                              <div><p style={styles.cardTitulo}>Status</p><p style={{ color: '#22c55e', fontSize: '14px', margin: 0 }}>{m.status}</p></div>
-                              <div><p style={styles.cardTitulo}>Modelo</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.modelo}</p></div>
-                              <div><p style={styles.cardTitulo}>Firmware</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.versao_firmware || '—'}</p></div>
-                              <div><p style={styles.cardTitulo}>Data Instalação</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{d.dataInstalacao}</p></div>
-                            </div>
-                            <div style={styles.cardsGrid3}>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #38bdf8' }}>
-                                <p style={styles.cardTitulo}>Volume Total (L)</p>
-                                <p style={{ ...styles.cardValor, color: '#38bdf8' }}>{num(d.volumeTotal)}</p>
-                              </div>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #38bdf8' }}>
-                                <p style={styles.cardTitulo}>Média Mensal (L)</p>
-                                <p style={{ ...styles.cardValor, color: '#38bdf8' }}>{d.mediaMensal}</p>
-                              </div>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}>
-                                <p style={styles.cardTitulo}>Receita Total</p>
-                                <p style={{ ...styles.cardValor, fontSize: '20px', color: '#22c55e' }}>{moeda(d.receita)}</p>
-                              </div>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}>
-                                <p style={styles.cardTitulo}>Margem Total</p>
-                                <p style={{ ...styles.cardValor, fontSize: '20px', color: '#22c55e' }}>{moeda(d.margemTotal)}</p>
-                              </div>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}>
-                                <p style={styles.cardTitulo}>Margem Mensal Média</p>
-                                <p style={{ ...styles.cardValor, fontSize: '20px', color: '#22c55e' }}>{moeda(d.margemMensal)}</p>
-                              </div>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}>
-                                <p style={styles.cardTitulo}>Tempo de Vida</p>
-                                <p style={{ ...styles.cardValor, color: '#94a3b8' }}>{d.mesesDesdeInstalacao} <span style={{ fontSize: '13px' }}>meses</span></p>
-                              </div>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}>
-                                <p style={styles.cardTitulo}>Meses Faturados</p>
-                                <p style={{ ...styles.cardValor, color: '#22c55e' }}>{d.mesesFaturados}</p>
-                              </div>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}>
-                                <p style={styles.cardTitulo}>Meses Parada</p>
-                                <p style={{ ...styles.cardValor, color: '#ef4444' }}>{d.mesesParada}</p>
-                              </div>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}>
-                                <p style={styles.cardTitulo}>Custo Equipamento</p>
-                                <p style={{ ...styles.cardValor, fontSize: '20px', color: '#94a3b8' }}>{moeda(d.custoEquip)}</p>
-                              </div>
-                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #f97316' }}>
-                                <p style={styles.cardTitulo}>Amortização</p>
-                                <p style={{ ...styles.cardValor, color: '#f97316' }}>{d.mesesAmortizacao} <span style={{ fontSize: '13px' }}>meses</span></p>
-                              </div>
-                            </div>
-                            {fin?.historico_mensal?.length > 0 && (
-                              <SecaoHistoricoMensal historico={fin.historico_mensal} />
-                            )}
-                          </div>
-                        );
-                      })()}
                     </div>
 
                     {/* Painel 2 — Desempenho Anual */}
@@ -558,32 +500,6 @@ export default function Relatorios() {
                           {carregandoDesempenho ? 'Carregando...' : '🔍 Carregar'}
                         </button>
                       </div>
-                      {desempenhoAnual && (
-                        <table style={styles.tabela}>
-                          <thead>
-                            <tr>
-                              <th style={styles.th}>Ano</th>
-                              <th style={styles.th}>Faturamento</th>
-                              <th style={styles.th}>Máquinas</th>
-                              <th style={styles.th}>Média/Máquina</th>
-                              <th style={styles.th}>Previsão Anual</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {desempenhoAnual.dados.map((row, i) => (
-                              <tr key={i} style={styles.tr}>
-                                <td style={styles.td}>{row.ano}</td>
-                                <td style={styles.td}>{moeda(row.total_faturado)}</td>
-                                <td style={styles.td}>{row.total_maquinas}</td>
-                                <td style={styles.td}>{moeda(row.media_por_maquina)}</td>
-                                <td style={{ ...styles.td, color: row.previsao_anual ? '#38bdf8' : '#94a3b8' }}>
-                                  {row.previsao_anual ? moeda(row.previsao_anual) : '—'}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
                     </div>
 
                     {/* Painel 3 — Impostos e Deduções por Período */}
@@ -596,59 +512,82 @@ export default function Relatorios() {
                           {carregandoImpostos ? 'Carregando...' : '🔍 Buscar'}
                         </button>
                       </div>
-                      {impostos && (
-                        <div style={styles.cardsGrid3}>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}>
-                            <p style={styles.cardTitulo}>ICMS</p>
-                            <p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.icms)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}>
-                            <p style={styles.cardTitulo}>PIS</p>
-                            <p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.pis)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}>
-                            <p style={styles.cardTitulo}>COFINS</p>
-                            <p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.cofins)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #f59e0b' }}>
-                            <p style={styles.cardTitulo}>Logístico</p>
-                            <p style={{ ...styles.cardValor, color: '#f59e0b', fontSize: '20px' }}>{moeda(impostos.logistico)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #f59e0b' }}>
-                            <p style={styles.cardTitulo}>Comissionado 1</p>
-                            <p style={{ ...styles.cardValor, color: '#f59e0b', fontSize: '20px' }}>{moeda(impostos.comissionado_1)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #f59e0b' }}>
-                            <p style={styles.cardTitulo}>Comissionado 2</p>
-                            <p style={{ ...styles.cardValor, color: '#f59e0b', fontSize: '20px' }}>{moeda(impostos.comissionado_2)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}>
-                            <p style={styles.cardTitulo}>Custo Operacional</p>
-                            <p style={{ ...styles.cardValor, color: '#94a3b8', fontSize: '20px' }}>{moeda(impostos.custo_operacional)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}>
-                            <p style={styles.cardTitulo}>Outros</p>
-                            <p style={{ ...styles.cardValor, color: '#94a3b8', fontSize: '20px' }}>{moeda(impostos.outros)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}>
-                            <p style={styles.cardTitulo}>Total Deduções</p>
-                            <p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.total_deducoes)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}>
-                            <p style={styles.cardTitulo}>Total Venda</p>
-                            <p style={{ ...styles.cardValor, color: '#22c55e', fontSize: '20px' }}>{moeda(impostos.total_venda)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}>
-                            <p style={styles.cardTitulo}>Margem</p>
-                            <p style={{ ...styles.cardValor, color: '#22c55e', fontSize: '20px' }}>{moeda(impostos.margem)}</p>
-                          </div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #38bdf8' }}>
-                            <p style={styles.cardTitulo}>Total Registros</p>
-                            <p style={{ ...styles.cardValor, color: '#38bdf8' }}>{impostos.total_registros}</p>
-                          </div>
-                        </div>
-                      )}
                     </div>
+
+                    </div>{/* fecha grid 3 colunas */}
+
+                    {/* Resultado em largura total — Dashboard Máquina */}
+                    {dashboardMaquina && (() => {
+                      const d = calcularDashboard(dashboardMaquina);
+                      const m = dashboardMaquina.maquina;
+                      const fin = dashboardMaquina.financeiro;
+                      return (
+                        <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
+                          <h3 style={styles.secaoTitulo}>🖨️ {m.numero_serie} — {m.nome_cliente || '—'}</h3>
+                          <div style={styles.painelInfo}>
+                            <div><p style={styles.cardTitulo}>Máquina</p><p style={{ color: '#38bdf8', fontWeight: 'bold', fontSize: '15px', margin: 0 }}>{m.numero_serie}</p></div>
+                            <div><p style={styles.cardTitulo}>Cliente</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.nome_cliente || '—'}</p></div>
+                            <div><p style={styles.cardTitulo}>Status</p><p style={{ color: '#22c55e', fontSize: '14px', margin: 0 }}>{m.status}</p></div>
+                            <div><p style={styles.cardTitulo}>Modelo</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.modelo}</p></div>
+                            <div><p style={styles.cardTitulo}>Firmware</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{m.versao_firmware || '—'}</p></div>
+                            <div><p style={styles.cardTitulo}>Data Instalação</p><p style={{ color: '#f1f5f9', fontSize: '14px', margin: 0 }}>{d.dataInstalacao}</p></div>
+                          </div>
+                          <div style={styles.cardsGrid3}>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #38bdf8' }}><p style={styles.cardTitulo}>Volume Total (L)</p><p style={{ ...styles.cardValor, color: '#38bdf8' }}>{num(d.volumeTotal)}</p></div>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #38bdf8' }}><p style={styles.cardTitulo}>Média Mensal (L)</p><p style={{ ...styles.cardValor, color: '#38bdf8' }}>{d.mediaMensal}</p></div>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Receita Total</p><p style={{ ...styles.cardValor, fontSize: '20px', color: '#22c55e' }}>{moeda(d.receita)}</p></div>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Margem Total</p><p style={{ ...styles.cardValor, fontSize: '20px', color: '#22c55e' }}>{moeda(d.margemTotal)}</p></div>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Margem Mensal Média</p><p style={{ ...styles.cardValor, fontSize: '20px', color: '#22c55e' }}>{moeda(d.margemMensal)}</p></div>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}><p style={styles.cardTitulo}>Tempo de Vida</p><p style={{ ...styles.cardValor, color: '#94a3b8' }}>{d.mesesDesdeInstalacao} <span style={{ fontSize: '13px' }}>meses</span></p></div>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Meses Faturados</p><p style={{ ...styles.cardValor, color: '#22c55e' }}>{d.mesesFaturados}</p></div>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>Meses Parada</p><p style={{ ...styles.cardValor, color: '#ef4444' }}>{d.mesesParada}</p></div>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}><p style={styles.cardTitulo}>Custo Equipamento</p><p style={{ ...styles.cardValor, fontSize: '20px', color: '#94a3b8' }}>{moeda(d.custoEquip)}</p></div>
+                            <div style={{ ...styles.cardGrid, borderTop: '3px solid #f97316' }}><p style={styles.cardTitulo}>Amortização</p><p style={{ ...styles.cardValor, color: '#f97316' }}>{d.mesesAmortizacao} <span style={{ fontSize: '13px' }}>meses</span></p></div>
+                          </div>
+                          {fin?.historico_mensal?.length > 0 && <SecaoHistoricoMensal historico={fin.historico_mensal} />}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Resultado em largura total — Desempenho Anual */}
+                    {desempenhoAnual && (
+                      <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
+                        <h3 style={styles.secaoTitulo}>📈 Desempenho Anual</h3>
+                        <table style={styles.tabela}>
+                          <thead><tr><th style={styles.th}>Ano</th><th style={styles.th}>Faturamento</th><th style={styles.th}>Máquinas</th><th style={styles.th}>Média/Máquina</th><th style={styles.th}>Previsão Anual</th></tr></thead>
+                          <tbody>{desempenhoAnual.dados.map((row, i) => (
+                            <tr key={i} style={styles.tr}>
+                              <td style={styles.td}>{row.ano}</td>
+                              <td style={styles.td}>{moeda(row.total_faturado)}</td>
+                              <td style={styles.td}>{row.qtd_maquinas}</td>
+                              <td style={styles.td}>{moeda(row.media_maquina)}</td>
+                              <td style={{ ...styles.td, color: row.previsao_anual ? '#38bdf8' : '#94a3b8' }}>{row.previsao_anual ? moeda(row.previsao_anual) : '—'}</td>
+                            </tr>
+                          ))}</tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {/* Resultado em largura total — Impostos */}
+                    {impostos && (
+                      <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
+                        <h3 style={styles.secaoTitulo}>🧾 Impostos e Deduções — {impostoDataInicio} a {impostoDataFim}</h3>
+                        <div style={styles.cardsGrid3}>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>ICMS</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.icms)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>PIS</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.pis)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>COFINS</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.cofins)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Logístico</p><p style={{ ...styles.cardValor, color: '#f59e0b', fontSize: '20px' }}>{moeda(impostos.logistico)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Comissionado 1</p><p style={{ ...styles.cardValor, color: '#f59e0b', fontSize: '20px' }}>{moeda(impostos.comissionado_1)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Comissionado 2</p><p style={{ ...styles.cardValor, color: '#f59e0b', fontSize: '20px' }}>{moeda(impostos.comissionado_2)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}><p style={styles.cardTitulo}>Custo Operacional</p><p style={{ ...styles.cardValor, color: '#94a3b8', fontSize: '20px' }}>{moeda(impostos.custo_operacional)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}><p style={styles.cardTitulo}>Outros</p><p style={{ ...styles.cardValor, color: '#94a3b8', fontSize: '20px' }}>{moeda(impostos.outros)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>Total Deduções</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.total_deducoes)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Total Venda</p><p style={{ ...styles.cardValor, color: '#22c55e', fontSize: '20px' }}>{moeda(impostos.total_venda)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Margem</p><p style={{ ...styles.cardValor, color: '#22c55e', fontSize: '20px' }}>{moeda(impostos.margem)}</p></div>
+                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #38bdf8' }}><p style={styles.cardTitulo}>Total Registros</p><p style={{ ...styles.cardValor, color: '#38bdf8' }}>{impostos.total_registros}</p></div>
+                        </div>
+                      </div>
+                    )}
 
                   </div>
                 )}
