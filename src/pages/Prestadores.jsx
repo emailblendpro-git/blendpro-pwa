@@ -300,7 +300,7 @@ export default function Prestadores() {
                           <head>
                             <title>Apuração — ${prestadorSelecionado.nome} — ${meses[parseInt(selectMes)-1]}/${selectAno}</title>
                             <style>
-                              @page { size: A4 landscape; margin: 16mm; }
+                              @page { size: A4 portrait; margin: 16mm; }
                               body { font-family: Arial, sans-serif; padding: 0; color: #1e293b; font-size: 11px; }
                               h2 { margin: 0 0 2px 0; font-size: 16px; }
                               .sub { color: #64748b; font-size: 11px; margin-bottom: 16px; }
