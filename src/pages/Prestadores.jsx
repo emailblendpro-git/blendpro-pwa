@@ -276,25 +276,41 @@ export default function Prestadores() {
                 {/* BOTÃO EXPORTAR PDF */}
                 {apuracao.registros.length > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-                    <button
+              <button
                       style={{ ...styles.botaoAcao, backgroundColor: '#7c3aed', padding: '8px 16px' }}
                       onClick={() => {
+                        // Detecta quais colunas têm valor para este prestador
+                        const temOperacional = apuracao.registros.some(r => parseFloat(r.valor_custo_operacional) > 0);
+                        const temLogistico = apuracao.registros.some(r => parseFloat(r.valor_logistico) > 0);
+                        const temComissao1 = apuracao.registros.some(r => parseFloat(r.valor_comissionado_1) > 0);
+                        const temComissao2 = apuracao.registros.some(r => parseFloat(r.valor_comissionado_2) > 0);
+                        const temOutros = apuracao.registros.some(r => parseFloat(r.valor_outros) > 0);
+
+                        const colunas = [
+                          { key: 'operacional', label: 'Operacional', ativo: temOperacional },
+                          { key: 'logistico', label: 'Logístico', ativo: temLogistico },
+                          { key: 'comissao1', label: 'Comissão 1', ativo: temComissao1 },
+                          { key: 'comissao2', label: 'Comissão 2', ativo: temComissao2 },
+                          { key: 'outros', label: 'Outros', ativo: temOutros },
+                        ].filter(c => c.ativo);
+
                         const win = window.open('', '_blank');
                         win.document.write(`
                           <html>
                           <head>
                             <title>Apuração — ${prestadorSelecionado.nome} — ${meses[parseInt(selectMes)-1]}/${selectAno}</title>
                             <style>
-                              body { font-family: Arial, sans-serif; padding: 32px; color: #1e293b; }
-                              h2 { margin: 0 0 4px 0; }
-                              .sub { color: #64748b; font-size: 14px; margin-bottom: 24px; }
-                              table { width: 100%; border-collapse: collapse; font-size: 13px; }
-                              th { background: #1e3a5f; color: white; padding: 8px 10px; text-align: left; }
-                              td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+                              @page { size: A4 landscape; margin: 16mm; }
+                              body { font-family: Arial, sans-serif; padding: 0; color: #1e293b; font-size: 11px; }
+                              h2 { margin: 0 0 2px 0; font-size: 16px; }
+                              .sub { color: #64748b; font-size: 11px; margin-bottom: 16px; }
+                              table { width: 100%; border-collapse: collapse; font-size: 10px; }
+                              th { background: #1e3a5f; color: white; padding: 6px 8px; text-align: left; white-space: nowrap; }
+                              td { padding: 5px 8px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
                               tr:nth-child(even) { background: #f8fafc; }
-                              .total { font-weight: bold; background: #f0fdf4; color: #166534; }
-                              .rodape { margin-top: 24px; text-align: right; font-size: 15px; font-weight: bold; color: #166534; }
-                              .rodape span { color: #64748b; font-weight: normal; font-size: 13px; }
+                              .total { font-weight: bold; color: #166534; }
+                              .rodape { margin-top: 16px; text-align: right; font-size: 12px; font-weight: bold; color: #166534; }
+                              .rodape span { color: #64748b; font-weight: normal; font-size: 11px; }
                             </style>
                           </head>
                           <body>
@@ -309,11 +325,7 @@ export default function Prestadores() {
                                   <th>Máquina</th>
                                   <th>Cliente</th>
                                   <th>Faturamento</th>
-                                  <th>Operacional</th>
-                                  <th>Logístico</th>
-                                  <th>Comissão 1</th>
-                                  <th>Comissão 2</th>
-                                  <th>Outros</th>
+                                  ${colunas.map(c => `<th>${c.label}</th>`).join('')}
                                   <th>Total</th>
                                 </tr>
                               </thead>
@@ -323,11 +335,11 @@ export default function Prestadores() {
                                     <td>${r.numero_serie}</td>
                                     <td>${r.nome_cliente || '—'}</td>
                                     <td>${moeda(r.total_venda)}</td>
-                                    <td>${parseFloat(r.valor_custo_operacional) > 0 ? moeda(r.valor_custo_operacional) : '—'}</td>
-                                    <td>${parseFloat(r.valor_logistico) > 0 ? moeda(r.valor_logistico) : '—'}</td>
-                                    <td>${parseFloat(r.valor_comissionado_1) > 0 ? moeda(r.valor_comissionado_1) : '—'}</td>
-                                    <td>${parseFloat(r.valor_comissionado_2) > 0 ? moeda(r.valor_comissionado_2) : '—'}</td>
-                                    <td>${parseFloat(r.valor_outros) > 0 ? moeda(r.valor_outros) : '—'}</td>
+                                    ${temOperacional ? `<td>${parseFloat(r.valor_custo_operacional) > 0 ? moeda(r.valor_custo_operacional) : '—'}</td>` : ''}
+                                    ${temLogistico ? `<td>${parseFloat(r.valor_logistico) > 0 ? moeda(r.valor_logistico) : '—'}</td>` : ''}
+                                    ${temComissao1 ? `<td>${parseFloat(r.valor_comissionado_1) > 0 ? moeda(r.valor_comissionado_1) : '—'}</td>` : ''}
+                                    ${temComissao2 ? `<td>${parseFloat(r.valor_comissionado_2) > 0 ? moeda(r.valor_comissionado_2) : '—'}</td>` : ''}
+                                    ${temOutros ? `<td>${parseFloat(r.valor_outros) > 0 ? moeda(r.valor_outros) : '—'}</td>` : ''}
                                     <td class="total">${moeda(r.total_a_receber)}</td>
                                   </tr>
                                 `).join('')}
