@@ -16,6 +16,7 @@ export default function Maquinas() {
     const [produtos, setProdutos] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
     const [vendedores, setVendedores] = useState([]);
+    const [prestadores, setPrestadores] = useState([]);
     const [editando, setEditando] = useState(false);
     const [formEdicao, setFormEdicao] = useState({});
     const [parametrosExistem, setParametrosExistem] = useState(false);
@@ -29,6 +30,11 @@ export default function Maquinas() {
         comissionado_2: '0.80',
         custo_operacional: '10.00',
         outros: '2.00',
+        logistico_beneficiario_id: '',
+        comissionado_1_beneficiario_id: '',
+        comissionado_2_beneficiario_id: '',
+        custo_operacional_beneficiario_id: '',
+        outros_beneficiario_id: '',
     });
     const [form, setForm] = useState({
         numero_serie: '',
@@ -91,6 +97,11 @@ export default function Maquinas() {
                 comissionado_2: res.data.comissionado_2,
                 custo_operacional: res.data.custo_operacional,
                 outros: res.data.outros,
+                logistico_beneficiario_id: res.data.logistico_beneficiario_id || '',
+                comissionado_1_beneficiario_id: res.data.comissionado_1_beneficiario_id || '',
+                comissionado_2_beneficiario_id: res.data.comissionado_2_beneficiario_id || '',
+                custo_operacional_beneficiario_id: res.data.custo_operacional_beneficiario_id || '',
+                outros_beneficiario_id: res.data.outros_beneficiario_id || '',
             });
             setParametrosExistem(true);
         } catch {
@@ -166,6 +177,10 @@ export default function Maquinas() {
         api.get('/vendedores')
             .then((res) => setVendedores(res.data))
             .catch(() => setVendedores([]));
+
+        api.get('/prestadores')
+            .then((res) => setPrestadores(res.data))
+            .catch(() => setPrestadores([]));
     }, []);
 
     const formatarData = (data) => {
@@ -178,6 +193,22 @@ export default function Maquinas() {
         maquina?.status === 'Ativa' && maquina?.id_cliente;
 
     const operadoresExternos = usuarios.filter(u => u.perfil === 'operador_externo');
+
+    // Select reutilizável de prestador
+    const SelectPrestador = ({ campo, label }) => (
+        <div style={styles.campoParametro}>
+            <label style={styles.painelLabel}>{label} — Beneficiário</label>
+            <select
+                style={styles.input}
+                value={formParametros[campo] || ''}
+                onChange={(e) => setFormParametros({ ...formParametros, [campo]: e.target.value })}>
+                <option value="">Nenhum beneficiário</option>
+                {prestadores.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nome} ({p.tipo})</option>
+                ))}
+            </select>
+        </div>
+    );
 
     return (
         <div style={styles.container}>
@@ -383,15 +414,13 @@ export default function Maquinas() {
                                     <div style={styles.secaoParametros}>
                                         <h4 style={styles.secaoTitulo}>💰 Parâmetros Financeiros</h4>
                                         <p style={styles.secaoDesc}>Valores em % sobre o preço de venda</p>
+
+                                        {/* Tributos — sem beneficiário */}
+                                        <p style={{ color: '#94a3b8', fontSize: '12px', margin: '4px 0', fontWeight: 'bold' }}>📋 Tributos</p>
                                         {[
                                             { campo: 'icms', label: 'ICMS' },
                                             { campo: 'pis', label: 'PIS' },
                                             { campo: 'cofins', label: 'COFINS' },
-                                            { campo: 'logistico', label: 'Logístico' },
-                                            { campo: 'comissionado_1', label: 'Comissionado 1' },
-                                            { campo: 'comissionado_2', label: 'Comissionado 2' },
-                                            { campo: 'custo_operacional', label: 'Custo Operacional' },
-                                            { campo: 'outros', label: 'Outros' },
                                         ].map(({ campo, label }) => (
                                             <div key={campo} style={styles.campoParametro}>
                                                 <label style={styles.painelLabel}>{label} (%)</label>
@@ -404,6 +433,40 @@ export default function Maquinas() {
                                                 />
                                             </div>
                                         ))}
+
+                                        {/* Com beneficiário */}
+                                        <p style={{ color: '#94a3b8', fontSize: '12px', margin: '12px 0 4px 0', fontWeight: 'bold' }}>👤 Com Beneficiário</p>
+
+                                        <div key="logistico" style={styles.campoParametro}>
+                                            <label style={styles.painelLabel}>Logístico (%)</label>
+                                            <input style={styles.input} type="number" step="0.01" value={formParametros.logistico} onChange={(e) => setFormParametros({ ...formParametros, logistico: e.target.value })} />
+                                        </div>
+                                        <SelectPrestador campo="logistico_beneficiario_id" label="Logístico" />
+
+                                        <div key="comissionado_1" style={styles.campoParametro}>
+                                            <label style={styles.painelLabel}>Comissionado 1 (%)</label>
+                                            <input style={styles.input} type="number" step="0.01" value={formParametros.comissionado_1} onChange={(e) => setFormParametros({ ...formParametros, comissionado_1: e.target.value })} />
+                                        </div>
+                                        <SelectPrestador campo="comissionado_1_beneficiario_id" label="Comissionado 1" />
+
+                                        <div key="comissionado_2" style={styles.campoParametro}>
+                                            <label style={styles.painelLabel}>Comissionado 2 (%)</label>
+                                            <input style={styles.input} type="number" step="0.01" value={formParametros.comissionado_2} onChange={(e) => setFormParametros({ ...formParametros, comissionado_2: e.target.value })} />
+                                        </div>
+                                        <SelectPrestador campo="comissionado_2_beneficiario_id" label="Comissionado 2" />
+
+                                        <div key="custo_operacional" style={styles.campoParametro}>
+                                            <label style={styles.painelLabel}>Custo Operacional (%)</label>
+                                            <input style={styles.input} type="number" step="0.01" value={formParametros.custo_operacional} onChange={(e) => setFormParametros({ ...formParametros, custo_operacional: e.target.value })} />
+                                        </div>
+                                        <SelectPrestador campo="custo_operacional_beneficiario_id" label="Custo Operacional" />
+
+                                        <div key="outros" style={styles.campoParametro}>
+                                            <label style={styles.painelLabel}>Outros (%)</label>
+                                            <input style={styles.input} type="number" step="0.01" value={formParametros.outros} onChange={(e) => setFormParametros({ ...formParametros, outros: e.target.value })} />
+                                        </div>
+                                        <SelectPrestador campo="outros_beneficiario_id" label="Outros" />
+
                                         {(() => {
                                             const { margem, margemPct, venda, custo, deducoes } = calcularMargem();
                                             return (
@@ -441,6 +504,11 @@ export default function Maquinas() {
                                                 comissionado_2: parseFloat(formParametros.comissionado_2),
                                                 custo_operacional: parseFloat(formParametros.custo_operacional),
                                                 outros: parseFloat(formParametros.outros),
+                                                logistico_beneficiario_id: formParametros.logistico_beneficiario_id || null,
+                                                comissionado_1_beneficiario_id: formParametros.comissionado_1_beneficiario_id || null,
+                                                comissionado_2_beneficiario_id: formParametros.comissionado_2_beneficiario_id || null,
+                                                custo_operacional_beneficiario_id: formParametros.custo_operacional_beneficiario_id || null,
+                                                outros_beneficiario_id: formParametros.outros_beneficiario_id || null,
                                             };
                                             if (parametrosExistem) {
                                                 await api.patch(`/parametros/${maquinaSelecionada.numero_serie}`, payload);
