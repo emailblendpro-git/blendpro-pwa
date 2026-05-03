@@ -355,77 +355,63 @@ export default function Manutencoes() {
 
             {carregando ? <p style={styles.mensagem}>Carregando...</p> :
               registrosFiltrados.length === 0 ? <p style={styles.mensagem}>Nenhum registro encontrado.</p> : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   {registrosFiltrados.map((r) => (
                     <div key={r.id} style={{
-                      backgroundColor: '#1e293b', borderRadius: '10px', padding: '14px 16px',
+                      backgroundColor: '#1e293b', borderRadius: '8px', padding: '8px 14px',
                       borderLeft: `4px solid ${r._tipo === 'custo' ? (r.status === 'Confirmado' ? '#22c55e' : '#f59e0b') : r.status_lancamento === 'Cancelado' ? '#6b7280' : '#38bdf8'}`,
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
-                        <div>
-                          <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
-                            {icone(r)} {r.numero_serie} — {r._tipo === 'custo' ? `${r.tipo} (Custo)` : r.tipo_servico}
-                            {r.status_lancamento === 'Cancelado' && (
-                              <span style={{ marginLeft: '8px', fontSize: '11px', color: '#6b7280', fontWeight: 'normal' }}>● Cancelado</span>
-                            )}
-                          </div>
-                          <div style={{ color: '#94a3b8', fontSize: '12px', marginTop: '2px' }}>
-                            {formatarData(r.created_at || r.data)}
-                            {(r.tecnico_nome || r.tecnico_responsavel) ? ` · ${r.tecnico_nome || r.tecnico_responsavel}` : ''}
-                          </div>
-                          {r._tipo === 'manutencao' && r.qtd_abastecida && (
-                            <div style={{ fontSize: '13px', marginTop: '4px', color: '#38bdf8' }}>💧 {r.qtd_abastecida}L</div>
-                          )}
-                          {r._tipo === 'custo' && r.descricao && <div style={{ fontSize: '13px', marginTop: '4px' }}>{r.descricao}</div>}
-                          {(r.observacao || r.observacoes) && <div style={{ color: '#94a3b8', fontSize: '12px', marginTop: '2px' }}>{r.observacao || r.observacoes}</div>}
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          {r._tipo === 'custo' && (
-                            <>
-                              <div style={{ fontSize: '16px', fontWeight: 'bold', color: r.status === 'Confirmado' ? '#22c55e' : '#f59e0b' }}>{moeda(r.valor)}</div>
-                              <div style={{ fontSize: '11px', color: r.status === 'Confirmado' ? '#22c55e' : '#f59e0b' }}>
-                                {r.status === 'Confirmado' ? '✅ Confirmado' : '⏳ Pendente'}
-                              </div>
-                            </>
-                          )}
-                        </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: r.status_lancamento === 'Cancelado' ? '#6b7280' : '#f1f5f9', flex: 1, minWidth: '200px' }}>
+                          {icone(r)} {r.numero_serie} — {r._tipo === 'custo' ? `${r.tipo} (Custo)` : r.tipo_servico}
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                          {formatarData(r.created_at || r.data)}
+                          {(r.tecnico_nome || r.tecnico_responsavel) ? ` · ${r.tecnico_nome || r.tecnico_responsavel}` : ''}
+                        </span>
+                        {r._tipo === 'manutencao' && r.qtd_abastecida && (
+                          <span style={{ fontSize: '12px', color: '#38bdf8', whiteSpace: 'nowrap' }}>💧 {r.qtd_abastecida}L</span>
+                        )}
+                        {r._tipo === 'custo' && (
+                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: r.status === 'Confirmado' ? '#22c55e' : '#f59e0b', whiteSpace: 'nowrap' }}>
+                            {moeda(r.valor)} · {r.status === 'Confirmado' ? '✅' : '⏳'}
+                          </span>
+                        )}
+                        {r.status_lancamento === 'Cancelado' && (
+                          <span style={{ fontSize: '11px', color: '#6b7280', whiteSpace: 'nowrap' }}>● Cancelado</span>
+                        )}
+                        {usuario?.perfil === 'master' && r._tipo === 'manutencao' && r.status_lancamento !== 'Cancelado' && cancelandoId !== r.id && (
+                          <button
+                            style={{ ...styles.botaoAcao, backgroundColor: '#dc2626', whiteSpace: 'nowrap' }}
+                            onClick={() => { setCancelandoId(r.id); setSenhaCancelamento(''); }}>
+                            🚫 Cancelar
+                          </button>
+                        )}
                       </div>
 
-                      {/* BOTÃO CANCELAR — só master, só manutenções não canceladas */}
-                      {usuario?.perfil === 'master' && r._tipo === 'manutencao' && r.status_lancamento !== 'Cancelado' && (
-                        <div style={{ marginTop: '10px' }}>
-                          {cancelandoId !== r.id ? (
-                            <button
-                              style={{ ...styles.botaoAcao, backgroundColor: '#dc2626' }}
-                              onClick={() => { setCancelandoId(r.id); setSenhaCancelamento(''); }}>
-                              🚫 Cancelar Registro
-                            </button>
-                          ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#0f172a', borderRadius: '8px', padding: '12px', marginTop: '4px' }}>
-                              <p style={{ color: '#f59e0b', fontSize: '12px', margin: 0 }}>⚠️ Digite a senha administrativa para cancelar este registro.</p>
-                              <input
-                                style={{ ...styles.input, letterSpacing: '8px', textAlign: 'center', fontSize: '18px' }}
-                                type="password"
-                                maxLength={4}
-                                placeholder="••••"
-                                value={senhaCancelamento}
-                                onChange={(e) => setSenhaCancelamento(e.target.value)}
-                              />
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button
-                                  style={{ ...styles.botaoAcao, backgroundColor: '#dc2626', flex: 1 }}
-                                  onClick={() => handleCancelar(r.id)}
-                                  disabled={cancelando}>
-                                  {cancelando ? 'Cancelando...' : '✓ Confirmar Cancelamento'}
-                                </button>
-                                <button
-                                  style={{ ...styles.botaoAcao, backgroundColor: '#475569' }}
-                                  onClick={() => { setCancelandoId(null); setSenhaCancelamento(''); }}>
-                                  ✕ Voltar
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                      {/* FORMULÁRIO DE SENHA */}
+                      {usuario?.perfil === 'master' && r._tipo === 'manutencao' && cancelandoId === r.id && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', backgroundColor: '#0f172a', borderRadius: '6px', padding: '8px 12px', flexWrap: 'wrap' }}>
+                          <span style={{ color: '#f59e0b', fontSize: '12px' }}>⚠️ Senha admin:</span>
+                          <input
+                            style={{ ...styles.input, width: '80px', letterSpacing: '6px', textAlign: 'center', fontSize: '16px', padding: '6px 8px' }}
+                            type="password"
+                            maxLength={4}
+                            placeholder="••••"
+                            value={senhaCancelamento}
+                            onChange={(e) => setSenhaCancelamento(e.target.value)}
+                          />
+                          <button
+                            style={{ ...styles.botaoAcao, backgroundColor: '#dc2626' }}
+                            onClick={() => handleCancelar(r.id)}
+                            disabled={cancelando}>
+                            {cancelando ? 'Cancelando...' : '✓ Confirmar'}
+                          </button>
+                          <button
+                            style={{ ...styles.botaoAcao, backgroundColor: '#475569' }}
+                            onClick={() => { setCancelandoId(null); setSenhaCancelamento(''); }}>
+                            ✕ Voltar
+                          </button>
                         </div>
                       )}
                     </div>
