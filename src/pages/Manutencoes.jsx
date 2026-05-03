@@ -363,7 +363,7 @@ export default function Manutencoes() {
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '13px', fontWeight: 'bold', color: r.status_lancamento === 'Cancelado' ? '#6b7280' : '#f1f5f9', flex: 1, minWidth: '200px' }}>
-                          {icone(r)} {r.numero_serie} — {r._tipo === 'custo' ? `${r.tipo} (Custo)` : r.tipo_servico}
+                          {icone(r)} {r.numero_serie}{r.nome_local || r.nome_cliente ? ` — ${r.nome_local || r.nome_cliente}` : ''} · {r._tipo === 'custo' ? `${r.tipo} (Custo)` : r.tipo_servico}
                         </span>
                         <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
                           {formatarData(r.created_at || r.data)}
