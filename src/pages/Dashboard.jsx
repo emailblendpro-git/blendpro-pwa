@@ -126,6 +126,15 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* Prestadores — apenas Master e Operador Interno */}
+          {podeGerenciar && (
+            <div style={styles.card} onClick={() => navigate('/prestadores')}>
+              <p style={styles.cardTitulo}>Prestadores</p>
+              <p style={styles.cardValor}>👷</p>
+              <p style={styles.cardLink}>Ver prestadores →</p>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import Produtos from './pages/Produtos';
 import Relatorios from './pages/Relatorios';
 import Vendedores from './pages/Vendedores';
 import Abastecer from './pages/Abastecer';
+import Prestadores from './pages/Prestadores';
 import { useUsuario } from './hooks/useUsuario';
 
 function RotaProtegida({ children }) {
@@ -94,9 +95,18 @@ export default function App() {
           </RotaProtegida>
         } />
 
-      <Route path="/abastecer/:serial" element={
+        <Route path="/prestadores" element={
+          <RotaProtegida>
+            <RotaRestrita perfisPermitidos={['master', 'operador_interno']}>
+              <Prestadores />
+            </RotaRestrita>
+          </RotaProtegida>
+        } />
+
+        <Route path="/abastecer/:serial" element={
           <RotaProtegida><Abastecer /></RotaProtegida>
         } />
+
       </Routes>
     </BrowserRouter>
   );
