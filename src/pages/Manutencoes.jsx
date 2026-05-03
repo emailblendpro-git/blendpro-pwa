@@ -37,6 +37,11 @@ export default function Manutencoes() {
   const [formEmerg, setFormEmerg] = useState({ qtd_abastecida: '', observacao: '', nome_assinante: '' });
   const [salvandoEmerg, setSalvandoEmerg] = useState(false);
 
+  // Estados — Cancelamento
+  const [cancelandoId, setCancelandoId] = useState(null);
+  const [senhaCancelamento, setSenhaCancelamento] = useState('');
+  const [cancelando, setCancelando] = useState(false);
+
   const [form, setForm] = useState({
     numero_serie: '', tipo_servico: '', qtd_abastecida: '',
     observacao: '', nome_assinante: '',
@@ -181,6 +186,20 @@ export default function Manutencoes() {
     if (!window.confirm('Remover este custo?')) return;
     try { await api.delete(`/custos/${id}`); await carregarRegistros(); }
     catch { alert('Erro ao remover custo.'); }
+  };
+
+  const handleCancelar = async (id) => {
+    if (senhaCancelamento.length !== 4) { alert('Digite os 4 dígitos da senha.'); return; }
+    setCancelando(true);
+    try {
+      await api.patch(`/manutencoes/${id}/cancelar`, { senha_admin: senhaCancelamento });
+      alert('Registro cancelado com sucesso.');
+      setCancelandoId(null);
+      setSenhaCancelamento('');
+      await carregarRegistros();
+    } catch (e) {
+      alert(e?.response?.data?.erro || 'Erro ao cancelar registro.');
+    } finally { setCancelando(false); }
   };
 
   const formatarData = (data) => { if (!data) return '—'; return new Date(data).toLocaleDateString('pt-BR'); };
@@ -340,12 +359,15 @@ export default function Manutencoes() {
                   {registrosFiltrados.map((r) => (
                     <div key={r.id} style={{
                       backgroundColor: '#1e293b', borderRadius: '10px', padding: '14px 16px',
-                      borderLeft: `4px solid ${r._tipo === 'custo' ? (r.status === 'Confirmado' ? '#22c55e' : '#f59e0b') : '#38bdf8'}`,
+                      borderLeft: `4px solid ${r._tipo === 'custo' ? (r.status === 'Confirmado' ? '#22c55e' : '#f59e0b') : r.status_lancamento === 'Cancelado' ? '#6b7280' : '#38bdf8'}`,
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
                         <div>
                           <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
                             {icone(r)} {r.numero_serie} — {r._tipo === 'custo' ? `${r.tipo} (Custo)` : r.tipo_servico}
+                            {r.status_lancamento === 'Cancelado' && (
+                              <span style={{ marginLeft: '8px', fontSize: '11px', color: '#6b7280', fontWeight: 'normal' }}>● Cancelado</span>
+                            )}
                           </div>
                           <div style={{ color: '#94a3b8', fontSize: '12px', marginTop: '2px' }}>
                             {formatarData(r.created_at || r.data)}
@@ -368,6 +390,44 @@ export default function Manutencoes() {
                           )}
                         </div>
                       </div>
+
+                      {/* BOTÃO CANCELAR — só master, só manutenções não canceladas */}
+                      {usuario?.perfil === 'master' && r._tipo === 'manutencao' && r.status_lancamento !== 'Cancelado' && (
+                        <div style={{ marginTop: '10px' }}>
+                          {cancelandoId !== r.id ? (
+                            <button
+                              style={{ ...styles.botaoAcao, backgroundColor: '#dc2626' }}
+                              onClick={() => { setCancelandoId(r.id); setSenhaCancelamento(''); }}>
+                              🚫 Cancelar Registro
+                            </button>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#0f172a', borderRadius: '8px', padding: '12px', marginTop: '4px' }}>
+                              <p style={{ color: '#f59e0b', fontSize: '12px', margin: 0 }}>⚠️ Digite a senha administrativa para cancelar este registro.</p>
+                              <input
+                                style={{ ...styles.input, letterSpacing: '8px', textAlign: 'center', fontSize: '18px' }}
+                                type="password"
+                                maxLength={4}
+                                placeholder="••••"
+                                value={senhaCancelamento}
+                                onChange={(e) => setSenhaCancelamento(e.target.value)}
+                              />
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                  style={{ ...styles.botaoAcao, backgroundColor: '#dc2626', flex: 1 }}
+                                  onClick={() => handleCancelar(r.id)}
+                                  disabled={cancelando}>
+                                  {cancelando ? 'Cancelando...' : '✓ Confirmar Cancelamento'}
+                                </button>
+                                <button
+                                  style={{ ...styles.botaoAcao, backgroundColor: '#475569' }}
+                                  onClick={() => { setCancelandoId(null); setSenhaCancelamento(''); }}>
+                                  ✕ Voltar
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
