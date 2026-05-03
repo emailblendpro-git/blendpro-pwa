@@ -370,11 +370,11 @@ export default function Prestadores() {
                           <th style={styles.th}>Cliente</th>
                           <th style={styles.th}>Data</th>
                           <th style={styles.th}>Faturamento</th>
-                          <th style={styles.th}>Operacional</th>
-                          <th style={styles.th}>Logístico</th>
-                          <th style={styles.th}>Comissão 1</th>
-                          <th style={styles.th}>Comissão 2</th>
-                          <th style={styles.th}>Outros</th>
+                          {apuracao.registros.some(r => parseFloat(r.valor_custo_operacional) > 0) && <th style={styles.th}>Operacional</th>}
+                          {apuracao.registros.some(r => parseFloat(r.valor_logistico) > 0) && <th style={styles.th}>Logístico</th>}
+                          {apuracao.registros.some(r => parseFloat(r.valor_comissionado_1) > 0) && <th style={styles.th}>Comissão 1</th>}
+                          {apuracao.registros.some(r => parseFloat(r.valor_comissionado_2) > 0) && <th style={styles.th}>Comissão 2</th>}
+                          {apuracao.registros.some(r => parseFloat(r.valor_outros) > 0) && <th style={styles.th}>Outros</th>}
                           <th style={{ ...styles.th, color: '#22c55e' }}>Total</th>
                         </tr>
                       </thead>
@@ -385,11 +385,11 @@ export default function Prestadores() {
                             <td style={styles.td}>{r.nome_cliente || '—'}</td>
                             <td style={styles.td}>{formatarData(r.data_referencia)}</td>
                             <td style={styles.td}>{moeda(r.total_venda)}</td>
-                            <td style={styles.td}>{parseFloat(r.valor_custo_operacional) > 0 ? moeda(r.valor_custo_operacional) : '—'}</td>
-                            <td style={styles.td}>{parseFloat(r.valor_logistico) > 0 ? moeda(r.valor_logistico) : '—'}</td>
-                            <td style={styles.td}>{parseFloat(r.valor_comissionado_1) > 0 ? moeda(r.valor_comissionado_1) : '—'}</td>
-                            <td style={styles.td}>{parseFloat(r.valor_comissionado_2) > 0 ? moeda(r.valor_comissionado_2) : '—'}</td>
-                            <td style={styles.td}>{parseFloat(r.valor_outros) > 0 ? moeda(r.valor_outros) : '—'}</td>
+                            {apuracao.registros.some(r => parseFloat(r.valor_custo_operacional) > 0) && <td style={styles.td}>{parseFloat(r.valor_custo_operacional) > 0 ? moeda(r.valor_custo_operacional) : '—'}</td>}
+                            {apuracao.registros.some(r => parseFloat(r.valor_logistico) > 0) && <td style={styles.td}>{parseFloat(r.valor_logistico) > 0 ? moeda(r.valor_logistico) : '—'}</td>}
+                            {apuracao.registros.some(r => parseFloat(r.valor_comissionado_1) > 0) && <td style={styles.td}>{parseFloat(r.valor_comissionado_1) > 0 ? moeda(r.valor_comissionado_1) : '—'}</td>}
+                            {apuracao.registros.some(r => parseFloat(r.valor_comissionado_2) > 0) && <td style={styles.td}>{parseFloat(r.valor_comissionado_2) > 0 ? moeda(r.valor_comissionado_2) : '—'}</td>}
+                            {apuracao.registros.some(r => parseFloat(r.valor_outros) > 0) && <td style={styles.td}>{parseFloat(r.valor_outros) > 0 ? moeda(r.valor_outros) : '—'}</td>}
                             <td style={{ ...styles.td, color: '#22c55e', fontWeight: 'bold' }}>{moeda(r.total_a_receber)}</td>
                           </tr>
                         ))}
