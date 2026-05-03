@@ -42,6 +42,11 @@ export default function Manutencoes() {
   const [senhaCancelamento, setSenhaCancelamento] = useState('');
   const [cancelando, setCancelando] = useState(false);
 
+  // Estados — Edição
+  const [editandoId, setEditandoId] = useState(null);
+  const [formEdicao, setFormEdicao] = useState({});
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+
   const [form, setForm] = useState({
     numero_serie: '', tipo_servico: '', qtd_abastecida: '',
     observacao: '', nome_assinante: '',
@@ -200,6 +205,40 @@ export default function Manutencoes() {
     } catch (e) {
       alert(e?.response?.data?.erro || 'Erro ao cancelar registro.');
     } finally { setCancelando(false); }
+  };
+
+  const handleAbrirEdicao = (r) => {
+    setEditandoId(r.id);
+    setCancelandoId(null);
+    setFormEdicao({
+      tipo_servico: r.tipo_servico || '',
+      qtd_abastecida: r.qtd_abastecida || '',
+      observacao: r.observacao || '',
+      nome_assinante: r.nome_assinante || '',
+      valor_unitario: r.valor_unitario || '',
+      custo_unitario: r.custo_unitario || '',
+      data_registro: r.created_at ? r.created_at.substring(0, 10) : '',
+    });
+  };
+
+  const handleSalvarEdicao = async (id) => {
+    setSalvandoEdicao(true);
+    try {
+      await api.patch(`/manutencoes/${id}`, {
+        tipo_servico: formEdicao.tipo_servico,
+        qtd_abastecida: formEdicao.qtd_abastecida ? parseFloat(formEdicao.qtd_abastecida) : null,
+        observacao: formEdicao.observacao,
+        nome_assinante: formEdicao.nome_assinante,
+        valor_unitario: formEdicao.valor_unitario ? parseFloat(formEdicao.valor_unitario) : null,
+        custo_unitario: formEdicao.custo_unitario ? parseFloat(formEdicao.custo_unitario) : null,
+        data_registro: formEdicao.data_registro,
+      });
+      alert('Registro atualizado com sucesso!');
+      setEditandoId(null);
+      await carregarRegistros();
+    } catch (e) {
+      alert(e?.response?.data?.erro || 'Erro ao salvar edição.');
+    } finally { setSalvandoEdicao(false); }
   };
 
   const formatarData = (data) => { if (!data) return '—'; return new Date(data).toLocaleDateString('pt-BR'); };
@@ -361,54 +400,122 @@ export default function Manutencoes() {
                       backgroundColor: '#1e293b', borderRadius: '8px', padding: '8px 14px',
                       borderLeft: `4px solid ${r._tipo === 'custo' ? (r.status === 'Confirmado' ? '#22c55e' : '#f59e0b') : r.status_lancamento === 'Cancelado' ? '#6b7280' : '#38bdf8'}`,
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: r.status_lancamento === 'Cancelado' ? '#6b7280' : '#f1f5f9', flex: '0 1 auto', minWidth: '200px', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {/* LINHA PRINCIPAL */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+
+                        {/* ESQUERDA — identificação */}
+                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: r.status_lancamento === 'Cancelado' ? '#6b7280' : '#f1f5f9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 0', minWidth: 0 }}>
                           {icone(r)} {r.numero_serie}{r.nome_local || r.nome_cliente ? ` — ${r.nome_local || r.nome_cliente}` : ''} · {r._tipo === 'custo' ? `${r.tipo} (Custo)` : r.tipo_servico}
+                          {r.status_lancamento === 'Cancelado' && <span style={{ marginLeft: '6px', fontSize: '11px', color: '#6b7280', fontWeight: 'normal' }}>● Cancelado</span>}
                         </span>
-                        <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                          {formatarData(r.created_at || r.data)}
-                          {(r.tecnico_nome || r.tecnico_responsavel) ? ` · ${r.tecnico_nome || r.tecnico_responsavel}` : ''}
-                        </span>
-                        {r._tipo === 'manutencao' && r.qtd_abastecida && (
-                          <span style={{ fontSize: '12px', color: '#38bdf8', whiteSpace: 'nowrap' }}>💧 {r.qtd_abastecida}L</span>
-                        )}
-                        {r._tipo === 'custo' && (
-                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: r.status === 'Confirmado' ? '#22c55e' : '#f59e0b', whiteSpace: 'nowrap' }}>
-                            {moeda(r.valor)} · {r.status === 'Confirmado' ? '✅' : '⏳'}
+
+                        {/* DIREITA — data, qtd, botões */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                          <span style={{ fontSize: '12px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                            {formatarData(r.created_at || r.data)}
+                            {(r.tecnico_nome || r.tecnico_responsavel) ? ` · ${r.tecnico_nome || r.tecnico_responsavel}` : ''}
                           </span>
-                        )}
-                        {r.status_lancamento === 'Cancelado' && (
-                          <span style={{ fontSize: '11px', color: '#6b7280', whiteSpace: 'nowrap' }}>● Cancelado</span>
-                        )}
-                        {usuario?.perfil === 'master' && r._tipo === 'manutencao' && r.status_lancamento !== 'Cancelado' && cancelandoId !== r.id && (
-                          <button
-                            style={{ ...styles.botaoAcao, backgroundColor: '#dc2626', whiteSpace: 'nowrap' }}
-                            onClick={() => { setCancelandoId(r.id); setSenhaCancelamento(''); }}>
-                            🚫 Cancelar
-                          </button>
-                        )}
+                          {r._tipo === 'manutencao' && r.qtd_abastecida && (
+                            <span style={{ fontSize: '12px', color: '#38bdf8', whiteSpace: 'nowrap' }}>💧 {r.qtd_abastecida}L</span>
+                          )}
+                          {r._tipo === 'custo' && (
+                            <span style={{ fontSize: '13px', fontWeight: 'bold', color: r.status === 'Confirmado' ? '#22c55e' : '#f59e0b', whiteSpace: 'nowrap' }}>
+                              {moeda(r.valor)} · {r.status === 'Confirmado' ? '✅' : '⏳'}
+                            </span>
+                          )}
+                          {usuario?.perfil === 'master' && r._tipo === 'manutencao' && r.status_lancamento !== 'Cancelado' && editandoId !== r.id && cancelandoId !== r.id && (
+                            <button style={{ ...styles.botaoAcao, backgroundColor: '#f59e0b' }}
+                              onClick={() => handleAbrirEdicao(r)}>
+                              ✏️ Editar
+                            </button>
+                          )}
+                          {usuario?.perfil === 'master' && r._tipo === 'manutencao' && r.status_lancamento !== 'Cancelado' && cancelandoId !== r.id && editandoId !== r.id && (
+                            <button style={{ ...styles.botaoAcao, backgroundColor: '#dc2626' }}
+                              onClick={() => { setCancelandoId(r.id); setSenhaCancelamento(''); }}>
+                              🚫 Cancelar
+                            </button>
+                          )}
+                        </div>
                       </div>
 
-                      {/* FORMULÁRIO DE SENHA */}
+                      {/* FORMULÁRIO DE EDIÇÃO */}
+                      {usuario?.perfil === 'master' && r._tipo === 'manutencao' && editandoId === r.id && (
+                        <div style={{ marginTop: '10px', backgroundColor: '#0f172a', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          <p style={{ color: '#f59e0b', fontSize: '12px', margin: 0 }}>✏️ Editando registro</p>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                            <div>
+                              <label style={styles.label}>Tipo de Serviço</label>
+                              <select style={styles.input} value={formEdicao.tipo_servico} onChange={(e) => setFormEdicao({ ...formEdicao, tipo_servico: e.target.value })}>
+                                <option value="Abastecimento">💧 Abastecimento</option>
+                                <option value="Instalação">🏗️ Instalação</option>
+                                <option value="Manutenção">🔧 Manutenção</option>
+                                <option value="Retirada">📦 Retirada</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label style={styles.label}>Quantidade (L)</label>
+                              <input style={styles.input} type="number" step="0.1"
+                                value={formEdicao.qtd_abastecida}
+                                onChange={(e) => setFormEdicao({ ...formEdicao, qtd_abastecida: e.target.value })} />
+                            </div>
+                            <div>
+                              <label style={styles.label}>Data do Registro</label>
+                              <input style={styles.input} type="date"
+                                value={formEdicao.data_registro}
+                                onChange={(e) => setFormEdicao({ ...formEdicao, data_registro: e.target.value })} />
+                            </div>
+                            <div>
+                              <label style={styles.label}>Valor Unitário (R$)</label>
+                              <input style={styles.input} type="number" step="0.01"
+                                value={formEdicao.valor_unitario}
+                                onChange={(e) => setFormEdicao({ ...formEdicao, valor_unitario: e.target.value })} />
+                            </div>
+                            <div>
+                              <label style={styles.label}>Custo Unitário (R$)</label>
+                              <input style={styles.input} type="number" step="0.01"
+                                value={formEdicao.custo_unitario}
+                                onChange={(e) => setFormEdicao({ ...formEdicao, custo_unitario: e.target.value })} />
+                            </div>
+                            <div>
+                              <label style={styles.label}>Nome do Assinante</label>
+                              <input style={styles.input}
+                                value={formEdicao.nome_assinante}
+                                onChange={(e) => setFormEdicao({ ...formEdicao, nome_assinante: e.target.value })} />
+                            </div>
+                          </div>
+                          <div>
+                            <label style={styles.label}>Observação</label>
+                            <textarea style={styles.input} rows={2}
+                              value={formEdicao.observacao}
+                              onChange={(e) => setFormEdicao({ ...formEdicao, observacao: e.target.value })} />
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button style={{ ...styles.botaoAcao, backgroundColor: '#22c55e' }}
+                              onClick={() => handleSalvarEdicao(r.id)} disabled={salvandoEdicao}>
+                              {salvandoEdicao ? 'Salvando...' : '✓ Salvar'}
+                            </button>
+                            <button style={{ ...styles.botaoAcao, backgroundColor: '#475569' }}
+                              onClick={() => setEditandoId(null)}>
+                              ✕ Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* FORMULÁRIO DE CANCELAMENTO */}
                       {usuario?.perfil === 'master' && r._tipo === 'manutencao' && cancelandoId === r.id && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', backgroundColor: '#0f172a', borderRadius: '6px', padding: '8px 12px', flexWrap: 'wrap' }}>
                           <span style={{ color: '#f59e0b', fontSize: '12px' }}>⚠️ Senha admin:</span>
                           <input
                             style={{ ...styles.input, width: '80px', letterSpacing: '6px', textAlign: 'center', fontSize: '16px', padding: '6px 8px' }}
-                            type="password"
-                            maxLength={4}
-                            placeholder="••••"
+                            type="password" maxLength={4} placeholder="••••"
                             value={senhaCancelamento}
-                            onChange={(e) => setSenhaCancelamento(e.target.value)}
-                          />
-                          <button
-                            style={{ ...styles.botaoAcao, backgroundColor: '#dc2626' }}
-                            onClick={() => handleCancelar(r.id)}
-                            disabled={cancelando}>
+                            onChange={(e) => setSenhaCancelamento(e.target.value)} />
+                          <button style={{ ...styles.botaoAcao, backgroundColor: '#dc2626' }}
+                            onClick={() => handleCancelar(r.id)} disabled={cancelando}>
                             {cancelando ? 'Cancelando...' : '✓ Confirmar'}
                           </button>
-                          <button
-                            style={{ ...styles.botaoAcao, backgroundColor: '#475569' }}
+                          <button style={{ ...styles.botaoAcao, backgroundColor: '#475569' }}
                             onClick={() => { setCancelandoId(null); setSenhaCancelamento(''); }}>
                             ✕ Voltar
                           </button>
@@ -600,4 +707,5 @@ const styles = {
   botaoAcao: { padding: '6px 14px', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' },
   aba: { padding: '10px 20px', backgroundColor: '#1e293b', color: '#94a3b8', border: '1px solid #334155', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' },
   abaAtiva: { backgroundColor: '#0ea5e9', color: '#fff', border: '1px solid #0ea5e9' },
+  label: { color: '#94a3b8', fontSize: '11px', textTransform: 'uppercase', display: 'block', marginBottom: '4px' },
 };
