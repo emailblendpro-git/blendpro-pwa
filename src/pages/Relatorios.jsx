@@ -14,6 +14,7 @@ export default function Relatorios() {
   const [maquinas, setMaquinas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [cidades, setCidades] = useState([]);
+  const [segmentos, setSegmentos] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [resumo, setResumo] = useState(null);
   const [filtroStatusGeral, setFiltroStatusGeral] = useState(null);
@@ -30,6 +31,7 @@ export default function Relatorios() {
   const [seraisSelecionados, setSeraisSelecionados] = useState([]);
   const [clientesSelecionados, setClientesSelecionados] = useState([]);
   const [cidadesSelecionadas, setCidadesSelecionadas] = useState([]);
+  const [segmentosSelecionados, setSegmentosSelecionados] = useState([]);
 
   // Dashboard rápido de máquina na aba Geral
   const [serialDashboard, setSerialDashboard] = useState('');
@@ -53,6 +55,7 @@ export default function Relatorios() {
     api.get('/maquinas').then((res) => setMaquinas(res.data)).catch(() => setMaquinas([]));
     api.get('/clientes').then((res) => setClientes(res.data)).catch(() => setClientes([]));
     api.get('/relatorios/cidades').then((res) => setCidades(res.data.cidades)).catch(() => setCidades([]));
+    api.get('/relatorios/segmentos').then((res) => setSegmentos(res.data.segmentos)).catch(() => setSegmentos([]));
     carregarResumo();
     const mesAnterior = new Date(new Date().setMonth(new Date().getMonth() - 1))
       .toISOString().substring(0, 7);
@@ -207,6 +210,24 @@ export default function Relatorios() {
     finally { setCarregando(false); }
   };
 
+  const toggleSegmento = (id) => {
+    setSegmentosSelecionados(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+    setRelatorioFinanceiro(null);
+  };
+  const selecionarTodosSegmentos = () => {
+    setSegmentosSelecionados(segmentosSelecionados.length === segmentos.length ? [] : segmentos.map(s => s.id));
+    setRelatorioFinanceiro(null);
+  };
+  const buscarFinanceiroSegmentos = async () => {
+    if (segmentosSelecionados.length === 0) { alert('Selecione ao menos um segmento.'); return; }
+    try {
+      setCarregando(true);
+      const res = await api.post('/relatorios/financeiro/segmentos', { ids: segmentosSelecionados });
+      setRelatorioFinanceiro(res.data);
+    } catch { alert('Erro ao carregar relatório financeiro por segmentos.'); }
+    finally { setCarregando(false); }
+  };
+
   const formatarData = (data) => { if (!data) return '—'; return new Date(data).toLocaleDateString('pt-BR'); };
   const formatarMes = (mes) => { if (!mes) return '—'; const [ano, m] = mes.split('-'); return `${m}/${ano}`; };
 
@@ -345,12 +366,14 @@ export default function Relatorios() {
   const tituloConsolidado = () => {
     if (subAbaFin === 'maquinas') return `${seraisSelecionados.length} máquina(s)`;
     if (subAbaFin === 'clientes') return `${clientesSelecionados.length} cliente(s)`;
+    if (subAbaFin === 'segmentos') return `${segmentosSelecionados.length} segmento(s)`;
     return `${cidadesSelecionadas.length} cidade(s)`;
   };
 
   const labelDetalhamento = () => {
     if (subAbaFin === 'maquinas') return 'Detalhamento por Máquina';
     if (subAbaFin === 'clientes') return 'Detalhamento por Cliente';
+    if (subAbaFin === 'segmentos') return 'Detalhamento por Segmento';
     return 'Detalhamento por Cidade';
   };
 
@@ -746,7 +769,7 @@ export default function Relatorios() {
         {/* ABA FINANCEIRO */}
         {aba === 'financeiro' && podeGerenciar && (
           <div>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
               <button style={{ ...styles.aba, ...(subAbaFin === 'maquinas' ? styles.abaAtiva : {}) }}
                 onClick={() => { setSubAbaFin('maquinas'); setRelatorioFinanceiro(null); setSeraisSelecionados([]); }}>
                 🖨️ Máquinas
@@ -758,6 +781,10 @@ export default function Relatorios() {
               <button style={{ ...styles.aba, ...(subAbaFin === 'cidades' ? styles.abaAtiva : {}) }}
                 onClick={() => { setSubAbaFin('cidades'); setRelatorioFinanceiro(null); setCidadesSelecionadas([]); }}>
                 📍 Cidades
+              </button>
+              <button style={{ ...styles.aba, ...(subAbaFin === 'segmentos' ? styles.abaAtiva : {}) }}
+                onClick={() => { setSubAbaFin('segmentos'); setRelatorioFinanceiro(null); setSegmentosSelecionados([]); }}>
+                🏷️ Segmentos
               </button>
             </div>
 
@@ -882,12 +909,55 @@ export default function Relatorios() {
                       <div>
                         <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{c.cidade}</div>
                         <div style={{ color: '#94a3b8', fontSize: '12px' }}>{c.total_clientes} cliente(s) · {c.total_maquinas} máquina(s)</div>
+                        <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '11px', flexWrap: 'wrap' }}>
+                          <span style={{ color: '#38bdf8' }}>Receita: {moeda(c.total_receita)}</span>
+                          <span style={{ color: '#ef4444' }}>Custo+Ded: {moeda(parseFloat(c.total_custo || 0) + parseFloat(c.total_deducoes || 0))}</span>
+                          <span style={{ color: '#22c55e' }}>Margem: {moeda(c.total_margem)} ({parseFloat(c.margem_pct || 0).toFixed(1)}%)</span>
+                        </div>
                       </div>
                     </label>
                   ))}
                 </div>
                 <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={buscarFinanceiroCidades}>
                   💰 Gerar Relatório Financeiro ({cidadesSelecionadas.length})
+                </button>
+              </div>
+            )}
+
+            {subAbaFin === 'segmentos' && (
+              <div style={styles.listaCheckbox}>
+                <div style={styles.checkboxHeader}>
+                  <label style={styles.checkboxItem}>
+                    <input type="checkbox"
+                      checked={segmentosSelecionados.length === segmentos.length && segmentos.length > 0}
+                      onChange={selecionarTodosSegmentos} style={{ marginRight: '8px' }} />
+                    <strong>Selecionar todos ({segmentos.length})</strong>
+                  </label>
+                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>{segmentosSelecionados.length} selecionado(s)</span>
+                </div>
+                <div style={styles.checkboxGrid}>
+                  {segmentos.map((s) => (
+                    <label key={s.id} style={{
+                      ...styles.checkboxItem,
+                      backgroundColor: segmentosSelecionados.includes(s.id) ? '#0c4a6e' : '#1e293b',
+                      border: segmentosSelecionados.includes(s.id) ? '1px solid #0ea5e9' : '1px solid #334155',
+                    }}>
+                      <input type="checkbox" checked={segmentosSelecionados.includes(s.id)}
+                        onChange={() => toggleSegmento(s.id)} style={{ marginRight: '8px' }} />
+                      <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{s.nome}</div>
+                        <div style={{ color: '#94a3b8', fontSize: '12px' }}>{s.total_clientes} cliente(s) · {s.total_maquinas} máquina(s)</div>
+                        <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontSize: '11px', flexWrap: 'wrap' }}>
+                          <span style={{ color: '#38bdf8' }}>Receita: {moeda(s.total_receita)}</span>
+                          <span style={{ color: '#ef4444' }}>Custo+Ded: {moeda(parseFloat(s.total_custo || 0) + parseFloat(s.total_deducoes || 0))}</span>
+                          <span style={{ color: '#22c55e' }}>Margem: {moeda(s.total_margem)} ({parseFloat(s.margem_pct || 0).toFixed(1)}%)</span>
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={buscarFinanceiroSegmentos}>
+                  💰 Gerar Relatório Financeiro ({segmentosSelecionados.length})
                 </button>
               </div>
             )}
