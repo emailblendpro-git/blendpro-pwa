@@ -135,6 +135,13 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* Agente de IA — todos os perfis */}
+          <div style={{ ...styles.card, borderLeft: '3px solid #38bdf8' }} onClick={() => navigate('/agente')}>
+            <p style={styles.cardTitulo}>Assistente IA</p>
+            <p style={styles.cardValor}>🤖</p>
+            <p style={styles.cardLink}>Perguntar ao agente →</p>
+          </div>
+
         </div>
       </div>
     </div>

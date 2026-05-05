@@ -11,6 +11,7 @@ import Relatorios from './pages/Relatorios';
 import Vendedores from './pages/Vendedores';
 import Abastecer from './pages/Abastecer';
 import Prestadores from './pages/Prestadores';
+import Agente from './pages/Agente';
 import { useUsuario } from './hooks/useUsuario';
 
 function RotaProtegida({ children }) {
@@ -105,6 +106,10 @@ export default function App() {
 
         <Route path="/abastecer/:serial" element={
           <RotaProtegida><Abastecer /></RotaProtegida>
+        } />
+
+        <Route path="/agente" element={
+          <RotaProtegida><Agente /></RotaProtegida>
         } />
 
       </Routes>
