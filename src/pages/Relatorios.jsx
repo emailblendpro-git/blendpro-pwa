@@ -586,19 +586,25 @@ export default function Relatorios() {
                     {/* Resultado em largura total — Desempenho Anual */}
                     {desempenhoAnual && (
                       <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                           <h3 style={{ ...styles.secaoTitulo, marginBottom: 0 }}>📈 Desempenho Anual</h3>
-                          <button onClick={() => setDesempenhoAnual(null)} style={styles.botaoFechar}>✕ Fechar</button>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            {desempenhoAnual.dados.find(r => r.previsao_anual) && (
+                              <span style={{ backgroundColor: '#0c2a3f', border: '1px solid #38bdf8', borderRadius: '8px', padding: '6px 16px', color: '#38bdf8', fontWeight: 'bold', fontSize: '14px' }}>
+                                Previsão para este ano: {moeda(desempenhoAnual.dados.find(r => r.previsao_anual).previsao_anual)}
+                              </span>
+                            )}
+                            <button onClick={() => setDesempenhoAnual(null)} style={styles.botaoFechar}>✕ Fechar</button>
+                          </div>
                         </div>
                         <table style={styles.tabela}>
-                          <thead><tr><th style={styles.th}>Ano</th><th style={styles.th}>Faturamento</th><th style={styles.th}>Máquinas</th><th style={styles.th}>Média/Máquina</th><th style={styles.th}>Previsão Anual</th></tr></thead>
+                          <thead><tr><th style={styles.th}>Ano</th><th style={styles.th}>Faturamento</th><th style={styles.th}>Máquinas</th><th style={styles.th}>Média/Máquina</th></tr></thead>
                           <tbody>{[...desempenhoAnual.dados].reverse().map((row, i) => (
                             <tr key={i} style={styles.tr}>
                               <td style={styles.td}>{row.ano}</td>
                               <td style={styles.td}>{moeda(row.total_faturado)}</td>
                               <td style={styles.td}>{row.qtd_maquinas}</td>
                               <td style={styles.td}>{moeda(row.media_maquina)}</td>
-                              <td style={{ ...styles.td, color: row.previsao_anual ? '#38bdf8' : '#94a3b8' }}>{row.previsao_anual ? moeda(row.previsao_anual) : '—'}</td>
                             </tr>
                           ))}</tbody>
                         </table>
