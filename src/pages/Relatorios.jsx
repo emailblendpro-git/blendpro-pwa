@@ -592,7 +592,7 @@ export default function Relatorios() {
                         </div>
                         <table style={styles.tabela}>
                           <thead><tr><th style={styles.th}>Ano</th><th style={styles.th}>Faturamento</th><th style={styles.th}>Máquinas</th><th style={styles.th}>Média/Máquina</th><th style={styles.th}>Previsão Anual</th></tr></thead>
-                          <tbody>{desempenhoAnual.dados.map((row, i) => (
+                          <tbody>{[...desempenhoAnual.dados].reverse().map((row, i) => (
                             <tr key={i} style={styles.tr}>
                               <td style={styles.td}>{row.ano}</td>
                               <td style={styles.td}>{moeda(row.total_faturado)}</td>
