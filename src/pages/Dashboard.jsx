@@ -44,12 +44,12 @@ export default function Dashboard() {
           <button style={styles.botaoSair} onClick={handleLogout}>Sair</button>
         </div>
       </div>
-      <div style={styles.conteudo}>
+      <div className="dash-conteudo">
         <h2 style={styles.bemVindo}>Dashboard</h2>
 
         {/* Linha 1 — Cadastros */}
-        <div style={styles.linha}>
-          <div style={styles.card} onClick={() => navigate('/maquinas')}>
+        <div className="dash-linha">
+          <div className="dash-card" onClick={() => navigate('/maquinas')}>
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <p style={styles.cardTitulo}>Total de Máquinas</p>
               {semComunicacao > 0 && (
@@ -61,7 +61,7 @@ export default function Dashboard() {
           </div>
 
           {podeGerenciar && (
-            <div style={styles.card} onClick={() => navigate('/clientes')}>
+            <div className="dash-card" onClick={() => navigate('/clientes')}>
               <p style={styles.cardTitulo}>Total de Clientes</p>
               <p style={styles.cardValor}>{clientes.length}</p>
               <p style={styles.cardLink}>Ver todos →</p>
@@ -69,7 +69,7 @@ export default function Dashboard() {
           )}
 
           {podeGerenciar && (
-            <div style={styles.card} onClick={() => navigate('/usuarios')}>
+            <div className="dash-card" onClick={() => navigate('/usuarios')}>
               <p style={styles.cardTitulo}>Total de Usuários</p>
               <p style={styles.cardValor}>{usuarios.length}</p>
               <p style={styles.cardLink}>Ver todos →</p>
@@ -77,7 +77,7 @@ export default function Dashboard() {
           )}
 
           {podeGerenciar && (
-            <div style={styles.card} onClick={() => navigate('/prestadores')}>
+            <div className="dash-card" onClick={() => navigate('/prestadores')}>
               <p style={styles.cardTitulo}>Prestadores</p>
               <p style={styles.cardValor}>👷</p>
               <p style={styles.cardLink}>Ver prestadores →</p>
@@ -86,9 +86,9 @@ export default function Dashboard() {
         </div>
 
         {/* Linha 2 — Operações */}
-        <div style={styles.linha}>
+        <div className="dash-linha">
           {podeManutencao && (
-            <div style={styles.card} onClick={() => navigate('/manutencoes')}>
+            <div className="dash-card" onClick={() => navigate('/manutencoes')}>
               <div style={{ position: 'relative', display: 'inline-block' }}>
                 <p style={styles.cardTitulo}>Registros</p>
                 {podeGerenciar && pendentesCount > 0 && (
@@ -100,14 +100,14 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div style={styles.card} onClick={() => navigate('/chamados')}>
+          <div className="dash-card" onClick={() => navigate('/chamados')}>
             <p style={styles.cardTitulo}>Chamados</p>
             <p style={styles.cardValor}>🎫</p>
             <p style={styles.cardLink}>Ver chamados →</p>
           </div>
 
           {podeGerenciar && (
-            <div style={styles.card} onClick={() => navigate('/produtos')}>
+            <div className="dash-card" onClick={() => navigate('/produtos')}>
               <p style={styles.cardTitulo}>Produtos</p>
               <p style={styles.cardValor}>🧴</p>
               <p style={styles.cardLink}>Ver produtos →</p>
@@ -115,7 +115,7 @@ export default function Dashboard() {
           )}
 
           {podeGerenciar && (
-            <div style={styles.card} onClick={() => navigate('/relatorios')}>
+            <div className="dash-card" onClick={() => navigate('/relatorios')}>
               <p style={styles.cardTitulo}>Relatórios</p>
               <p style={styles.cardValor}>📊</p>
               <p style={styles.cardLink}>Ver relatórios →</p>
@@ -124,16 +124,16 @@ export default function Dashboard() {
         </div>
 
         {/* Linha 3 — Extras */}
-        <div style={styles.linha}>
+        <div className="dash-linha">
           {podeGerenciar && (
-            <div style={styles.card} onClick={() => navigate('/vendedores')}>
+            <div className="dash-card" onClick={() => navigate('/vendedores')}>
               <p style={styles.cardTitulo}>Vendedores</p>
               <p style={styles.cardValor}>🤝</p>
               <p style={styles.cardLink}>Ver vendedores →</p>
             </div>
           )}
 
-          <div style={{ ...styles.card, borderTop: '3px solid #38bdf8' }} onClick={() => navigate('/agente')}>
+          <div className="dash-card" style={{ borderTop: '3px solid #38bdf8' }} onClick={() => navigate('/agente')}>
             <p style={styles.cardTitulo}>Assistente IA</p>
             <p style={styles.cardValor}>🤖</p>
             <p style={styles.cardLink}>Perguntar ao agente →</p>
