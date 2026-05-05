@@ -46,9 +46,9 @@ export default function Dashboard() {
       </div>
       <div style={styles.conteudo}>
         <h2 style={styles.bemVindo}>Dashboard</h2>
-        <div style={styles.cards}>
 
-          {/* Máquinas — todos veem */}
+        {/* Linha 1 — Cadastros */}
+        <div style={styles.linha}>
           <div style={styles.card} onClick={() => navigate('/maquinas')}>
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <p style={styles.cardTitulo}>Total de Máquinas</p>
@@ -60,7 +60,6 @@ export default function Dashboard() {
             <p style={styles.cardLink}>Ver todas →</p>
           </div>
 
-          {/* Clientes — apenas Master e Operador Interno */}
           {podeGerenciar && (
             <div style={styles.card} onClick={() => navigate('/clientes')}>
               <p style={styles.cardTitulo}>Total de Clientes</p>
@@ -69,7 +68,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Usuários — apenas Master e Operador Interno */}
           {podeGerenciar && (
             <div style={styles.card} onClick={() => navigate('/usuarios')}>
               <p style={styles.cardTitulo}>Total de Usuários</p>
@@ -78,7 +76,17 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Registros — todos exceto Cliente */}
+          {podeGerenciar && (
+            <div style={styles.card} onClick={() => navigate('/prestadores')}>
+              <p style={styles.cardTitulo}>Prestadores</p>
+              <p style={styles.cardValor}>👷</p>
+              <p style={styles.cardLink}>Ver prestadores →</p>
+            </div>
+          )}
+        </div>
+
+        {/* Linha 2 — Operações */}
+        <div style={styles.linha}>
           {podeManutencao && (
             <div style={styles.card} onClick={() => navigate('/manutencoes')}>
               <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -92,14 +100,12 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Chamados — todos veem */}
           <div style={styles.card} onClick={() => navigate('/chamados')}>
             <p style={styles.cardTitulo}>Chamados</p>
             <p style={styles.cardValor}>🎫</p>
             <p style={styles.cardLink}>Ver chamados →</p>
           </div>
 
-          {/* Produtos — apenas Master e Operador Interno */}
           {podeGerenciar && (
             <div style={styles.card} onClick={() => navigate('/produtos')}>
               <p style={styles.cardTitulo}>Produtos</p>
@@ -108,7 +114,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Relatórios — apenas Master e Operador Interno */}
           {podeGerenciar && (
             <div style={styles.card} onClick={() => navigate('/relatorios')}>
               <p style={styles.cardTitulo}>Relatórios</p>
@@ -116,8 +121,10 @@ export default function Dashboard() {
               <p style={styles.cardLink}>Ver relatórios →</p>
             </div>
           )}
+        </div>
 
-          {/* Vendedores — apenas Master e Operador Interno */}
+        {/* Linha 3 — Extras */}
+        <div style={styles.linha}>
           {podeGerenciar && (
             <div style={styles.card} onClick={() => navigate('/vendedores')}>
               <p style={styles.cardTitulo}>Vendedores</p>
@@ -126,23 +133,13 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Prestadores — apenas Master e Operador Interno */}
-          {podeGerenciar && (
-            <div style={styles.card} onClick={() => navigate('/prestadores')}>
-              <p style={styles.cardTitulo}>Prestadores</p>
-              <p style={styles.cardValor}>👷</p>
-              <p style={styles.cardLink}>Ver prestadores →</p>
-            </div>
-          )}
-
-          {/* Agente de IA — todos os perfis */}
-          <div style={{ ...styles.card, borderLeft: '3px solid #38bdf8' }} onClick={() => navigate('/agente')}>
+          <div style={{ ...styles.card, borderTop: '3px solid #38bdf8' }} onClick={() => navigate('/agente')}>
             <p style={styles.cardTitulo}>Assistente IA</p>
             <p style={styles.cardValor}>🤖</p>
             <p style={styles.cardLink}>Perguntar ao agente →</p>
           </div>
-
         </div>
+
       </div>
     </div>
   );
@@ -154,10 +151,10 @@ const styles = {
   titulo: { color: '#38bdf8', margin: 0 },
   nomeUsuario: { color: '#94a3b8', fontSize: '14px' },
   botaoSair: { padding: '8px 16px', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
-  conteudo: { padding: '40px 32px' },
-  bemVindo: { color: '#f1f5f9', marginBottom: '24px' },
-  cards: { display: 'flex', gap: '16px', flexWrap: 'wrap' },
-  card: { backgroundColor: '#1e293b', padding: '24px', borderRadius: '12px', minWidth: '180px', cursor: 'pointer' },
+  conteudo: { padding: '32px 16px', maxWidth: '1100px', margin: '0 auto' },
+  bemVindo: { color: '#f1f5f9', marginBottom: '24px', textAlign: 'center' },
+  linha: { display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '16px' },
+  card: { backgroundColor: '#1e293b', padding: '24px', borderRadius: '12px', width: '220px', cursor: 'pointer', textAlign: 'center', flexShrink: 0 },
   cardTitulo: { color: '#94a3b8', margin: '0 0 8px 0', fontSize: '14px' },
   cardValor: { color: '#38bdf8', margin: 0, fontSize: '36px', fontWeight: 'bold' },
   cardLink: { color: '#38bdf8', margin: '8px 0 0 0', fontSize: '13px' },
