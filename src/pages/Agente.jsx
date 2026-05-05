@@ -39,10 +39,11 @@ export default function Agente() {
         historico,
       });
       setMensagens(prev => [...prev, { role: 'assistant', content: res.data.resposta }]);
-    } catch {
+    } catch (err) {
+      const detalhe = err?.response?.data?.detalhe || err?.response?.data?.erro || err?.message || 'Erro desconhecido';
       setMensagens(prev => [
         ...prev,
-        { role: 'assistant', content: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.' },
+        { role: 'assistant', content: `Erro: ${detalhe}` },
       ]);
     } finally {
       setCarregando(false);
