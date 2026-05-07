@@ -72,9 +72,7 @@ export default function AgenteMaster() {
           <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', marginBottom: '12px' }}>
             {m.role === 'assistant' && <span style={s.avatarIA}>💼</span>}
             <div style={m.role === 'user' ? s.balaoUser : s.balaoIA}>
-              {m.content.split('\n').map((linha, j) => (
-                <span key={j}>{linha}<br /></span>
-              ))}
+              {m.content}
             </div>
             {m.role === 'user' && <span style={s.avatarUser}>👤</span>}
           </div>
@@ -186,10 +184,14 @@ const s = {
     border: '1px solid #f59e0b33',
     borderRadius: '16px 16px 16px 4px',
     padding: '12px 16px',
-    maxWidth: '75%',
-    fontSize: '14px',
+    maxWidth: '85%',
+    width: '85%',
+    fontSize: '13px',
     lineHeight: '1.6',
     color: '#e2e8f0',
+    textAlign: 'left',
+    whiteSpace: 'pre-wrap',
+    fontFamily: 'monospace',
   },
   balaoUser: {
     backgroundColor: '#92400e',
