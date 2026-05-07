@@ -14,17 +14,26 @@ export default function Produtos() {
   const [editando, setEditando] = useState(false);
   const [formEdicao, setFormEdicao] = useState({});
   const [form, setForm] = useState({
+    codigo: '',
     nome: '',
     descricao: '',
     unidade: 'Litro',
     custo_base: '',
   });
 
+  const proximoCodigo = () => {
+    if (produtos.length === 0) return 'PRO-001';
+    const numeros = produtos
+      .map(p => p.codigo?.match(/\d+$/)?.[0])
+      .filter(Boolean)
+      .map(Number);
+    const proximo = numeros.length > 0 ? Math.max(...numeros) + 1 : 1;
+    return `PRO-${String(proximo).padStart(3, '0')}`;
+  };
+
   const handleSubmit = async () => {
-    if (!form.nome) {
-      alert('O Nome do produto é obrigatório.');
-      return;
-    }
+    if (!form.nome) { alert('O Nome do produto é obrigatório.'); return; }
+    if (!form.codigo) { alert('O Código do produto é obrigatório.'); return; }
     setSalvando(true);
     try {
       await api.post('/produtos', {
@@ -33,11 +42,11 @@ export default function Produtos() {
       });
       alert('Produto cadastrado com sucesso!');
       setMostrarForm(false);
-      setForm({ nome: '', descricao: '', unidade: 'Litro', custo_base: '' });
+      setForm({ codigo: '', nome: '', descricao: '', unidade: 'Litro', custo_base: '' });
       const res = await api.get('/produtos');
       setProdutos(res.data);
     } catch (erro) {
-      alert('Erro ao cadastrar produto. Tente novamente.');
+      alert('Erro ao cadastrar produto. Verifique se o código já existe.');
     } finally {
       setSalvando(false);
     }
@@ -54,15 +63,16 @@ export default function Produtos() {
     <div style={styles.container}>
       <div style={styles.header}>
         <h1 style={styles.titulo}>BlendPro</h1>
-        <button style={styles.botaoVoltar} onClick={() => navigate('/dashboard')}>
-          ← Voltar
-        </button>
+        <button style={styles.botaoVoltar} onClick={() => navigate('/dashboard')}>← Voltar</button>
       </div>
       <div style={styles.conteudo}>
         <div style={styles.topBar}>
           <h2 style={styles.pageTitulo}>Produtos</h2>
           {podeGerenciar && (
-            <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
+            <button style={styles.botaoNovo} onClick={() => {
+              setMostrarForm(!mostrarForm);
+              if (!mostrarForm) setForm(f => ({ ...f, codigo: proximoCodigo() }));
+            }}>
               {mostrarForm ? '✕ Fechar' : '+ Novo Produto'}
             </button>
           )}
@@ -71,15 +81,25 @@ export default function Produtos() {
         {mostrarForm && podeGerenciar && (
           <div style={styles.form}>
             <h3 style={styles.formTitulo}>Novo Produto</h3>
-            <input style={styles.input} placeholder="Nome do Produto *" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-            <textarea style={styles.input} placeholder="Descrição" value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} rows={3} />
+            <label style={styles.label}>Código *</label>
+            <input style={{ ...styles.input, fontWeight: 'bold', color: '#f59e0b' }}
+              placeholder="ex: PRO-001"
+              value={form.codigo}
+              onChange={(e) => setForm({ ...form, codigo: e.target.value.toUpperCase() })}
+            />
+            <label style={styles.label}>Nome *</label>
+            <input style={styles.input} placeholder="Nome do Produto"
+              value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+            <label style={styles.label}>Descrição</label>
+            <textarea style={styles.input} placeholder="Descrição"
+              value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} rows={3} />
+            <label style={styles.label}>Unidade</label>
             <select style={styles.input} value={form.unidade} onChange={(e) => setForm({ ...form, unidade: e.target.value })}>
               <option value="Litro">Litro</option>
               <option value="Cápsula">Cápsula</option>
             </select>
-            <input
-              style={styles.input}
-              placeholder="Custo Base (ex: 12,50)"
+            <label style={styles.label}>Custo Base</label>
+            <input style={styles.input} placeholder="ex: 12,50"
               value={form.custo_base}
               onChange={(e) => setForm({ ...form, custo_base: e.target.value })}
               onBlur={(e) => {
@@ -96,16 +116,17 @@ export default function Produtos() {
         {produtoSelecionado && (
           <div style={styles.painel}>
             <div style={styles.painelHeader}>
-              <h3 style={styles.painelTitulo}>{produtoSelecionado.nome}</h3>
+              <div>
+                <span style={styles.painelCodigo}>{produtoSelecionado.codigo || '—'}</span>
+                <h3 style={styles.painelTitulo}>{produtoSelecionado.nome}</h3>
+              </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {podeGerenciar && (
                   <button style={styles.botaoEditar} onClick={() => setEditando(!editando)}>
                     {editando ? '✕ Cancelar' : '✏️ Editar'}
                   </button>
                 )}
-                <button style={styles.botaoFechar} onClick={() => setProdutoSelecionado(null)}>
-                  ✕ Fechar
-                </button>
+                <button style={styles.botaoFechar} onClick={() => setProdutoSelecionado(null)}>✕ Fechar</button>
               </div>
             </div>
 
@@ -117,13 +138,22 @@ export default function Produtos() {
               </div>
             ) : (
               <div style={styles.form}>
-                <input style={styles.input} placeholder="Nome *" value={formEdicao.nome || ''} onChange={(e) => setFormEdicao({ ...formEdicao, nome: e.target.value })} />
-                <textarea style={styles.input} placeholder="Descrição" value={formEdicao.descricao || ''} onChange={(e) => setFormEdicao({ ...formEdicao, descricao: e.target.value })} rows={3} />
+                <label style={styles.label}>Código</label>
+                <input style={{ ...styles.input, fontWeight: 'bold', color: '#f59e0b' }}
+                  value={formEdicao.codigo || ''}
+                  onChange={(e) => setFormEdicao({ ...formEdicao, codigo: e.target.value.toUpperCase() })}
+                />
+                <label style={styles.label}>Nome</label>
+                <input style={styles.input} value={formEdicao.nome || ''} onChange={(e) => setFormEdicao({ ...formEdicao, nome: e.target.value })} />
+                <label style={styles.label}>Descrição</label>
+                <textarea style={styles.input} value={formEdicao.descricao || ''} onChange={(e) => setFormEdicao({ ...formEdicao, descricao: e.target.value })} rows={3} />
+                <label style={styles.label}>Unidade</label>
                 <select style={styles.input} value={formEdicao.unidade || 'Litro'} onChange={(e) => setFormEdicao({ ...formEdicao, unidade: e.target.value })}>
                   <option value="Litro">Litro</option>
                   <option value="Cápsula">Cápsula</option>
                 </select>
-                <input style={styles.input} placeholder="Custo Base" value={formEdicao.custo_base || ''} onChange={(e) => setFormEdicao({ ...formEdicao, custo_base: e.target.value })} />
+                <label style={styles.label}>Custo Base</label>
+                <input style={styles.input} value={formEdicao.custo_base || ''} onChange={(e) => setFormEdicao({ ...formEdicao, custo_base: e.target.value })} />
                 <button style={styles.botaoSalvar} onClick={async () => {
                   try {
                     await api.patch(`/produtos/${produtoSelecionado.id}`, {
@@ -138,9 +168,7 @@ export default function Produtos() {
                   } catch {
                     alert('Erro ao atualizar produto.');
                   }
-                }}>
-                  Salvar Alterações
-                </button>
+                }}>Salvar Alterações</button>
               </div>
             )}
           </div>
@@ -164,7 +192,7 @@ export default function Produtos() {
             <tbody>
               {produtos.map((p) => (
                 <tr key={p.id} style={{ ...styles.tr, cursor: 'pointer' }} onClick={() => { setProdutoSelecionado(p); setFormEdicao(p); setEditando(false); }}>
-                  <td style={{ ...styles.td, color: '#f59e0b', fontWeight: 'bold' }}>{p.id}</td>
+                  <td style={{ ...styles.td, color: '#f59e0b', fontWeight: 'bold' }}>{p.codigo || '—'}</td>
                   <td style={styles.td}>{p.nome}</td>
                   <td style={styles.td}>{p.unidade}</td>
                   <td style={styles.td}>{p.custo_base ? `R$ ${parseFloat(p.custo_base).toFixed(2).replace('.', ',')}` : '—'}</td>
@@ -193,12 +221,14 @@ const styles = {
   td: { padding: '12px 16px', color: '#f1f5f9', fontSize: '14px' },
   topBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
   botaoNovo: { padding: '10px 20px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' },
-  form: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '12px' },
+  form: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '8px' },
   formTitulo: { color: '#38bdf8', margin: '0 0 8px 0' },
+  label: { color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase', marginBottom: '2px' },
   input: { padding: '10px 14px', backgroundColor: '#0f172a', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '8px', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
   botaoSalvar: { padding: '12px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', marginTop: '8px' },
   painel: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', marginBottom: '32px' },
-  painelHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
+  painelHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' },
+  painelCodigo: { color: '#f59e0b', fontWeight: 'bold', fontSize: '12px', display: 'block', marginBottom: '4px' },
   painelTitulo: { color: '#38bdf8', margin: 0 },
   painelGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
   painelCampo: { display: 'flex', flexDirection: 'column', gap: '4px' },
