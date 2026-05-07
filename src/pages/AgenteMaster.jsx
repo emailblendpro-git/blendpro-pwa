@@ -63,6 +63,34 @@ export default function AgenteMaster() {
     fimRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [mensagens, carregando]);
 
+  function imprimirMensagem(conteudo, idx) {
+    const pergunta = mensagens[idx - 1]?.content || '';
+    const win = window.open('', '_blank');
+    win.document.write(`
+      <!DOCTYPE html><html><head>
+        <meta charset="UTF-8">
+        <title>Assistente Financeiro BlendPro</title>
+        <style>
+          body { font-family: Arial, sans-serif; font-size: 13px; line-height: 1.6; padding: 32px; color: #111; }
+          h2 { font-size: 16px; margin-bottom: 4px; }
+          .meta { font-size: 11px; color: #666; margin-bottom: 24px; }
+          .pergunta { background: #dbeafe; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; }
+          .pergunta-label { font-size: 11px; color: #3b82f6; font-weight: bold; margin-bottom: 4px; }
+          .resposta { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 14px; white-space: pre-wrap; }
+          .resposta-label { font-size: 11px; color: #6b7280; font-weight: bold; margin-bottom: 4px; }
+        </style>
+      </head><body>
+        <h2>💼 Assistente Financeiro BlendPro</h2>
+        <div class="meta">Gerado em ${new Date().toLocaleString('pt-BR')} — Usuário: ${usuario?.nome}</div>
+        ${pergunta ? `<div class="pergunta-label">Pergunta:</div><div class="pergunta">${pergunta}</div>` : ''}
+        <div class="resposta-label">Resposta:</div>
+        <div class="resposta">${conteudo}</div>
+      </body></html>
+    `);
+    win.document.close();
+    win.print();
+  }
+
   async function enviar(e) {
     e.preventDefault();
     const texto = input.trim();
@@ -133,8 +161,19 @@ export default function AgenteMaster() {
         {mensagens.map((m, i) => (
           <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', marginBottom: '12px' }}>
             {m.role === 'assistant' && <span style={s.avatarIA}>💼</span>}
-            <div style={m.role === 'user' ? s.balaoUser : s.balaoIA}>
-              {m.content}
+            <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '85%', width: m.role === 'assistant' ? '85%' : undefined }}>
+              <div style={m.role === 'user' ? s.balaoUser : s.balaoIA}>
+                {m.content}
+              </div>
+              {m.role === 'assistant' && i > 0 && (
+                <button
+                  style={s.btnImprimirMsg}
+                  title="Imprimir esta resposta"
+                  onClick={() => imprimirMensagem(m.content, i)}
+                >
+                  🖨️ Imprimir esta resposta
+                </button>
+              )}
             </div>
             {m.role === 'user' && <span style={s.avatarUser}>👤</span>}
           </div>
@@ -214,6 +253,16 @@ const s = {
   iconeHeader: { fontSize: '28px' },
   headerTitulo: { color: '#f1f5f9', fontWeight: 'bold', fontSize: '15px' },
   headerSub:    { color: '#f59e0b', fontSize: '12px' },
+  btnImprimirMsg: {
+    alignSelf: 'flex-start',
+    marginTop: '4px',
+    background: 'none',
+    border: 'none',
+    color: '#64748b',
+    fontSize: '11px',
+    cursor: 'pointer',
+    padding: '2px 4px',
+  },
   btnImprimir: {
     backgroundColor: 'transparent',
     border: '1px solid #f59e0b',
