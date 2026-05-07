@@ -154,6 +154,7 @@ export default function Produtos() {
           <table style={styles.tabela}>
             <thead>
               <tr>
+                <th style={{ ...styles.th, color: '#f59e0b' }}>Cód.</th>
                 <th style={styles.th}>Nome</th>
                 <th style={styles.th}>Unidade</th>
                 <th style={styles.th}>Custo Base</th>
@@ -163,6 +164,7 @@ export default function Produtos() {
             <tbody>
               {produtos.map((p) => (
                 <tr key={p.id} style={{ ...styles.tr, cursor: 'pointer' }} onClick={() => { setProdutoSelecionado(p); setFormEdicao(p); setEditando(false); }}>
+                  <td style={{ ...styles.td, color: '#f59e0b', fontWeight: 'bold' }}>{p.id}</td>
                   <td style={styles.td}>{p.nome}</td>
                   <td style={styles.td}>{p.unidade}</td>
                   <td style={styles.td}>{p.custo_base ? `R$ ${parseFloat(p.custo_base).toFixed(2).replace('.', ',')}` : '—'}</td>
