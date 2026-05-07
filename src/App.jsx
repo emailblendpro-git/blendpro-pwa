@@ -12,6 +12,7 @@ import Vendedores from './pages/Vendedores';
 import Abastecer from './pages/Abastecer';
 import Prestadores from './pages/Prestadores';
 import Agente from './pages/Agente';
+import AgenteMaster from './pages/AgenteMaster';
 import { useUsuario } from './hooks/useUsuario';
 
 function RotaProtegida({ children }) {
@@ -110,6 +111,14 @@ export default function App() {
 
         <Route path="/agente" element={
           <RotaProtegida><Agente /></RotaProtegida>
+        } />
+
+        <Route path="/agente-master" element={
+          <RotaProtegida>
+            <RotaRestrita perfisPermitidos={['master']}>
+              <AgenteMaster />
+            </RotaRestrita>
+          </RotaProtegida>
         } />
 
       </Routes>
