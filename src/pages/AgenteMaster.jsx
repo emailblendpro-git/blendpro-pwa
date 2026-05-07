@@ -3,9 +3,52 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
 
+const PRINT_STYLE = `
+@media print {
+  body * { visibility: hidden; }
+  #chat-print, #chat-print * { visibility: visible; }
+  #chat-print {
+    position: absolute; top: 0; left: 0;
+    width: 100%; padding: 24px;
+    font-family: Arial, sans-serif;
+    font-size: 12px; line-height: 1.6;
+    color: #000; background: #fff;
+  }
+  .msg-ia {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+    text-align: left;
+  }
+  .msg-user {
+    background: #dbeafe;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    text-align: right;
+  }
+  .msg-label {
+    font-size: 10px;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+}
+`;
+
 export default function AgenteMaster() {
   const navigate    = useNavigate();
   const { usuario } = useUsuario();
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id    = 'print-style-master';
+    style.innerHTML = PRINT_STYLE;
+    document.head.appendChild(style);
+    return () => document.getElementById('print-style-master')?.remove();
+  }, []);
   const [mensagens, setMensagens] = useState([
     {
       role: 'assistant',
@@ -63,7 +106,26 @@ export default function AgenteMaster() {
             <div style={s.headerSub}>Acesso total — exclusivo Master</div>
           </div>
         </div>
-        <span style={s.badgeMaster}>MASTER</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button style={s.btnImprimir} onClick={() => window.print()} title="Imprimir ou salvar como PDF">
+            🖨️ Imprimir / PDF
+          </button>
+          <span style={s.badgeMaster}>MASTER</span>
+        </div>
+      </div>
+
+      {/* Área de impressão (invisível na tela, visível no print) */}
+      <div id="chat-print">
+        <h2 style={{ marginBottom: '8px' }}>Assistente Financeiro BlendPro</h2>
+        <p style={{ fontSize: '11px', color: '#6b7280', marginBottom: '16px' }}>
+          Gerado em {new Date().toLocaleString('pt-BR')} — Usuário: {usuario?.nome}
+        </p>
+        {mensagens.slice(1).map((m, i) => (
+          <div key={i}>
+            <div className="msg-label">{m.role === 'user' ? '👤 Você' : '💼 Assistente'}</div>
+            <div className={m.role === 'user' ? 'msg-user' : 'msg-ia'}>{m.content}</div>
+          </div>
+        ))}
       </div>
 
       {/* Chat */}
@@ -152,6 +214,15 @@ const s = {
   iconeHeader: { fontSize: '28px' },
   headerTitulo: { color: '#f1f5f9', fontWeight: 'bold', fontSize: '15px' },
   headerSub:    { color: '#f59e0b', fontSize: '12px' },
+  btnImprimir: {
+    backgroundColor: 'transparent',
+    border: '1px solid #f59e0b',
+    color: '#f59e0b',
+    borderRadius: '8px',
+    padding: '6px 12px',
+    fontSize: '13px',
+    cursor: 'pointer',
+  },
   badgeMaster: {
     backgroundColor: '#f59e0b',
     color: '#0f172a',
