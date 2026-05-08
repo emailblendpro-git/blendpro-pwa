@@ -21,6 +21,10 @@ export default function Maquinas() {
     const [formEdicao, setFormEdicao] = useState({});
     const [parametrosExistem, setParametrosExistem] = useState(false);
     const [operadorParaAdicionar, setOperadorParaAdicionar] = useState('');
+    const [formOperacional, setFormOperacional] = useState({
+        vol1: '3000', vol2: '3000', fat1: '19.0', fat2: '66.0', mlx_segundo: '9.5',
+    });
+
     const [formParametros, setFormParametros] = useState({
         icms: '18.00',
         pis: '3.65',
@@ -273,7 +277,16 @@ export default function Maquinas() {
                             <div style={{ display: 'flex', gap: '8px' }}>
                                 {podeGerenciar && (
                                     <button style={styles.botaoEditar} onClick={() => {
-                                        if (!editando) carregarParametros(maquinaSelecionada.numero_serie);
+                                        if (!editando) {
+                                            carregarParametros(maquinaSelecionada.numero_serie);
+                                            setFormOperacional({
+                                                vol1: String(maquinaSelecionada.vol1 ?? '3000'),
+                                                vol2: String(maquinaSelecionada.vol2 ?? '3000'),
+                                                fat1: String(maquinaSelecionada.fat1 ?? '19.0'),
+                                                fat2: String(maquinaSelecionada.fat2 ?? '66.0'),
+                                                mlx_segundo: String(maquinaSelecionada.mlx_segundo ?? '9.5'),
+                                            });
+                                        }
                                         setEditando(!editando);
                                     }}>
                                         {editando ? '✕ Cancelar' : '✏️ Editar'}
@@ -410,6 +423,33 @@ export default function Maquinas() {
                                 <input style={styles.input} placeholder="Versão do Firmware" value={formEdicao.versao_firmware || ''} onChange={(e) => setFormEdicao({ ...formEdicao, versao_firmware: e.target.value })} />
                                 <textarea style={styles.input} placeholder="Notas Internas" value={formEdicao.notas_internas || ''} onChange={(e) => setFormEdicao({ ...formEdicao, notas_internas: e.target.value })} rows={3} />
 
+                                {/* ── Parâmetros Operacionais ── */}
+                                <div style={styles.secaoParametros}>
+                                    <h4 style={styles.secaoTitulo}>⚙️ Parâmetros Operacionais</h4>
+                                    <p style={styles.secaoDesc}>Enviados para a máquina via CONFIG_PARAM</p>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                        {[
+                                            { campo: 'vol1', label: 'Volume P1 (mL)' },
+                                            { campo: 'fat1', label: 'Diluição P1 (1:X)' },
+                                            { campo: 'vol2', label: 'Volume P2 (mL)' },
+                                            { campo: 'fat2', label: 'Diluição P2 (1:X)' },
+                                        ].map(({ campo, label }) => (
+                                            <div key={campo}>
+                                                <label style={styles.painelLabel}>{label}</label>
+                                                <input style={styles.input} type="number" step="0.1"
+                                                    value={formOperacional[campo]}
+                                                    onChange={(e) => setFormOperacional({ ...formOperacional, [campo]: e.target.value })}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <label style={styles.painelLabel}>Calibração da Bomba (mL/s)</label>
+                                    <input style={styles.input} type="number" step="0.1"
+                                        value={formOperacional.mlx_segundo}
+                                        onChange={(e) => setFormOperacional({ ...formOperacional, mlx_segundo: e.target.value })}
+                                    />
+                                </div>
+
                                 {mostrarParametros(formEdicao) && (
                                     <div style={styles.secaoParametros}>
                                         <h4 style={styles.secaoTitulo}>💰 Parâmetros Financeiros</h4>
@@ -493,6 +533,11 @@ export default function Maquinas() {
                                             ...formEdicao,
                                             custo_aquisicao: formEdicao.custo_aquisicao ? parseFloat(String(formEdicao.custo_aquisicao).replace(',', '.')) : null,
                                             valor_unitario_atual: formEdicao.valor_unitario_atual ? parseFloat(String(formEdicao.valor_unitario_atual).replace(',', '.')) : null,
+                                            vol1: parseFloat(formOperacional.vol1),
+                                            vol2: parseFloat(formOperacional.vol2),
+                                            fat1: parseFloat(formOperacional.fat1),
+                                            fat2: parseFloat(formOperacional.fat2),
+                                            mlx_segundo: parseFloat(formOperacional.mlx_segundo),
                                         });
                                         if (mostrarParametros(formEdicao)) {
                                             const payload = {
