@@ -3,22 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
 
-// ── Seletor de múltiplas máquinas ────────────────
+// ── Seletor de múltiplas máquinas com checkbox ───
 function SeletorMaquinas({ maquinas, selecionados, onChange }) {
   const [aberto, setAberto] = useState(false);
-  const naoselecionados = maquinas.filter((m) => !selecionados.find((s) => s.numero_serie === m.numero_serie));
 
-  function adicionar(m) {
-    onChange([...selecionados, { numero_serie: m.numero_serie, nome_local: m.nome_local || m.numero_serie }]);
-    setAberto(false);
-  }
-
-  function remover(numero_serie) {
-    onChange(selecionados.filter((s) => s.numero_serie !== numero_serie));
+  function toggle(m) {
+    const jaSel = selecionados.find((s) => s.numero_serie === m.numero_serie);
+    if (jaSel) {
+      onChange(selecionados.filter((s) => s.numero_serie !== m.numero_serie));
+    } else {
+      onChange([...selecionados, { numero_serie: m.numero_serie, nome_local: m.nome_local || m.numero_serie }]);
+    }
   }
 
   return (
     <div style={{ position: 'relative' }}>
+      {/* Chips das selecionadas */}
       <div style={st.chipsBox}>
         {selecionados.length === 0 && (
           <span style={{ color: '#475569', fontSize: '13px' }}>Nenhuma máquina vinculada</span>
@@ -26,23 +26,51 @@ function SeletorMaquinas({ maquinas, selecionados, onChange }) {
         {selecionados.map((s) => (
           <span key={s.numero_serie} style={st.chip}>
             {s.nome_local || s.numero_serie}
-            <button style={st.chipX} onClick={() => remover(s.numero_serie)}>×</button>
+            <button style={st.chipX} onClick={() => toggle({ numero_serie: s.numero_serie })}>×</button>
           </span>
         ))}
-        {naoselecionados.length > 0 && (
-          <button style={st.btnAdicionar} onClick={() => setAberto(!aberto)}>
-            {aberto ? '✕' : '+ Vincular'}
-          </button>
-        )}
+        <button style={st.btnAdicionar} onClick={() => setAberto(!aberto)}>
+          {aberto ? '✕ Fechar' : '+ Vincular'}
+        </button>
       </div>
+
+      {/* Dropdown com checkboxes */}
       {aberto && (
         <div style={st.dropdown}>
-          {naoselecionados.map((m) => (
-            <div key={m.numero_serie} style={st.dropdownItem} onClick={() => adicionar(m)}>
-              <span style={{ fontWeight: '600' }}>{m.nome_local || m.numero_serie}</span>
-              {m.nome_local && <span style={{ color: '#64748b', fontSize: '11px', marginLeft: '6px' }}>{m.numero_serie}</span>}
+          {maquinas.length === 0 && (
+            <div style={{ padding: '12px 14px', color: '#475569', fontSize: '13px' }}>
+              Nenhuma máquina cadastrada.
             </div>
-          ))}
+          )}
+          {maquinas.map((m) => {
+            const sel = !!selecionados.find((s) => s.numero_serie === m.numero_serie);
+            return (
+              <div key={m.numero_serie} style={{ ...st.dropdownItem, backgroundColor: sel ? '#0ea5e911' : 'transparent' }}
+                onClick={() => toggle(m)}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0,
+                    border: `2px solid ${sel ? '#38bdf8' : '#475569'}`,
+                    backgroundColor: sel ? '#38bdf8' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {sel && <span style={{ color: '#0f172a', fontSize: '11px', fontWeight: 'bold', lineHeight: 1 }}>✓</span>}
+                  </div>
+                  <div>
+                    <span style={{ fontWeight: '600', color: '#f1f5f9', fontSize: '13px' }}>
+                      {m.nome_local || m.numero_serie}
+                    </span>
+                    {m.nome_local && (
+                      <span style={{ color: '#64748b', fontSize: '11px', marginLeft: '6px' }}>{m.numero_serie}</span>
+                    )}
+                    {m.nome_cliente && (
+                      <span style={{ color: '#94a3b8', fontSize: '11px', marginLeft: '6px' }}>· {m.nome_cliente}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
