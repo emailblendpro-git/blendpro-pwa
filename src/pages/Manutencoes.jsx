@@ -17,6 +17,7 @@ export default function Manutencoes() {
   const [carregando, setCarregando] = useState(false);
   const [listaVisivel, setListaVisivel] = useState(false);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [abastecidosHoje, setAbastecidosHoje] = useState(new Set());
   const [salvando, setSalvando] = useState(false);
   const [filtroSerial, setFiltroSerial] = useState('');
   const [filtroTipo, setFiltroTipo] = useState('');
@@ -67,6 +68,19 @@ export default function Manutencoes() {
   const handleVerRegistros = () => {
     setListaVisivel(true);
     carregarRegistros(filtroDataInicio);
+  };
+
+  const carregarAbastecidosHoje = async () => {
+    try {
+      const hoje = new Date().toISOString().split('T')[0];
+      const res = await api.get(`/manutencoes?data_inicio=${hoje}`);
+      const seriais = new Set(
+        (res.data || [])
+          .filter(r => r.tipo_servico === 'Abastecimento' && r.status_lancamento !== 'Cancelado')
+          .map(r => r.numero_serie)
+      );
+      setAbastecidosHoje(seriais);
+    } catch { setAbastecidosHoje(new Set()); }
   };
 
   const carregarRegistros = async (dataInicio = '') => {
@@ -302,7 +316,11 @@ export default function Manutencoes() {
         <div style={styles.topBar}>
           <h2 style={styles.pageTitulo}>Registros</h2>
           {aba === 'registros' && podeManutencao && (
-            <button style={styles.botaoNovo} onClick={() => { setMostrarForm(!mostrarForm); resetForm(); }}>
+            <button style={styles.botaoNovo} onClick={() => {
+              if (!mostrarForm) carregarAbastecidosHoje();
+              setMostrarForm(!mostrarForm);
+              resetForm();
+            }}>
               {mostrarForm ? '✕ Fechar' : '+ Novo Registro'}
             </button>
           )}
@@ -332,7 +350,20 @@ export default function Manutencoes() {
                 <h3 style={styles.formTitulo}>Novo Registro</h3>
                 <select style={styles.input} value={form.numero_serie} onChange={(e) => setForm({ ...form, numero_serie: e.target.value })}>
                   <option value="">Selecionar Máquina *</option>
-                  {maquinas.map((m) => (<option key={m.id} value={m.numero_serie}>{m.numero_serie} — {m.nome_cliente || 'Sem cliente'}</option>))}
+                  {[...maquinas].sort((a, b) => {
+                    const aOk = abastecidosHoje.has(a.numero_serie);
+                    const bOk = abastecidosHoje.has(b.numero_serie);
+                    if (aOk && !bOk) return 1;
+                    if (!aOk && bOk) return -1;
+                    return 0;
+                  }).map((m) => {
+                    const feita = abastecidosHoje.has(m.numero_serie);
+                    return (
+                      <option key={m.id} value={m.numero_serie}>
+                        {feita ? '✅' : '🔵'} {m.numero_serie} — {m.nome_cliente || 'Sem cliente'}{feita ? ' (abastecida hoje)' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
                 <select style={styles.input} value={form.tipo_servico} onChange={(e) => { setForm({ ...form, tipo_servico: e.target.value }); setTemCusto(false); }}>
                   <option value="">Tipo de Serviço *</option>
