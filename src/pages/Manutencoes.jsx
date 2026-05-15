@@ -14,7 +14,8 @@ export default function Manutencoes() {
   // Estados — Registros
   const [registros, setRegistros] = useState([]);
   const [maquinas, setMaquinas] = useState([]);
-  const [carregando, setCarregando] = useState(true);
+  const [carregando, setCarregando] = useState(false);
+  const [listaVisivel, setListaVisivel] = useState(false);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [filtroSerial, setFiltroSerial] = useState('');
@@ -55,7 +56,6 @@ export default function Manutencoes() {
   });
 
   useEffect(() => {
-    carregarRegistros();
     api.get('/maquinas').then((res) => setMaquinas(res.data)).catch(() => setMaquinas([]));
     const agora = new Date();
     const mes = String(agora.getMonth() + 1).padStart(2, '0');
@@ -63,6 +63,11 @@ export default function Manutencoes() {
     setSelectMes(mes);
     setSelectAno(ano);
   }, []);
+
+  const handleVerRegistros = () => {
+    setListaVisivel(true);
+    carregarRegistros(filtroDataInicio);
+  };
 
   const carregarRegistros = async (dataInicio = '') => {
     try {
@@ -371,6 +376,14 @@ export default function Manutencoes() {
               </div>
             )}
 
+            {!listaVisivel ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <button style={styles.botaoVerLista} onClick={handleVerRegistros}>
+                  📋 Ver Registros
+                </button>
+              </div>
+            ) : (
+            <>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
               <select style={styles.inputFiltro} value={filtroSerial} onChange={(e) => setFiltroSerial(e.target.value)}>
                 <option value="">Todas as Máquinas</option>
@@ -525,6 +538,8 @@ export default function Manutencoes() {
                   ))}
                 </div>
               )}
+            </>
+            )}
           </>
         )}
 
@@ -708,4 +723,5 @@ const styles = {
   aba: { padding: '10px 20px', backgroundColor: '#1e293b', color: '#94a3b8', border: '1px solid #334155', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' },
   abaAtiva: { backgroundColor: '#0ea5e9', color: '#fff', border: '1px solid #0ea5e9' },
   label: { color: '#94a3b8', fontSize: '11px', textTransform: 'uppercase', display: 'block', marginBottom: '4px' },
+  botaoVerLista: { padding: '14px 32px', backgroundColor: '#1e293b', color: '#94a3b8', border: '1px solid #334155', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px' },
 };
