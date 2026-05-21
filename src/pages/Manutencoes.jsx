@@ -31,6 +31,7 @@ export default function Manutencoes() {
   const [fechando, setFechando] = useState(false);
   const [selecionados, setSelecionados] = useState([]);
   const [qtdEditada, setQtdEditada] = useState({});
+  const [valorEditado, setValorEditado] = useState({});
   const [selectMes, setSelectMes] = useState('');
   const [selectAno, setSelectAno] = useState('');
 
@@ -114,6 +115,7 @@ export default function Manutencoes() {
       const qtds = {};
       (resPend.data.registros || []).forEach(r => { qtds[r.id] = r.qtd_abastecida; });
       setQtdEditada(qtds);
+      setValorEditado({});
       setSelecionados((resPend.data.registros || []).map(r => r.id));
       const resSem = await api.get(`/manutencoes/sem-abastecimento?mes=${mes}&ano=${ano}`);
       setMaquinasSemAbast(resSem.data.maquinas || []);
@@ -127,7 +129,11 @@ export default function Manutencoes() {
     setFechando(true);
     try {
       const registrosParaFechar = selecionados.map(id => ({
-        id, qtd_abastecida: parseFloat(qtdEditada[id] || 0),
+        id,
+        qtd_abastecida: parseFloat(qtdEditada[id] || 0),
+        ...((valorEditado[id] !== undefined && valorEditado[id] !== '')
+          ? { valor_total: parseFloat(valorEditado[id]) }
+          : {}),
       }));
       await api.post('/manutencoes/fechar', { registros: registrosParaFechar });
       alert(`${selecionados.length} abastecimento(s) fechado(s) com sucesso!`);
@@ -280,7 +286,10 @@ export default function Manutencoes() {
   const totalSelecionado = selecionados.reduce((acc, id) => {
     const reg = pendentes.find(r => r.id === id);
     if (!reg) return acc;
-    return acc + (parseFloat(qtdEditada[id] || 0) * parseFloat(reg.valor_unitario || 0));
+    const valor = (valorEditado[id] !== undefined && valorEditado[id] !== '')
+      ? parseFloat(valorEditado[id] || 0)
+      : parseFloat(qtdEditada[id] || 0) * parseFloat(reg.valor_unitario || 0);
+    return acc + valor;
   }, 0);
 
   const SeletorMesAno = () => (
@@ -604,31 +613,96 @@ export default function Manutencoes() {
                           <span style={{ color: '#94a3b8', fontSize: '13px' }}>{selecionados.length} selecionada(s)</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
-                          {pendentes.map((r) => (
-                            <label key={r.id} style={{
-                              backgroundColor: selecionados.includes(r.id) ? '#0c4a6e' : '#1e293b',
-                              border: selecionados.includes(r.id) ? '1px solid #0ea5e9' : '1px solid #334155',
-                              borderRadius: '10px', padding: '14px 16px',
-                              display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer',
-                            }}>
-                              <input type="checkbox" checked={selecionados.includes(r.id)} onChange={() => toggleSelecionado(r.id)} />
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 'bold', fontSize: '14px' }}>💧 {r.numero_serie} — {r.nome_cliente || '—'}</div>
-                                <div style={{ color: '#94a3b8', fontSize: '12px', marginTop: '2px' }}>{formatarData(r.created_at)} · {r.tecnico_nome || '—'}</div>
+                          {Object.values(pendentes.reduce((acc, r) => {
+                            if (!acc[r.numero_serie]) acc[r.numero_serie] = { info: r, registros: [] };
+                            acc[r.numero_serie].registros.push(r);
+                            return acc;
+                          }, {})).map((grupo) => {
+                            const ids = grupo.registros.map(r => r.id);
+                            const todosSelec = ids.every(id => selecionados.includes(id));
+                            const algumSelec = ids.some(id => selecionados.includes(id));
+                            const toggleMaquina = () => {
+                              if (todosSelec) {
+                                setSelecionados(prev => prev.filter(id => !ids.includes(id)));
+                              } else {
+                                setSelecionados(prev => [...new Set([...prev, ...ids])]);
+                              }
+                            };
+                            return (
+                              <div key={grupo.info.numero_serie} style={{
+                                backgroundColor: algumSelec ? '#0c4a6e' : '#1e293b',
+                                border: `1px solid ${algumSelec ? '#0ea5e9' : '#334155'}`,
+                                borderRadius: '10px', overflow: 'hidden',
+                              }}>
+                                {/* Cabeçalho da máquina */}
+                                <div style={{
+                                  padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px',
+                                  borderBottom: '1px solid #334155', cursor: 'pointer',
+                                }} onClick={toggleMaquina}>
+                                  <input type="checkbox"
+                                    checked={todosSelec}
+                                    ref={el => { if (el) el.indeterminate = algumSelec && !todosSelec; }}
+                                    onChange={toggleMaquina}
+                                    onClick={e => e.stopPropagation()} />
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
+                                      💧 {grupo.info.numero_serie} — {grupo.info.nome_cliente || '—'}
+                                    </div>
+                                  </div>
+                                  <span style={{ color: '#94a3b8', fontSize: '12px' }}>
+                                    {grupo.registros.length} abastecimento(s)
+                                  </span>
+                                </div>
+                                {/* Sub-linhas por abastecimento */}
+                                {grupo.registros.map((r, idx) => {
+                                  const valorCalc = parseFloat(qtdEditada[r.id] || 0) * parseFloat(r.valor_unitario || 0);
+                                  const valorOv = valorEditado[r.id];
+                                  const temOverride = valorOv !== undefined && valorOv !== '';
+                                  const valorExibido = temOverride ? parseFloat(valorOv) : valorCalc;
+                                  return (
+                                    <div key={r.id} style={{
+                                      padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px',
+                                      borderBottom: idx < grupo.registros.length - 1 ? '1px solid #1e3a5f' : 'none',
+                                      backgroundColor: selecionados.includes(r.id) ? '#0a3d62' : 'transparent',
+                                      flexWrap: 'wrap',
+                                    }}>
+                                      <input type="checkbox"
+                                        checked={selecionados.includes(r.id)}
+                                        onChange={() => toggleSelecionado(r.id)} />
+                                      <div style={{ flex: 1, minWidth: '130px' }}>
+                                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                          {formatarData(r.created_at)} · {r.tecnico_nome || '—'}
+                                        </div>
+                                      </div>
+                                      {/* Litros */}
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <input type="number" step="0.1"
+                                          value={qtdEditada[r.id] !== undefined ? qtdEditada[r.id] : ''}
+                                          onChange={(e) => setQtdEditada(prev => ({ ...prev, [r.id]: e.target.value }))}
+                                          onClick={e => e.stopPropagation()}
+                                          style={{ ...styles.input, width: '70px', textAlign: 'center', padding: '6px 8px', fontSize: '13px' }} />
+                                        <span style={{ color: '#94a3b8', fontSize: '12px' }}>L</span>
+                                      </div>
+                                      {/* Valor (editável — sobrescreve o calculado) */}
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span style={{ color: '#94a3b8', fontSize: '12px' }}>R$</span>
+                                        <input type="number" step="0.01"
+                                          value={temOverride ? valorOv : ''}
+                                          placeholder={valorCalc.toFixed(2)}
+                                          onChange={(e) => setValorEditado(prev => ({ ...prev, [r.id]: e.target.value }))}
+                                          onClick={e => e.stopPropagation()}
+                                          style={{ ...styles.input, width: '90px', textAlign: 'right', padding: '6px 8px', fontSize: '13px', color: temOverride ? '#f59e0b' : '#f1f5f9' }} />
+                                      </div>
+                                      {/* Total da linha */}
+                                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: temOverride ? '#f59e0b' : '#22c55e', minWidth: '80px', textAlign: 'right' }}>
+                                        {moeda(valorExibido)}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <input type="number" step="0.1"
-                                  value={qtdEditada[r.id] || ''}
-                                  onChange={(e) => setQtdEditada({ ...qtdEditada, [r.id]: e.target.value })}
-                                  onClick={(e) => e.preventDefault()}
-                                  style={{ ...styles.input, width: '80px', textAlign: 'center', padding: '6px 8px' }} />
-                                <span style={{ color: '#94a3b8', fontSize: '12px' }}>L</span>
-                                <span style={{ color: '#22c55e', fontSize: '13px', fontWeight: 'bold', minWidth: '90px', textAlign: 'right' }}>
-                                  {moeda(parseFloat(qtdEditada[r.id] || 0) * parseFloat(r.valor_unitario || 0))}
-                                </span>
-                              </div>
-                            </label>
-                          ))}
+                            );
+                          })}
                         </div>
                         <div style={{ backgroundColor: '#1e293b', borderRadius: '10px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div>
