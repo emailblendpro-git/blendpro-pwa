@@ -272,6 +272,7 @@ export default function Manutencoes() {
     if (item.tipo_servico === 'Abastecimento') return '💧';
     if (item.tipo_servico === 'Instalação') return '🏗️';
     if (item.tipo_servico === 'Retirada') return '📦';
+    if (item.tipo_servico === 'Vista sem abastecimento') return '👁️';
     return '🔧';
   };
 
@@ -378,6 +379,7 @@ export default function Manutencoes() {
                   <option value="">Tipo de Serviço *</option>
                   <option value="Instalação">🏗️ Instalação</option>
                   <option value="Abastecimento">💧 Abastecimento</option>
+                  <option value="Vista sem abastecimento">👁️ Vista sem abastecimento</option>
                   <option value="Manutenção">🔧 Manutenção</option>
                   <option value="Retirada">📦 Retirada</option>
                 </select>
@@ -433,6 +435,7 @@ export default function Manutencoes() {
                 <option value="">Todos os Tipos</option>
                 <option value="Instalação">🏗️ Instalação</option>
                 <option value="Abastecimento">💧 Abastecimento</option>
+                <option value="Vista sem abastecimento">👁️ Vista sem abastecimento</option>
                 <option value="Manutenção">🔧 Manutenção</option>
                 <option value="Retirada">📦 Retirada</option>
                 <option value="custo">💰 Custo</option>
@@ -499,8 +502,9 @@ export default function Manutencoes() {
                             <div>
                               <label style={styles.label}>Tipo de Serviço</label>
                               <select style={styles.input} value={formEdicao.tipo_servico} onChange={(e) => setFormEdicao({ ...formEdicao, tipo_servico: e.target.value })}>
-                                <option value="Abastecimento">💧 Abastecimento</option>
                                 <option value="Instalação">🏗️ Instalação</option>
+                                <option value="Abastecimento">💧 Abastecimento</option>
+                                <option value="Vista sem abastecimento">👁️ Vista sem abastecimento</option>
                                 <option value="Manutenção">🔧 Manutenção</option>
                                 <option value="Retirada">📦 Retirada</option>
                               </select>
