@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import PortalCliente from './pages/PortalCliente';
 import Maquinas from './pages/Maquinas';
 import Clientes from './pages/Clientes';
 import Usuarios from './pages/Usuarios';
@@ -27,7 +28,11 @@ function RotaProtegida({ children }) {
 function RotaRestrita({ children, perfisPermitidos }) {
   const { perfil } = useUsuario();
   if (!perfil) return <Navigate to="/" />;
-  if (!perfisPermitidos.includes(perfil)) return <Navigate to="/dashboard" />;
+  if (!perfisPermitidos.includes(perfil)) {
+    // Clientes têm seu próprio portal
+    if (perfil === 'cliente') return <Navigate to="/portal-cliente" />;
+    return <Navigate to="/dashboard" />;
+  }
   return children;
 }
 
@@ -38,7 +43,11 @@ export default function App() {
         <Route path="/" element={<Login />} />
 
         <Route path="/dashboard" element={
-          <RotaProtegida><Dashboard /></RotaProtegida>
+          <RotaProtegida>
+            <RotaRestrita perfisPermitidos={['master', 'operador_interno', 'operador_externo']}>
+              <Dashboard />
+            </RotaRestrita>
+          </RotaProtegida>
         } />
 
         <Route path="/maquinas" element={
@@ -117,6 +126,14 @@ export default function App() {
           <RotaProtegida>
             <RotaRestrita perfisPermitidos={['master']}>
               <AgenteMaster />
+            </RotaRestrita>
+          </RotaProtegida>
+        } />
+
+<Route path="/portal-cliente" element={
+          <RotaProtegida>
+            <RotaRestrita perfisPermitidos={['cliente']}>
+              <PortalCliente />
             </RotaRestrita>
           </RotaProtegida>
         } />

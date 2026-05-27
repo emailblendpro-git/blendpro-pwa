@@ -139,7 +139,7 @@ export default function Dashboard() {
             <p style={styles.cardLink}>Perguntar ao agente →</p>
           </div>
 
-          {usuario?.perfil === 'master' && (
+{usuario?.perfil === 'master' && (
             <div className="dash-card" style={{ borderTop: '3px solid #f59e0b' }} onClick={() => navigate('/agente-master')}>
               <p style={styles.cardTitulo}>Assistente Financeiro</p>
               <p style={styles.cardValor}>💼</p>
