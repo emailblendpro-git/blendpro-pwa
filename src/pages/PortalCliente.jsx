@@ -353,9 +353,12 @@ export default function PortalCliente() {
       if (tipo === 'Vista sem abastecimento') return '👁️';
       return '🔧';
     };
+
+    const histOrdenado = [...historico].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     const histFiltrado = filtroSerialHist
-      ? historico.filter(r => r.numero_serie === filtroSerialHist)
-      : historico;
+      ? histOrdenado.filter(r => r.numero_serie === filtroSerialHist)
+      : histOrdenado;
+    const ativos = histFiltrado.filter(r => r.status_lancamento !== 'Cancelado').length;
 
     return (
       <div>
@@ -377,34 +380,45 @@ export default function PortalCliente() {
         ) : !histFiltrado.length ? (
           <p style={s.msg}>Nenhum registro encontrado.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {histFiltrado.map((r) => (
-              <div key={r.id} style={{
-                backgroundColor: '#1e293b', borderRadius: '8px', padding: '12px 16px',
-                borderLeft: `4px solid ${r.status_lancamento === 'Cancelado' ? '#6b7280' : '#38bdf8'}`,
-                opacity: r.status_lancamento === 'Cancelado' ? 0.5 : 1,
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <div>
-                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#f1f5f9' }}>
-                      {icone(r.tipo_servico)} {r.nome_local || r.numero_serie} — {r.tipo_servico}
-                    </span>
-                    {r.observacao && (
-                      <p style={{ color: '#94a3b8', fontSize: '12px', margin: '3px 0 0 0' }}>{r.observacao}</p>
-                    )}
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                      {new Date(r.created_at).toLocaleDateString('pt-BR')}
-                    </span>
-                    {r.qtd_abastecida && (
-                      <p style={{ color: '#38bdf8', fontSize: '12px', margin: '2px 0 0 0' }}>💧 {r.qtd_abastecida} L</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <>
+            <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '12px' }}>
+              📋 Registros ({ativos})
+            </p>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={s.tabela}>
+                <thead>
+                  <tr>
+                    <th style={s.th}>Data</th>
+                    <th style={s.th}>Serial</th>
+                    <th style={s.th}>Cliente</th>
+                    <th style={s.th}>Tipo de Registro</th>
+                    <th style={s.th}>Qtd (L)</th>
+                    <th style={s.th}>Técnico</th>
+                    <th style={s.th}>Conferente</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {histFiltrado.map((r, i) => {
+                    const cancelado = r.status_lancamento === 'Cancelado';
+                    return (
+                      <tr key={i} style={{ ...s.tr, opacity: cancelado ? 0.4 : 1 }}>
+                        <td style={s.td}>{new Date(r.created_at).toLocaleDateString('pt-BR')}</td>
+                        <td style={s.td}>{r.numero_serie}</td>
+                        <td style={s.td}>{r.nome_cliente || '—'}</td>
+                        <td style={s.td}>
+                          {icone(r.tipo_servico)} {r.tipo_servico}
+                          {cancelado && <span style={{ color: '#6b7280', fontSize: '11px', marginLeft: '6px' }}>● Cancelado</span>}
+                        </td>
+                        <td style={{ ...s.td, color: '#38bdf8' }}>{r.qtd_abastecida ? `${r.qtd_abastecida} L` : '—'}</td>
+                        <td style={{ ...s.td, color: '#94a3b8' }}>{r.tecnico_nome || r.tecnico_responsavel || '—'}</td>
+                        <td style={{ ...s.td, color: '#94a3b8' }}>{r.nome_assinante || '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     );
