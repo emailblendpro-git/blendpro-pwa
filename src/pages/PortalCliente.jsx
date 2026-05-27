@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
@@ -26,18 +26,6 @@ function corStatus(s) {
   return '#94a3b8';
 }
 
-function corChamado(s) {
-  if (s === 'Aberto')       return '#ef4444';
-  if (s === 'Em Andamento') return '#f59e0b';
-  if (s === 'Resolvido')    return '#22c55e';
-  return '#94a3b8';
-}
-
-function corPrioridade(p) {
-  if (p === 'Alta')   return '#ef4444';
-  if (p === 'Normal') return '#f59e0b';
-  return '#22c55e';
-}
 
 function iconeRegistro(tipo) {
   if (tipo === 'Abastecimento')          return '💧';
@@ -57,36 +45,30 @@ export default function PortalCliente() {
   const [maquinas, setMaquinas]     = useState([]);
   const [carregandoMaq, setCarregandoMaq] = useState(true);
 
-  // Máquina expandida + seus registros
+  // Todos os registros do cliente (carregados uma vez)
+  const [todosRegistros, setTodosRegistros] = useState([]);
+  const [carregandoReg,  setCarregandoReg]  = useState(true);
+
+  // Máquina expandida
   const [maquinaAberta, setMaquinaAberta] = useState(null);
-  const [registrosMaq, setRegistrosMaq]   = useState({});   // { [numero_serie]: [] }
-  const [carregandoReg, setCarregandoReg] = useState(null); // serial que está carregando
 
-  // Chamados
-  const [chamados, setChamados]         = useState([]);
-  const [carregandoCh, setCarregandoCh] = useState(false);
-  const [chamadoSel, setChamadoSel]     = useState(null);
-
-  // Carrega máquinas ao montar
+  // Carrega máquinas + registros ao montar
   useEffect(() => {
     api.get('/maquinas')
       .then((r) => setMaquinas(r.data))
       .catch(() => setMaquinas([]))
       .finally(() => setCarregandoMaq(false));
-  }, []);
 
-  // Carrega chamados ao entrar na aba
-  const carregarChamados = useCallback(() => {
-    setCarregandoCh(true);
-    api.get('/chamados')
-      .then((r) => setChamados(r.data))
-      .catch(() => setChamados([]))
-      .finally(() => setCarregandoCh(false));
+    api.get('/manutencoes')
+      .then((r) => {
+        const ordenados = [...r.data].sort(
+          (a, b) => new Date(a.created_at) - new Date(b.created_at)
+        );
+        setTodosRegistros(ordenados);
+      })
+      .catch(() => setTodosRegistros([]))
+      .finally(() => setCarregandoReg(false));
   }, []);
-
-  useEffect(() => {
-    if (aba === 'chamados') carregarChamados();
-  }, [aba, carregarChamados]);
 
   function handleLogout() {
     localStorage.removeItem('token');
@@ -94,27 +76,9 @@ export default function PortalCliente() {
     navigate('/');
   }
 
-  // Abre/fecha registros de uma máquina
-  async function toggleMaquina(serial) {
-    if (maquinaAberta === serial) {
-      setMaquinaAberta(null);
-      return;
-    }
-    setMaquinaAberta(serial);
-    if (registrosMaq[serial]) return; // já carregou
-
-    setCarregandoReg(serial);
-    try {
-      const r = await api.get(`/manutencoes?serial=${serial}`);
-      const ordenados = [...r.data].sort(
-        (a, b) => new Date(a.created_at) - new Date(b.created_at)
-      );
-      setRegistrosMaq((prev) => ({ ...prev, [serial]: ordenados }));
-    } catch {
-      setRegistrosMaq((prev) => ({ ...prev, [serial]: [] }));
-    } finally {
-      setCarregandoReg(null);
-    }
+  // Abre/fecha registros de uma máquina (filtragem local)
+  function toggleMaquina(serial) {
+    setMaquinaAberta((prev) => (prev === serial ? null : serial));
   }
 
   // Nome de exibição do cliente
@@ -128,7 +92,7 @@ export default function PortalCliente() {
   // ── Renders ──────────────────────────────────────
 
   function renderMaquinas() {
-    if (carregandoMaq) return <p style={s.msg}>Carregando...</p>;
+    if (carregandoMaq || carregandoReg) return <p style={s.msg}>Carregando...</p>;
     if (!maquinas.length) return <p style={s.msg}>Nenhuma máquina vinculada.</p>;
 
     return (
@@ -138,10 +102,9 @@ export default function PortalCliente() {
         </p>
 
         {maquinas.map((m) => {
-          const aberta   = maquinaAberta === m.numero_serie;
-          const regs     = registrosMaq[m.numero_serie] || [];
-          const loading  = carregandoReg === m.numero_serie;
-          const ativos   = regs.filter(r => r.status_lancamento !== 'Cancelado').length;
+          const aberta = maquinaAberta === m.numero_serie;
+          const regs   = todosRegistros.filter(r => r.numero_serie === m.numero_serie);
+          const ativos = regs.filter(r => r.status_lancamento !== 'Cancelado').length;
 
           return (
             <div key={m.numero_serie} style={s.maqBloco}>
@@ -182,9 +145,7 @@ export default function PortalCliente() {
               {/* ── Registros expandidos ── */}
               {aberta && (
                 <div style={s.maqRegistros}>
-                  {loading ? (
-                    <p style={{ ...s.msg, padding: '20px 0' }}>Carregando registros...</p>
-                  ) : regs.length === 0 ? (
+                  {regs.length === 0 ? (
                     <p style={{ ...s.msg, padding: '20px 0' }}>Nenhum registro encontrado para esta máquina.</p>
                   ) : (
                     <>
@@ -249,94 +210,6 @@ export default function PortalCliente() {
     );
   }
 
-  function renderChamados() {
-    return (
-      <div>
-        <div style={s.topBar}>
-          <h3 style={{ color: '#f1f5f9', margin: 0 }}>Meus Chamados</h3>
-        </div>
-
-        {chamadoSel && (
-          <div style={s.modal}>
-            <div style={s.modalBox}>
-              <div style={s.modalHeader}>
-                <h3 style={{ color: '#38bdf8', margin: 0 }}>{chamadoSel.titulo}</h3>
-                <button style={s.btnFechar} onClick={() => setChamadoSel(null)}>✕</button>
-              </div>
-              <div style={s.grid2}>
-                <Campo label="Máquina"    valor={chamadoSel.nome_local || chamadoSel.numero_serie || '—'} />
-                <Campo label="Aberto em"  valor={formatarData(chamadoSel.created_at)} />
-                <Campo label="Prioridade" valor={chamadoSel.prioridade} cor={corPrioridade(chamadoSel.prioridade)} />
-                <Campo label="Status"     valor={chamadoSel.status}     cor={corChamado(chamadoSel.status)} />
-                {chamadoSel.atribuido_a_nome && (
-                  <Campo label="Técnico Responsável" valor={chamadoSel.atribuido_a_nome} />
-                )}
-                {chamadoSel.data_resolucao && (
-                  <Campo label="Resolvido em" valor={formatarData(chamadoSel.data_resolucao)} />
-                )}
-              </div>
-              {chamadoSel.descricao && (
-                <div style={{ marginTop: '16px' }}>
-                  <p style={{ color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Descrição</p>
-                  <p style={{ color: '#f1f5f9', margin: 0, lineHeight: '1.6' }}>{chamadoSel.descricao}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {carregandoCh ? (
-          <p style={s.msg}>Carregando...</p>
-        ) : !chamados.length ? (
-          <div style={s.vazio}>
-            <p style={{ fontSize: '40px', margin: '0 0 8px 0' }}>✅</p>
-            <p style={{ color: '#94a3b8' }}>Nenhum chamado aberto.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {chamados.map((c) => (
-              <div key={c.id} style={s.chamadoCard} onClick={() => setChamadoSel(c)}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1, marginRight: '12px' }}>
-                    <p style={{ color: '#f1f5f9', margin: '0 0 4px 0', fontWeight: 'bold' }}>{c.titulo}</p>
-                    <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>
-                      {c.nome_local || c.numero_serie || 'Sem máquina'} · {formatarDataCurta(c.created_at)}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                    <span style={{ ...s.tag, color: corChamado(c.status), backgroundColor: corChamado(c.status) + '22', border: `1px solid ${corChamado(c.status)}44` }}>
-                      {c.status}
-                    </span>
-                    <span style={{ ...s.tag, color: corPrioridade(c.prioridade), backgroundColor: corPrioridade(c.prioridade) + '22', border: `1px solid ${corPrioridade(c.prioridade)}44` }}>
-                      {c.prioridade}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  function renderFinanceiro() {
-    return (
-      <div style={s.placeholderBox}>
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: '56px', margin: '0 0 16px 0' }}>💰</p>
-          <h3 style={{ color: '#f1f5f9', margin: '0 0 8px 0' }}>Módulo Financeiro</h3>
-          <p style={{ color: '#94a3b8', margin: '0 0 24px 0', maxWidth: '360px' }}>
-            Em breve você poderá acompanhar faturas, consumo mensal e histórico de pagamentos diretamente aqui.
-          </p>
-          <div style={{ display: 'inline-block', padding: '8px 20px', backgroundColor: '#f59e0b22', border: '1px solid #f59e0b44', borderRadius: '8px', color: '#f59e0b', fontSize: '14px' }}>
-            🚧 Em desenvolvimento
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // ── Render principal ─────────────────────────────
 
   return (
@@ -350,27 +223,9 @@ export default function PortalCliente() {
         <button style={s.btnSair} onClick={handleLogout}>Sair</button>
       </div>
 
-      {/* Abas */}
-      <div style={s.abas}>
-        {[
-          { id: 'maquinas',   icon: '🏭', label: 'Máquinas' },
-          { id: 'chamados',   icon: '🎫', label: 'Chamados' },
-          { id: 'financeiro', icon: '💰', label: 'Financeiro' },
-        ].map((a) => (
-          <button key={a.id}
-            style={{ ...s.aba, ...(aba === a.id ? s.abaAtiva : {}) }}
-            onClick={() => setAba(a.id)}>
-            <span style={{ fontSize: '20px' }}>{a.icon}</span>
-            <span style={{ fontSize: '12px', marginTop: '2px' }}>{a.label}</span>
-          </button>
-        ))}
-      </div>
-
       {/* Conteúdo */}
       <div style={s.conteudo}>
-        {aba === 'maquinas'   && renderMaquinas()}
-        {aba === 'chamados'   && renderChamados()}
-        {aba === 'financeiro' && renderFinanceiro()}
+        {renderMaquinas()}
       </div>
     </div>
   );
