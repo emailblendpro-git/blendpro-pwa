@@ -148,7 +148,7 @@ export default function Relatorios() {
         api.get(`/manutencoes?id_cliente=${clienteSelecionado}`),
       ]);
       setRelatorioCliente(resCliente.data);
-      setRegistrosCliente(resRegistros.data || []);
+      setRegistrosCliente((resRegistros.data || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
       setRelatorioFinanceiroCliente(null);
     } catch { alert('Erro ao carregar relatório do cliente.'); }
     finally { setCarregando(false); }
