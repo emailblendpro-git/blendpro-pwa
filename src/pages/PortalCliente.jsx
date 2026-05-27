@@ -393,6 +393,7 @@ export default function PortalCliente() {
                     <th style={s.th}>Cliente</th>
                     <th style={s.th}>Tipo de Registro</th>
                     <th style={s.th}>Qtd (L)</th>
+                    <th style={s.th}>Valor Cobrado</th>
                     <th style={s.th}>Técnico</th>
                     <th style={s.th}>Conferente</th>
                   </tr>
@@ -410,6 +411,11 @@ export default function PortalCliente() {
                           {cancelado && <span style={{ color: '#6b7280', fontSize: '11px', marginLeft: '6px' }}>● Cancelado</span>}
                         </td>
                         <td style={{ ...s.td, color: '#38bdf8' }}>{r.qtd_abastecida ? `${r.qtd_abastecida} L` : '—'}</td>
+                        <td style={{ ...s.td, color: '#22c55e', fontWeight: 'bold' }}>
+                          {r.tipo_servico === 'Abastecimento' && parseFloat(r.valor_unitario || 0) > 0
+                            ? `R$ ${(parseFloat(r.qtd_abastecida || 0) * parseFloat(r.valor_unitario || 0)).toFixed(2).replace('.', ',')}`
+                            : '—'}
+                        </td>
                         <td style={{ ...s.td, color: '#94a3b8' }}>{r.tecnico_nome || r.tecnico_responsavel || '—'}</td>
                         <td style={{ ...s.td, color: '#94a3b8' }}>{r.nome_assinante || '—'}</td>
                       </tr>
