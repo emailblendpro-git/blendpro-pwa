@@ -25,6 +25,7 @@ export default function Relatorios() {
   const [relatorioMaquina, setRelatorioMaquina] = useState(null);
   const [relatorioCliente, setRelatorioCliente] = useState(null);
   const [relatorioFinanceiroCliente, setRelatorioFinanceiroCliente] = useState(null);
+  const [registrosCliente, setRegistrosCliente] = useState([]);
   const [relatorioFinanceiro, setRelatorioFinanceiro] = useState(null);
   const [serialSelecionado, setSerialSelecionado] = useState('');
   const [clienteSelecionado, setClienteSelecionado] = useState('');
@@ -142,8 +143,12 @@ export default function Relatorios() {
     if (!clienteSelecionado) return;
     try {
       setCarregando(true);
-      const res = await api.get(`/relatorios/cliente/${clienteSelecionado}`);
-      setRelatorioCliente(res.data);
+      const [resCliente, resRegistros] = await Promise.all([
+        api.get(`/relatorios/cliente/${clienteSelecionado}`),
+        api.get(`/manutencoes?id_cliente=${clienteSelecionado}`),
+      ]);
+      setRelatorioCliente(resCliente.data);
+      setRegistrosCliente(resRegistros.data || []);
       setRelatorioFinanceiroCliente(null);
     } catch { alert('Erro ao carregar relatório do cliente.'); }
     finally { setCarregando(false); }
@@ -760,23 +765,46 @@ export default function Relatorios() {
                   <h3 style={styles.secaoTitulo}>🏢 {relatorioCliente.cliente.nome_cliente}</h3>
                   <p style={{ color: '#94a3b8', fontSize: '14px' }}>{relatorioCliente.cliente.cidade || '—'} — {relatorioCliente.cliente.telefone || '—'}</p>
                 </div>
-                {relatorioCliente.maquinas.length > 0 ? (
+                {registrosCliente.length > 0 ? (
                   <div style={styles.secao}>
-                    <h3 style={styles.secaoTitulo}>🖨️ Máquinas do Cliente (mês atual)</h3>
+                    <h3 style={styles.secaoTitulo}>📋 Registros do Cliente ({registrosCliente.filter(r => r.status_lancamento !== 'Cancelado').length})</h3>
                     <table style={styles.tabela}>
-                      <thead><tr><th style={styles.th}>Serial</th><th style={styles.th}>Modelo</th><th style={styles.th}>Status</th><th style={styles.th}>Acionamentos</th><th style={styles.th}>Volume (L)</th></tr></thead>
-                      <tbody>{relatorioCliente.maquinas.map((m, i) => (
-                        <tr key={i} style={styles.tr}>
-                          <td style={styles.td}>{m.numero_serie}</td>
-                          <td style={styles.td}>{m.modelo}</td>
-                          <td style={styles.td}>{m.status}</td>
-                          <td style={styles.td}>{m.total_acionamentos || 0}</td>
-                          <td style={styles.td}>{num(m.volume_total)}</td>
+                      <thead>
+                        <tr>
+                          <th style={styles.th}>Data</th>
+                          <th style={styles.th}>Serial</th>
+                          <th style={styles.th}>Cliente</th>
+                          <th style={styles.th}>Tipo de Registro</th>
+                          <th style={styles.th}>Qtd (L)</th>
+                          <th style={styles.th}>Técnico</th>
                         </tr>
-                      ))}</tbody>
+                      </thead>
+                      <tbody>
+                        {registrosCliente.map((r, i) => {
+                          const cancelado = r.status_lancamento === 'Cancelado';
+                          const icone =
+                            r.tipo_servico === 'Abastecimento' ? '💧' :
+                            r.tipo_servico === 'Instalação' ? '🏗️' :
+                            r.tipo_servico === 'Retirada' ? '📦' :
+                            r.tipo_servico === 'Vista sem abastecimento' ? '👁️' : '🔧';
+                          return (
+                            <tr key={i} style={{ ...styles.tr, opacity: cancelado ? 0.4 : 1 }}>
+                              <td style={styles.td}>{formatarData(r.created_at)}</td>
+                              <td style={styles.td}>{r.numero_serie}</td>
+                              <td style={styles.td}>{r.nome_cliente || '—'}</td>
+                              <td style={styles.td}>
+                                {icone} {r.tipo_servico}
+                                {cancelado && <span style={{ color: '#6b7280', fontSize: '11px', marginLeft: '6px' }}>● Cancelado</span>}
+                              </td>
+                              <td style={{ ...styles.td, color: '#38bdf8' }}>{r.qtd_abastecida ? `${r.qtd_abastecida} L` : '—'}</td>
+                              <td style={{ ...styles.td, color: '#94a3b8' }}>{r.tecnico_nome || r.tecnico_responsavel || '—'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
                     </table>
                   </div>
-                ) : <p style={styles.mensagem}>Nenhuma máquina vinculada a este cliente.</p>}
+                ) : <p style={styles.mensagem}>Nenhum registro encontrado para este cliente.</p>}
               </div>
             )}
             {relatorioFinanceiroCliente && !carregando && (
