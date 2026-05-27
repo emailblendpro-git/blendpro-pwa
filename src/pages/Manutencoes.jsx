@@ -386,7 +386,7 @@ export default function Manutencoes() {
                 {form.tipo_servico === 'Abastecimento' && (
                   <input style={styles.input} placeholder="Quantidade Abastecida (litros)" type="number" value={form.qtd_abastecida} onChange={(e) => setForm({ ...form, qtd_abastecida: e.target.value })} />
                 )}
-                <input style={styles.input} placeholder="Nome do Assinante" value={form.nome_assinante} onChange={(e) => setForm({ ...form, nome_assinante: e.target.value })} />
+                <input style={styles.input} placeholder="Nome do Conferente" value={form.nome_assinante} onChange={(e) => setForm({ ...form, nome_assinante: e.target.value })} />
                 <input style={styles.input} placeholder="Técnico Responsável" value={form.tecnico_responsavel} onChange={(e) => setForm({ ...form, tecnico_responsavel: e.target.value })} />
                 <textarea style={styles.input} placeholder="Observações" value={form.observacao} onChange={(e) => setForm({ ...form, observacao: e.target.value })} rows={2} />
                 {(form.tipo_servico === 'Manutenção' || form.tipo_servico === 'Instalação') && (
@@ -534,7 +534,7 @@ export default function Manutencoes() {
                                 onChange={(e) => setFormEdicao({ ...formEdicao, custo_unitario: e.target.value })} />
                             </div>
                             <div>
-                              <label style={styles.label}>Nome do Assinante</label>
+                              <label style={styles.label}>Nome do Conferente</label>
                               <input style={styles.input}
                                 value={formEdicao.nome_assinante}
                                 onChange={(e) => setFormEdicao({ ...formEdicao, nome_assinante: e.target.value })} />
@@ -746,7 +746,7 @@ export default function Manutencoes() {
                                 <input style={styles.input} placeholder="Quantidade (litros) *" type="number"
                                   value={formEmerg.qtd_abastecida}
                                   onChange={(e) => setFormEmerg({ ...formEmerg, qtd_abastecida: e.target.value })} />
-                                <input style={styles.input} placeholder="Nome do Assinante"
+                                <input style={styles.input} placeholder="Nome do Conferente"
                                   value={formEmerg.nome_assinante}
                                   onChange={(e) => setFormEmerg({ ...formEmerg, nome_assinante: e.target.value })} />
                                 <textarea style={styles.input} placeholder="Observações" rows={2}

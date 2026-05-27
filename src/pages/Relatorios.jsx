@@ -777,6 +777,7 @@ export default function Relatorios() {
                           <th style={styles.th}>Tipo de Registro</th>
                           <th style={styles.th}>Qtd (L)</th>
                           <th style={styles.th}>Técnico</th>
+                          <th style={styles.th}>Conferente</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -798,6 +799,7 @@ export default function Relatorios() {
                               </td>
                               <td style={{ ...styles.td, color: '#38bdf8' }}>{r.qtd_abastecida ? `${r.qtd_abastecida} L` : '—'}</td>
                               <td style={{ ...styles.td, color: '#94a3b8' }}>{r.tecnico_nome || r.tecnico_responsavel || '—'}</td>
+                              <td style={{ ...styles.td, color: '#94a3b8' }}>{r.nome_assinante || '—'}</td>
                             </tr>
                           );
                         })}
