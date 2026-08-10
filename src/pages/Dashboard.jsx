@@ -106,6 +106,14 @@ export default function Dashboard() {
             <p style={styles.cardLink}>Ver chamados →</p>
           </div>
 
+          {podeManutencao && (
+            <div className="dash-card" onClick={() => navigate('/operacoes')}>
+              <p style={styles.cardTitulo}>Operações</p>
+              <p style={styles.cardValor}>⚙️</p>
+              <p style={styles.cardLink}>Ver registros operacionais →</p>
+            </div>
+          )}
+
           {podeGerenciar && (
             <div className="dash-card" onClick={() => navigate('/produtos')}>
               <p style={styles.cardTitulo}>Produtos</p>
@@ -130,6 +138,14 @@ export default function Dashboard() {
               <p style={styles.cardTitulo}>Vendedores</p>
               <p style={styles.cardValor}>🤝</p>
               <p style={styles.cardLink}>Ver vendedores →</p>
+            </div>
+          )}
+
+          {podeGerenciar && (
+            <div className="dash-card" onClick={() => navigate('/faturamento/lancamentos')}>
+              <p style={styles.cardTitulo}>Faturamento</p>
+              <p style={styles.cardValor}>💰</p>
+              <p style={styles.cardLink}>Ver lançamentos →</p>
             </div>
           )}
 
