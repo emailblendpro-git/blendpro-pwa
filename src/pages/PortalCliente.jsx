@@ -32,7 +32,25 @@ function iconeRegistro(tipo) {
   if (tipo === 'Instalação')             return '🏗️';
   if (tipo === 'Retirada')               return '📦';
   if (tipo === 'Vista sem abastecimento') return '👁️';
+  if (tipo === 'Inspeção')               return '👁️';
+  if (tipo === 'Limpeza')                return '🧽';
   return '🔧';
+}
+
+// Normaliza um registro de `registros_operacionais` (v2) para o mesmo
+// formato usado pelas linhas de `manutencoes` (v1) nesta tabela.
+function normalizarRegistroOperacional(r) {
+  return {
+    created_at: r.data_visita,
+    numero_serie: r.numero_serie,
+    nome_cliente: r.nome_cliente,
+    tipo_servico: r.tipo_acao,
+    qtd_abastecida: r.quantidade_litros,
+    tecnico_nome: r.tecnico_nome,
+    nome_assinante: r.nome_conferente,
+    status_lancamento: null,
+    valor_unitario: null,
+  };
 }
 
 // ── Componente principal ─────────────────────────
@@ -59,13 +77,17 @@ export default function PortalCliente() {
       .catch(() => setMaquinas([]))
       .finally(() => setCarregandoMaq(false));
 
-    api.get('/manutencoes')
-      .then((r) => {
-        const ordenados = [...r.data].sort(
-          (a, b) => new Date(a.created_at) - new Date(b.created_at)
-        );
-        setTodosRegistros(ordenados);
-      })
+    Promise.all([
+      api.get('/manutencoes').catch(() => ({ data: [] })),
+      api.get('/registros-operacionais?limite=500').catch(() => ({ data: { dados: [] } })),
+    ]).then(([resAntigos, resNovos]) => {
+      const antigos = resAntigos.data || [];
+      const novos = (resNovos.data.dados || []).map(normalizarRegistroOperacional);
+      const ordenados = [...antigos, ...novos].sort(
+        (a, b) => new Date(a.created_at) - new Date(b.created_at)
+      );
+      setTodosRegistros(ordenados);
+    })
       .catch(() => setTodosRegistros([]))
       .finally(() => setCarregandoReg(false));
   }, []);

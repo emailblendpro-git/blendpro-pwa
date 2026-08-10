@@ -238,10 +238,15 @@
 
 .filtro-historico {
   margin-bottom: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.filtro-historico select {
-  width: 100%;
+.filtro-historico select,
+.filtro-historico input[type='date'] {
+  flex: 1;
+  min-width: 160px;
   padding: 10px 12px;
   background: #1e293b;
   border: 1px solid #334155;
@@ -252,10 +257,17 @@
   transition: all 0.15s ease;
 }
 
-.filtro-historico select:focus {
+.filtro-historico select:focus,
+.filtro-historico input[type='date']:focus {
   outline: none;
   border-color: #38bdf8;
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.historico-mensagem {
+  color: #94a3b8;
+  text-align: center;
+  padding: 20px 0;
 }
 
 .historico-vazio {
@@ -332,6 +344,114 @@
   padding-top: 8px;
   border-top: 1px solid #334155;
   margin-top: 8px;
+}
+
+.info-custo {
+  font-weight: 600;
+}
+
+.info-custo.confirmado {
+  color: #4ade80;
+}
+
+.info-custo.pendente {
+  color: #f59e0b;
+}
+
+/* Bloco de Custo (no formulário) */
+.bloco-custo {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.checkbox-custo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #f1f5f9;
+  font-size: 14px;
+}
+
+.custo-campos {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custo-campos select,
+.custo-campos input,
+.custo-campos textarea {
+  padding: 10px 12px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.aviso-custo {
+  color: #f59e0b;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Ações de item (editar / remover / confirmar) */
+.item-acoes {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.botao-acao {
+  padding: 6px 14px;
+  color: #fff;
+  background: #475569;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.botao-acao.confirmar {
+  background: #22c55e;
+}
+
+.botao-acao.remover {
+  background: #ef4444;
+}
+
+.botao-acao.editar {
+  background: #f59e0b;
+}
+
+/* Formulário de edição inline */
+.form-edicao {
+  margin-top: 10px;
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-edicao input,
+.form-edicao textarea {
+  padding: 8px 10px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Responsivo */

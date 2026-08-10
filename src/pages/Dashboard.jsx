@@ -8,7 +8,6 @@ export default function Dashboard() {
   const [maquinas, setMaquinas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
-  const [pendentesCount, setPendentesCount] = useState(0);
   const [semComunicacao, setSemComunicacao] = useState(0);
   const { usuario, podeGerenciar, podeManutencao, isCliente } = useUsuario();
 
@@ -20,12 +19,6 @@ export default function Dashboard() {
     if (podeGerenciar) {
       api.get('/clientes').then((res) => setClientes(res.data)).catch(() => setClientes([]));
       api.get('/usuarios').then((res) => setUsuarios(res.data)).catch(() => setUsuarios([]));
-      const agora = new Date();
-      const mes = String(agora.getMonth() + 1).padStart(2, '0');
-      const ano = String(agora.getFullYear());
-      api.get(`/manutencoes/pendentes?mes=${mes}&ano=${ano}`)
-        .then((res) => setPendentesCount(res.data.registros?.length || 0))
-        .catch(() => setPendentesCount(0));
     }
   }, []);
 
@@ -88,13 +81,8 @@ export default function Dashboard() {
         {/* Linha 2 — Operações */}
         <div className="dash-linha">
           {podeManutencao && (
-            <div className="dash-card" onClick={() => navigate('/manutencoes')}>
-              <div style={{ position: 'relative', display: 'inline-block' }}>
-                <p style={styles.cardTitulo}>Registros</p>
-                {podeGerenciar && pendentesCount > 0 && (
-                  <span style={styles.badge}>{pendentesCount}</span>
-                )}
-              </div>
+            <div className="dash-card" onClick={() => navigate('/operacoes')}>
+              <p style={styles.cardTitulo}>Registros</p>
               <p style={styles.cardValor}>📋</p>
               <p style={styles.cardLink}>Ver registros →</p>
             </div>
@@ -105,14 +93,6 @@ export default function Dashboard() {
             <p style={styles.cardValor}>🎫</p>
             <p style={styles.cardLink}>Ver chamados →</p>
           </div>
-
-          {podeManutencao && (
-            <div className="dash-card" onClick={() => navigate('/operacoes')}>
-              <p style={styles.cardTitulo}>Operações</p>
-              <p style={styles.cardValor}>⚙️</p>
-              <p style={styles.cardLink}>Ver registros operacionais →</p>
-            </div>
-          )}
 
           {podeGerenciar && (
             <div className="dash-card" onClick={() => navigate('/produtos')}>

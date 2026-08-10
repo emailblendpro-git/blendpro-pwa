@@ -6,6 +6,21 @@ import { useUsuario } from '../hooks/useUsuario';
 const moeda = (v) => `R$ ${parseFloat(v || 0).toFixed(2).replace('.', ',')}`;
 const num = (v, dec = 1) => parseFloat(v || 0).toFixed(dec);
 
+// Normaliza um registro de `registros_operacionais` (v2) para o mesmo
+// formato usado pelas linhas de `manutencoes` (v1) nesta tabela.
+function normalizarRegistroOperacional(r) {
+  return {
+    created_at: r.data_visita,
+    numero_serie: r.numero_serie,
+    nome_cliente: r.nome_cliente,
+    tipo_servico: r.tipo_acao,
+    qtd_abastecida: r.quantidade_litros,
+    tecnico_nome: r.tecnico_nome,
+    nome_assinante: r.nome_conferente,
+    status_lancamento: null,
+  };
+}
+
 export default function Relatorios() {
   const navigate = useNavigate();
   const { podeGerenciar } = useUsuario();
@@ -143,12 +158,15 @@ export default function Relatorios() {
     if (!clienteSelecionado) return;
     try {
       setCarregando(true);
-      const [resCliente, resRegistros] = await Promise.all([
+      const [resCliente, resRegistrosAntigos, resRegistrosNovos] = await Promise.all([
         api.get(`/relatorios/cliente/${clienteSelecionado}`),
         api.get(`/manutencoes?id_cliente=${clienteSelecionado}`),
+        api.get(`/registros-operacionais?id_cliente=${clienteSelecionado}&limite=500`),
       ]);
       setRelatorioCliente(resCliente.data);
-      setRegistrosCliente((resRegistros.data || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
+      const antigos = resRegistrosAntigos.data || [];
+      const novos = (resRegistrosNovos.data.dados || []).map(normalizarRegistroOperacional);
+      setRegistrosCliente([...antigos, ...novos].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
       setRelatorioFinanceiroCliente(null);
     } catch { alert('Erro ao carregar relatório do cliente.'); }
     finally { setCarregando(false); }
@@ -787,7 +805,9 @@ export default function Relatorios() {
                             r.tipo_servico === 'Abastecimento' ? '💧' :
                             r.tipo_servico === 'Instalação' ? '🏗️' :
                             r.tipo_servico === 'Retirada' ? '📦' :
-                            r.tipo_servico === 'Vista sem abastecimento' ? '👁️' : '🔧';
+                            r.tipo_servico === 'Vista sem abastecimento' ? '👁️' :
+                            r.tipo_servico === 'Inspeção' ? '👁️' :
+                            r.tipo_servico === 'Limpeza' ? '🧽' : '🔧';
                           return (
                             <tr key={i} style={{ ...styles.tr, opacity: cancelado ? 0.4 : 1 }}>
                               <td style={styles.td}>{formatarData(r.created_at)}</td>

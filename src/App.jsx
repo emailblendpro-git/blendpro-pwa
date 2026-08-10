@@ -5,7 +5,6 @@ import PortalCliente from './pages/PortalCliente';
 import Maquinas from './pages/Maquinas';
 import Clientes from './pages/Clientes';
 import Usuarios from './pages/Usuarios';
-import Manutencoes from './pages/Manutencoes';
 import Chamados from './pages/Chamados';
 import Produtos from './pages/Produtos';
 import Relatorios from './pages/Relatorios';
@@ -68,14 +67,6 @@ export default function App() {
           <RotaProtegida>
             <RotaRestrita perfisPermitidos={['master', 'operador_interno']}>
               <Usuarios />
-            </RotaRestrita>
-          </RotaProtegida>
-        } />
-
-        <Route path="/manutencoes" element={
-          <RotaProtegida>
-            <RotaRestrita perfisPermitidos={['master', 'operador_interno', 'operador_externo']}>
-              <Manutencoes />
             </RotaRestrita>
           </RotaProtegida>
         } />

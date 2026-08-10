@@ -27,16 +27,13 @@ export default function Abastecer() {
     setEnviando(true);
     setErro('');
     try {
-      const agora = new Date();
-      const dataLocal = `${agora.getFullYear()}-${String(agora.getMonth()+1).padStart(2,'0')}-${String(agora.getDate()).padStart(2,'0')}`;
-
-      await api.post('/manutencoes', {
+      await api.post('/registros-operacionais', {
         numero_serie: serial,
-        tipo_servico: 'Abastecimento',
-        qtd_abastecida: parseFloat(qtd),
+        tipo_acao: 'Abastecimento',
+        quantidade_litros: parseFloat(qtd),
         observacao: observacao || null,
-        nome_assinante: nomeAssinante || null,
-        data_registro: dataLocal,
+        nome_conferente: nomeAssinante || null,
+        data_visita: new Date().toISOString(),
       });
       setSucesso(true);
     } catch {
