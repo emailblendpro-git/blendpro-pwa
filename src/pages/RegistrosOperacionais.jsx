@@ -474,7 +474,7 @@ const RegistrosOperacionais = () => {
                   <div className="item-info">
                     <span className="info-data">
                       📅 {formatarData(item._tipo === 'custo' ? item.data : item.data_visita)}
-                      {item._tipo === 'registro' && item.tecnico_nome ? ` · ${item.tecnico_nome}` : ''}
+                      {item._tipo === 'registro' && item.tecnico_nome ? ` · 👤 Registrado por: ${item.tecnico_nome}` : ''}
                       {item._tipo === 'registro' && item.nome_conferente ? ` · Conferente: ${item.nome_conferente}` : ''}
                     </span>
                     {item._tipo === 'registro' && item.quantidade_litros && (
