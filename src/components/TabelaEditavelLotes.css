@@ -1,0 +1,246 @@
+/* ================================================================
+   BLENDPRO PWA — Estilos: TabelaEditavelLotes
+   ================================================================ */
+
+.tabela-editavel-container {
+  width: 100%;
+  background: #1e293b;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #334155;
+}
+
+/* Wrapper com scroll horizontal */
+.tabela-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.tabela-editavel {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: #f1f5f9;
+}
+
+/* Header */
+.tabela-editavel thead {
+  background: #0f172a;
+  border-bottom: 2px solid #38bdf8;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tabela-editavel th {
+  padding: 12px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: #38bdf8;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Body */
+.tabela-editavel tbody tr {
+  border-bottom: 1px solid #334155;
+  transition: background-color 0.15s ease;
+}
+
+.tabela-editavel tbody tr:hover {
+  background: #1a1f3a;
+}
+
+.tabela-editavel tbody tr.selecionada {
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.tabela-editavel tbody tr.inativa {
+  opacity: 0.6;
+  background: rgba(148, 163, 184, 0.05);
+}
+
+.tabela-editavel tbody tr.inativa td input {
+  cursor: not-allowed;
+  background: #0f172a;
+  opacity: 0.5;
+}
+
+/* Células */
+.tabela-editavel td {
+  padding: 10px;
+  vertical-align: middle;
+}
+
+/* Colunas Específicas */
+.col-checkbox {
+  width: 40px;
+  text-align: center;
+}
+
+.col-checkbox input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #38bdf8;
+}
+
+.col-status {
+  width: 35px;
+  text-align: center;
+  font-size: 16px;
+  padding-left: 5px;
+}
+
+.col-maquina {
+  min-width: 100px;
+  font-weight: 500;
+}
+
+.col-local {
+  min-width: 250px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.col-litros,
+.col-valor,
+.col-total,
+.col-nf {
+  min-width: 100px;
+}
+
+/* Inputs */
+.input-numero,
+.input-texto {
+  width: 90%;
+  padding: 6px 8px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  transition: all 0.15s ease;
+}
+
+.input-numero:focus,
+.input-texto:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+  background: #1a2943;
+}
+
+.input-numero::placeholder,
+.input-texto::placeholder {
+  color: #475569;
+}
+
+/* Valores Calculados */
+.total-value {
+  color: #4ade80;
+  font-weight: 600;
+  display: inline-block;
+  min-width: 80px;
+  text-align: right;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 24px;
+  font-size: 14px;
+}
+
+/* Estados Carregando */
+.tabela-carregando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 16px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #94a3b8;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #334155;
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tabela-vazia {
+  padding: 40px 20px;
+  text-align: center;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #94a3b8;
+}
+
+/* Legenda */
+.tabela-legenda {
+  padding: 12px 16px;
+  background: rgba(56, 189, 248, 0.05);
+  border-top: 1px solid #334155;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.tabela-legenda p {
+  margin: 0;
+}
+
+/* Responsivo Mobile */
+@media (max-width: 768px) {
+  .tabela-editavel {
+    font-size: 12px;
+  }
+
+  .tabela-editavel th,
+  .tabela-editavel td {
+    padding: 8px 6px;
+  }
+
+  .input-numero,
+  .input-texto {
+    width: 100%;
+  }
+
+  .col-local {
+    display: none;
+  }
+
+  .col-maquina {
+    min-width: 80px;
+  }
+}
+
+/* Dark Mode (já é dark por padrão, mas deixar explícito) */
+@media (prefers-color-scheme: dark) {
+  .tabela-editavel-container {
+    --bg-primary: #1e293b;
+    --bg-secondary: #0f172a;
+    --border: #334155;
+    --text: #f1f5f9;
+    --accent: #38bdf8;
+    --success: #4ade80;
+  }
+}
