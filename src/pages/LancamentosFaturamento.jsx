@@ -80,10 +80,14 @@ const LancamentosFaturamento = () => {
 
   return (
     <div className="lancamentos-page">
+      <div className="topo-barra">
+        <h1 className="topo-titulo">BlendPro</h1>
+        <button className="botao-voltar" onClick={() => navigate('/dashboard')}>← Voltar</button>
+      </div>
+      <div className="lancamentos-conteudo">
       {/* Header */}
       <div className="lancamentos-header">
         <div>
-          <button className="botao-voltar" onClick={() => navigate('/dashboard')}>← Voltar</button>
           <h1>💰 Lançamentos de Faturamento</h1>
           <p>
             Período: <strong>{filtros.mes}/{filtros.ano}</strong>
@@ -216,6 +220,7 @@ const LancamentosFaturamento = () => {
             </ol>
           </div>
         </details>
+      </div>
       </div>
     </div>
   );

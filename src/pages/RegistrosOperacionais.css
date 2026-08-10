@@ -3,7 +3,6 @@
    ================================================================ */
 
 .registros-page {
-  padding: 20px;
   background: #0f172a;
   min-height: 100vh;
   color: #f1f5f9;
@@ -12,13 +11,22 @@
 .registros-container {
   max-width: 800px;
   margin: 0 auto;
+  padding: 20px;
 }
 
-/* Header */
-.registros-header {
-  margin-bottom: 32px;
-  text-align: center;
-  position: relative;
+/* Barra de topo (padrão do sistema) */
+.topo-barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+
+.topo-titulo {
+  color: #38bdf8;
+  margin: 0;
 }
 
 .botao-voltar {
@@ -30,11 +38,16 @@
   cursor: pointer;
   font-weight: bold;
   font-size: 14px;
-  margin-bottom: 16px;
 }
 
 .botao-voltar:hover {
   background: #475569;
+}
+
+/* Header */
+.registros-header {
+  margin-bottom: 32px;
+  text-align: center;
 }
 
 .registros-header h1 {

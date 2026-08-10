@@ -152,10 +152,13 @@ const RegistrosOperacionais = () => {
 
   return (
     <div className="registros-page">
+      <div className="topo-barra">
+        <h1 className="topo-titulo">BlendPro</h1>
+        <button className="botao-voltar" onClick={() => navigate('/dashboard')}>← Voltar</button>
+      </div>
       <div className="registros-container">
         {/* Header */}
         <div className="registros-header">
-          <button className="botao-voltar" onClick={() => navigate('/dashboard')}>← Voltar</button>
           <h1>📋 Registrar Operação</h1>
           <p>Abastecimento, limpeza, manutenção e mais</p>
         </div>
