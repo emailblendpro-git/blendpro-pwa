@@ -4,10 +4,13 @@
 // Formulário mobile-first para registrar operações (abastecimento, limpeza, etc)
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import './RegistrosOperacionais.css';
 
 const RegistrosOperacionais = () => {
+  const navigate = useNavigate();
+
   // Estado do formulário
   const [form, setForm] = useState({
     numero_serie: '',
@@ -152,6 +155,7 @@ const RegistrosOperacionais = () => {
       <div className="registros-container">
         {/* Header */}
         <div className="registros-header">
+          <button className="botao-voltar" onClick={() => navigate('/dashboard')}>← Voltar</button>
           <h1>📋 Registrar Operação</h1>
           <p>Abastecimento, limpeza, manutenção e mais</p>
         </div>

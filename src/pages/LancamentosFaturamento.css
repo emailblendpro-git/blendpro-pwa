@@ -23,6 +23,22 @@
   margin-bottom: 16px;
 }
 
+.botao-voltar {
+  padding: 8px 16px;
+  background: #334155;
+  color: #f1f5f9;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.botao-voltar:hover {
+  background: #475569;
+}
+
 /* Header */
 .lancamentos-header {
   display: flex;

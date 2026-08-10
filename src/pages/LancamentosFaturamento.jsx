@@ -5,12 +5,14 @@
 // Edição inline + aprovação em lotes
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUsuario } from '../hooks/useUsuario';
 import useLancamentosFaturamento from '../hooks/useLancamentosFaturamento';
 import TabelaEditavelLotes from '../components/TabelaEditavelLotes';
 import './LancamentosFaturamento.css';
 
 const LancamentosFaturamento = () => {
+  const navigate = useNavigate();
   const { perfil, isMaster, isOperadorInterno } = useUsuario();
 
   const {
@@ -81,6 +83,7 @@ const LancamentosFaturamento = () => {
       {/* Header */}
       <div className="lancamentos-header">
         <div>
+          <button className="botao-voltar" onClick={() => navigate('/dashboard')}>← Voltar</button>
           <h1>💰 Lançamentos de Faturamento</h1>
           <p>
             Período: <strong>{filtros.mes}/{filtros.ano}</strong>
