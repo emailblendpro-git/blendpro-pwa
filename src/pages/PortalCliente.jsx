@@ -34,6 +34,7 @@ function iconeRegistro(tipo) {
   if (tipo === 'Vista sem abastecimento') return '👁️';
   if (tipo === 'Inspeção')               return '👁️';
   if (tipo === 'Limpeza')                return '🧽';
+  if (tipo === 'Faturamento')            return '💰';
   return '🔧';
 }
 
@@ -50,6 +51,24 @@ function normalizarRegistroOperacional(r) {
     nome_assinante: r.nome_conferente,
     status_lancamento: null,
     valor_unitario: null,
+    valor: null,
+  };
+}
+
+// Normaliza um lançamento de faturamento aprovado/faturado para o
+// mesmo formato, marcado como tipo "Faturamento".
+function normalizarLancamento(l) {
+  return {
+    created_at: l.data_lancamento,
+    numero_serie: l.numero_serie,
+    nome_cliente: null,
+    tipo_servico: 'Faturamento',
+    qtd_abastecida: l.quantidade_litros,
+    tecnico_nome: l.aprovador_nome,
+    nome_assinante: l.numero_nota_fiscal || null,
+    status_lancamento: null,
+    valor_unitario: null,
+    valor: l.valor_total,
   };
 }
 
@@ -80,10 +99,13 @@ export default function PortalCliente() {
     Promise.all([
       api.get('/manutencoes').catch(() => ({ data: [] })),
       api.get('/registros-operacionais?limite=500').catch(() => ({ data: { dados: [] } })),
-    ]).then(([resAntigos, resNovos]) => {
+      api.get('/lancamentos-faturamento/historico?status=APROVADO&limite=500').catch(() => ({ data: { dados: [] } })),
+      api.get('/lancamentos-faturamento/historico?status=FATURADO&limite=500').catch(() => ({ data: { dados: [] } })),
+    ]).then(([resAntigos, resNovos, resAprovados, resFaturados]) => {
       const antigos = resAntigos.data || [];
       const novos = (resNovos.data.dados || []).map(normalizarRegistroOperacional);
-      const ordenados = [...antigos, ...novos].sort(
+      const faturados = [...(resAprovados.data.dados || []), ...(resFaturados.data.dados || [])].map(normalizarLancamento);
+      const ordenados = [...antigos, ...novos, ...faturados].sort(
         (a, b) => new Date(a.created_at) - new Date(b.created_at)
       );
       setTodosRegistros(ordenados);
@@ -191,9 +213,11 @@ export default function PortalCliente() {
                           <tbody>
                             {regs.map((r, i) => {
                               const cancelado = r.status_lancamento === 'Cancelado';
-                              const valor = r.tipo_servico === 'Abastecimento' && parseFloat(r.valor_unitario || 0) > 0
-                                ? parseFloat(r.qtd_abastecida || 0) * parseFloat(r.valor_unitario || 0)
-                                : null;
+                              const valor = r.valor != null
+                                ? parseFloat(r.valor)
+                                : (r.tipo_servico === 'Abastecimento' && parseFloat(r.valor_unitario || 0) > 0
+                                  ? parseFloat(r.qtd_abastecida || 0) * parseFloat(r.valor_unitario || 0)
+                                  : null);
                               return (
                                 <tr key={i} style={{ ...s.tr, opacity: cancelado ? 0.4 : 1, backgroundColor: i % 2 === 0 ? 'transparent' : '#0f172a33' }}>
                                   <td style={s.td}>{formatarDataCurta(r.created_at)}</td>

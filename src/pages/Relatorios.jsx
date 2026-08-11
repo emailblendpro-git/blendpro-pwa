@@ -18,6 +18,23 @@ function normalizarRegistroOperacional(r) {
     tecnico_nome: r.tecnico_nome,
     nome_assinante: r.nome_conferente,
     status_lancamento: null,
+    valor: null,
+  };
+}
+
+// Normaliza um lançamento de faturamento aprovado/faturado para o
+// mesmo formato, marcado como tipo "Faturamento".
+function normalizarLancamento(l) {
+  return {
+    created_at: l.data_lancamento,
+    numero_serie: l.numero_serie,
+    nome_cliente: null,
+    tipo_servico: 'Faturamento',
+    qtd_abastecida: l.quantidade_litros,
+    tecnico_nome: l.aprovador_nome,
+    nome_assinante: l.numero_nota_fiscal || null,
+    status_lancamento: null,
+    valor: l.valor_total,
   };
 }
 
@@ -158,15 +175,18 @@ export default function Relatorios() {
     if (!clienteSelecionado) return;
     try {
       setCarregando(true);
-      const [resCliente, resRegistrosAntigos, resRegistrosNovos] = await Promise.all([
+      const [resCliente, resRegistrosAntigos, resRegistrosNovos, resAprovados, resFaturados] = await Promise.all([
         api.get(`/relatorios/cliente/${clienteSelecionado}`),
         api.get(`/manutencoes?id_cliente=${clienteSelecionado}`),
         api.get(`/registros-operacionais?id_cliente=${clienteSelecionado}&limite=500`),
+        api.get(`/lancamentos-faturamento/historico?id_cliente=${clienteSelecionado}&status=APROVADO&limite=500`),
+        api.get(`/lancamentos-faturamento/historico?id_cliente=${clienteSelecionado}&status=FATURADO&limite=500`),
       ]);
       setRelatorioCliente(resCliente.data);
       const antigos = resRegistrosAntigos.data || [];
       const novos = (resRegistrosNovos.data.dados || []).map(normalizarRegistroOperacional);
-      setRegistrosCliente([...antigos, ...novos].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
+      const faturados = [...(resAprovados.data.dados || []), ...(resFaturados.data.dados || [])].map(normalizarLancamento);
+      setRegistrosCliente([...antigos, ...novos, ...faturados].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
       setRelatorioFinanceiroCliente(null);
     } catch { alert('Erro ao carregar relatório do cliente.'); }
     finally { setCarregando(false); }
@@ -743,16 +763,17 @@ export default function Relatorios() {
                     </table>
                   </div>
                 )}
-                {relatorioMaquina.ultimas_manutencoes.length > 0 && (
+                {relatorioMaquina.historico_recente.length > 0 && (
                   <div style={styles.secao}>
-                    <h3 style={styles.secaoTitulo}>🔧 Últimas Manutenções</h3>
+                    <h3 style={styles.secaoTitulo}>📋 Histórico Recente</h3>
                     <table style={styles.tabela}>
-                      <thead><tr><th style={styles.th}>Data</th><th style={styles.th}>Tipo</th><th style={styles.th}>Técnico</th></tr></thead>
-                      <tbody>{relatorioMaquina.ultimas_manutencoes.map((m, i) => (
+                      <thead><tr><th style={styles.th}>Data</th><th style={styles.th}>Tipo</th><th style={styles.th}>Técnico</th><th style={{ ...styles.th, textAlign: 'right' }}>Valor</th></tr></thead>
+                      <tbody>{relatorioMaquina.historico_recente.map((m, i) => (
                         <tr key={i} style={styles.tr}>
                           <td style={styles.td}>{formatarData(m.created_at)}</td>
-                          <td style={styles.td}>{m.tipo_servico}</td>
+                          <td style={styles.td}>{m.tipo_servico === 'Faturamento' ? '💰 ' : ''}{m.tipo_servico}</td>
                           <td style={styles.td}>{m.tecnico_nome || '—'}</td>
+                          <td style={{ ...styles.td, textAlign: 'right', color: m.valor ? '#22c55e' : '#475569' }}>{m.valor ? moeda(m.valor) : '—'}</td>
                         </tr>
                       ))}</tbody>
                     </table>
@@ -796,6 +817,7 @@ export default function Relatorios() {
                           <th style={styles.th}>Qtd (L)</th>
                           <th style={styles.th}>Técnico</th>
                           <th style={styles.th}>Conferente</th>
+                          <th style={{ ...styles.th, textAlign: 'right' }}>Valor</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -807,7 +829,8 @@ export default function Relatorios() {
                             r.tipo_servico === 'Retirada' ? '📦' :
                             r.tipo_servico === 'Vista sem abastecimento' ? '👁️' :
                             r.tipo_servico === 'Inspeção' ? '👁️' :
-                            r.tipo_servico === 'Limpeza' ? '🧽' : '🔧';
+                            r.tipo_servico === 'Limpeza' ? '🧽' :
+                            r.tipo_servico === 'Faturamento' ? '💰' : '🔧';
                           return (
                             <tr key={i} style={{ ...styles.tr, opacity: cancelado ? 0.4 : 1 }}>
                               <td style={styles.td}>{formatarData(r.created_at)}</td>
@@ -820,6 +843,7 @@ export default function Relatorios() {
                               <td style={{ ...styles.td, color: '#38bdf8' }}>{r.qtd_abastecida ? `${r.qtd_abastecida} L` : '—'}</td>
                               <td style={{ ...styles.td, color: '#94a3b8' }}>{r.tecnico_nome || r.tecnico_responsavel || '—'}</td>
                               <td style={{ ...styles.td, color: '#94a3b8' }}>{r.nome_assinante || '—'}</td>
+                              <td style={{ ...styles.td, textAlign: 'right', color: r.valor ? '#22c55e' : '#475569' }}>{r.valor ? moeda(r.valor) : '—'}</td>
                             </tr>
                           );
                         })}
