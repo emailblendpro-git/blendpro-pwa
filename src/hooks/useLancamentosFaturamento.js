@@ -149,7 +149,7 @@ export const useLancamentosFaturamento = () => {
 
       const response = await api.post('/lancamentos-faturamento/salvar-rascunho', {
         lancamentos: lancamentosAprovar,
-        data_lancamento: new Date().toISOString().split('T')[0]
+        data_lancamento: filtros.data || new Date().toISOString().split('T')[0]
       });
 
       setErro(null);
@@ -161,7 +161,7 @@ export const useLancamentosFaturamento = () => {
     } finally {
       setCarregando(false);
     }
-  }, [selecionados, lancamentos, edicoes]);
+  }, [selecionados, lancamentos, edicoes, filtros.data]);
 
   const aprovarLote = useCallback(async () => {
     if (selecionados.size === 0) {
@@ -188,7 +188,7 @@ export const useLancamentosFaturamento = () => {
 
       const response = await api.post('/lancamentos-faturamento/aprovar-lote', {
         lancamentos: lancamentosAprovar,
-        data_lancamento: new Date().toISOString().split('T')[0]
+        data_lancamento: filtros.data || new Date().toISOString().split('T')[0]
       });
 
       setErro(null);
@@ -202,7 +202,7 @@ export const useLancamentosFaturamento = () => {
     } finally {
       setCarregando(false);
     }
-  }, [selecionados, lancamentos, edicoes, carregarTabela]);
+  }, [selecionados, lancamentos, edicoes, carregarTabela, filtros.data]);
 
   // ================================================================
   // Funções de Filtro
