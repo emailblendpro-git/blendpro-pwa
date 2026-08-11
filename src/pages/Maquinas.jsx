@@ -21,6 +21,8 @@ export default function Maquinas() {
     const [formEdicao, setFormEdicao] = useState({});
     const [parametrosExistem, setParametrosExistem] = useState(false);
     const [operadorParaAdicionar, setOperadorParaAdicionar] = useState('');
+    const [historicoVinculo, setHistoricoVinculo] = useState([]);
+    const [dataEfetiva, setDataEfetiva] = useState(new Date().toISOString().slice(0, 10));
     const [formOperacional, setFormOperacional] = useState({
         vol1: '3000', vol2: '3000', fat1: '19.0', fat2: '66.0', mlx_segundo: '9.5',
     });
@@ -110,6 +112,15 @@ export default function Maquinas() {
             setParametrosExistem(true);
         } catch {
             setParametrosExistem(false);
+        }
+    };
+
+    const carregarHistoricoVinculo = async (numero_serie) => {
+        try {
+            const res = await api.get(`/historico-vinculo-maquina/${numero_serie}`);
+            setHistoricoVinculo(res.data.historico || []);
+        } catch {
+            setHistoricoVinculo([]);
         }
     };
 
@@ -353,6 +364,26 @@ export default function Maquinas() {
 
                                 {podeGerenciar && (
                                     <div style={styles.secaoOperadores}>
+                                        <h4 style={styles.secaoTitulo}>📜 Histórico de Vínculo</h4>
+                                        {historicoVinculo.length === 0 ? (
+                                            <p style={{ color: '#94a3b8', fontSize: '14px' }}>Nenhum histórico registrado.</p>
+                                        ) : (
+                                            <div style={styles.operadoresList}>
+                                                {historicoVinculo.map((h) => (
+                                                    <div key={h.id} style={styles.operadorItem}>
+                                                        <span>
+                                                            📅 {formatarData(h.data_vigencia)} — {h.nome_cliente || '—'} ({h.status})
+                                                            {h.criado_por ? ` · ${h.criado_por}` : ''}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {podeGerenciar && (
+                                    <div style={styles.secaoOperadores}>
                                         <h4 style={styles.secaoTitulo}>📱 QR Code de Abastecimento</h4>
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
                                             <div id="qrcode-svg">
@@ -397,6 +428,10 @@ export default function Maquinas() {
                                         <option key={c.id} value={c.id}>{c.nome_cliente}</option>
                                     ))}
                                 </select>
+                                <div>
+                                    <label style={styles.painelLabel}>Data efetiva (cliente/status a partir de)</label>
+                                    <input style={styles.input} type="date" value={dataEfetiva} onChange={(e) => setDataEfetiva(e.target.value)} />
+                                </div>
                                 <select style={styles.input} value={formEdicao.id_vendedor || ''} onChange={(e) => setFormEdicao({ ...formEdicao, id_vendedor: e.target.value })}>
                                     <option value="">Vincular Vendedor Responsável</option>
                                     {vendedores.map((v) => (
@@ -538,6 +573,7 @@ export default function Maquinas() {
                                             fat1: parseFloat(formOperacional.fat1),
                                             fat2: parseFloat(formOperacional.fat2),
                                             mlx_segundo: parseFloat(formOperacional.mlx_segundo),
+                                            data_vigencia: dataEfetiva,
                                         });
                                         if (mostrarParametros(formEdicao)) {
                                             const payload = {
@@ -565,6 +601,7 @@ export default function Maquinas() {
                                         setEditando(false);
                                         const resMaquina = await api.get(`/maquinas/${maquinaSelecionada.numero_serie}`);
                                         setMaquinaSelecionada(resMaquina.data);
+                                        carregarHistoricoVinculo(maquinaSelecionada.numero_serie);
                                         const res = await api.get('/maquinas');
                                         setMaquinas(res.data);
                                     } catch {
@@ -600,7 +637,9 @@ export default function Maquinas() {
                                     setMaquinaSelecionada(res.data);
                                     setFormEdicao(res.data);
                                     setEditando(false);
+                                    setDataEfetiva(new Date().toISOString().slice(0, 10));
                                     carregarParametros(m.numero_serie);
+                                    carregarHistoricoVinculo(m.numero_serie);
                                 }}>
                                     <td style={styles.td}>{m.numero_serie}</td>
                                     <td style={styles.td}>{m.modelo}</td>
