@@ -916,6 +916,27 @@ export default function Relatorios() {
               </button>
             </div>
 
+            {/* Botão flutuante — sempre visível, não depende de rolar até o fim da lista */}
+            {(() => {
+              const mapaSelecao = {
+                maquinas: { qtd: seraisSelecionados.length, buscar: buscarFinanceiroMaquinas },
+                clientes: { qtd: clientesSelecionados.length, buscar: buscarFinanceiroClientes },
+                cidades: { qtd: cidadesSelecionadas.length, buscar: buscarFinanceiroCidades },
+                segmentos: { qtd: segmentosSelecionados.length, buscar: buscarFinanceiroSegmentos },
+                redes: { qtd: redesSelecionadas.length, buscar: buscarFinanceiroRedes },
+              };
+              const atual = mapaSelecao[subAbaFin];
+              if (!atual || atual.qtd === 0) return null;
+              return (
+                <button
+                  style={{ ...styles.botaoBuscar, position: 'fixed', bottom: '24px', right: '24px', zIndex: 50, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}
+                  onClick={atual.buscar}
+                >
+                  💰 Gerar Relatório ({atual.qtd})
+                </button>
+              );
+            })()}
+
             {subAbaFin === 'maquinas' && (
               <div style={styles.listaCheckbox}>
                 <div style={styles.checkboxHeader}>
@@ -925,7 +946,12 @@ export default function Relatorios() {
                       onChange={selecionarTodosMaquinas} style={{ marginRight: '8px' }} />
                     <strong>Selecionar todas ({maquinas.length})</strong>
                   </label>
-                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>{seraisSelecionados.length} selecionada(s)</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>{seraisSelecionados.length} selecionada(s)</span>
+                    <button style={styles.botaoBuscarCompacto} onClick={buscarFinanceiroMaquinas} disabled={seraisSelecionados.length === 0}>
+                      💰 Gerar Relatório ({seraisSelecionados.length})
+                    </button>
+                  </div>
                 </div>
                 <div style={styles.checkboxGrid}>
                   {maquinas.map((m) => (
@@ -985,7 +1011,12 @@ export default function Relatorios() {
                       onChange={selecionarTodosClientes} style={{ marginRight: '8px' }} />
                     <strong>Selecionar todos ({clientes.length})</strong>
                   </label>
-                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>{clientesSelecionados.length} selecionado(s)</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>{clientesSelecionados.length} selecionado(s)</span>
+                    <button style={styles.botaoBuscarCompacto} onClick={buscarFinanceiroClientes} disabled={clientesSelecionados.length === 0}>
+                      💰 Gerar Relatório ({clientesSelecionados.length})
+                    </button>
+                  </div>
                 </div>
                 <div style={styles.checkboxGrid}>
                   {clientes.map((c) => (
@@ -1023,7 +1054,12 @@ export default function Relatorios() {
                       onChange={selecionarTodasCidades} style={{ marginRight: '8px' }} />
                     <strong>Selecionar todas ({cidades.length})</strong>
                   </label>
-                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>{cidadesSelecionadas.length} selecionada(s)</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>{cidadesSelecionadas.length} selecionada(s)</span>
+                    <button style={styles.botaoBuscarCompacto} onClick={buscarFinanceiroCidades} disabled={cidadesSelecionadas.length === 0}>
+                      💰 Gerar Relatório ({cidadesSelecionadas.length})
+                    </button>
+                  </div>
                 </div>
                 <div style={styles.checkboxGrid}>
                   {cidades.map((c, i) => (
@@ -1061,7 +1097,12 @@ export default function Relatorios() {
                       onChange={selecionarTodosSegmentos} style={{ marginRight: '8px' }} />
                     <strong>Selecionar todos ({segmentos.length})</strong>
                   </label>
-                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>{segmentosSelecionados.length} selecionado(s)</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>{segmentosSelecionados.length} selecionado(s)</span>
+                    <button style={styles.botaoBuscarCompacto} onClick={buscarFinanceiroSegmentos} disabled={segmentosSelecionados.length === 0}>
+                      💰 Gerar Relatório ({segmentosSelecionados.length})
+                    </button>
+                  </div>
                 </div>
                 <div style={styles.checkboxGrid}>
                   {segmentos.map((s) => (
@@ -1099,7 +1140,12 @@ export default function Relatorios() {
                       onChange={selecionarTodasRedes} style={{ marginRight: '8px' }} />
                     <strong>Selecionar todas ({redes.length})</strong>
                   </label>
-                  <span style={{ color: '#94a3b8', fontSize: '13px' }}>{redesSelecionadas.length} selecionada(s)</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>{redesSelecionadas.length} selecionada(s)</span>
+                    <button style={styles.botaoBuscarCompacto} onClick={buscarFinanceiroRedes} disabled={redesSelecionadas.length === 0}>
+                      💰 Gerar Relatório ({redesSelecionadas.length})
+                    </button>
+                  </div>
                 </div>
                 <div style={styles.checkboxGrid}>
                   {redes.map((r) => (
@@ -1181,8 +1227,9 @@ const styles = {
   filtro: { display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' },
   input: { padding: '10px 14px', backgroundColor: '#1e293b', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '8px', fontSize: '14px', flex: 1 },
   botaoBuscar: { padding: '10px 20px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' },
+  botaoBuscarCompacto: { padding: '8px 16px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', whiteSpace: 'nowrap' },
   listaCheckbox: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '16px' },
-  checkboxHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #334155' },
+  checkboxHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid #334155', flexWrap: 'wrap', gap: '8px' },
   checkboxGrid: { display: 'flex', flexDirection: 'column', gap: '4px' },
   checkboxItem: { display: 'flex', alignItems: 'flex-start', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', color: '#f1f5f9', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
   botaoFechar: { padding: '6px 14px', backgroundColor: '#334155', color: '#94a3b8', border: '1px solid #475569', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' },
