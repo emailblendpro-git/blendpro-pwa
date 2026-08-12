@@ -669,20 +669,33 @@ export default function Relatorios() {
                           <h3 style={{ ...styles.secaoTitulo, marginBottom: 0 }}>🧾 Impostos e Deduções — {impostoDataInicio} a {impostoDataFim}</h3>
                           <button onClick={() => setImpostos(null)} style={styles.botaoFechar}>✕ Fechar</button>
                         </div>
-                        <div style={styles.cardsGrid3}>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>ICMS</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.icms)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>PIS</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.pis)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>COFINS</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.cofins)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Logístico</p><p style={{ ...styles.cardValor, color: '#f59e0b', fontSize: '20px' }}>{moeda(impostos.logistico)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Comissionado 1</p><p style={{ ...styles.cardValor, color: '#f59e0b', fontSize: '20px' }}>{moeda(impostos.comissionado_1)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #f59e0b' }}><p style={styles.cardTitulo}>Comissionado 2</p><p style={{ ...styles.cardValor, color: '#f59e0b', fontSize: '20px' }}>{moeda(impostos.comissionado_2)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}><p style={styles.cardTitulo}>Custo Operacional</p><p style={{ ...styles.cardValor, color: '#94a3b8', fontSize: '20px' }}>{moeda(impostos.custo_operacional)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #94a3b8' }}><p style={styles.cardTitulo}>Outros</p><p style={{ ...styles.cardValor, color: '#94a3b8', fontSize: '20px' }}>{moeda(impostos.outros)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #ef4444' }}><p style={styles.cardTitulo}>Total Deduções</p><p style={{ ...styles.cardValor, color: '#ef4444', fontSize: '20px' }}>{moeda(impostos.total_deducoes)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Total Venda</p><p style={{ ...styles.cardValor, color: '#22c55e', fontSize: '20px' }}>{moeda(impostos.total_venda)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #22c55e' }}><p style={styles.cardTitulo}>Margem</p><p style={{ ...styles.cardValor, color: '#22c55e', fontSize: '20px' }}>{moeda(impostos.margem)}</p></div>
-                          <div style={{ ...styles.cardGrid, borderTop: '3px solid #38bdf8' }}><p style={styles.cardTitulo}>Total Registros</p><p style={{ ...styles.cardValor, color: '#38bdf8' }}>{impostos.total_registros}</p></div>
-                        </div>
+                        {(() => {
+                          const totalVenda = parseFloat(impostos.total_venda || 0);
+                          const pct = (v) => totalVenda > 0 ? `${(parseFloat(v || 0) / totalVenda * 100).toFixed(2).replace('.', ',')}%` : '—';
+                          const Card = ({ titulo, valor, cor, comPct }) => (
+                            <div style={{ ...styles.cardGrid, borderTop: `3px solid ${cor}` }}>
+                              <p style={styles.cardTitulo}>{titulo}</p>
+                              <p style={{ ...styles.cardValor, color: cor, fontSize: '20px' }}>{moeda(valor)}</p>
+                              {comPct && <p style={{ color: '#64748b', fontSize: '12px', margin: '2px 0 0 0' }}>{pct(valor)}</p>}
+                            </div>
+                          );
+                          return (
+                            <div style={styles.cardsGrid3}>
+                              <Card titulo="ICMS" valor={impostos.icms} cor="#ef4444" comPct />
+                              <Card titulo="PIS" valor={impostos.pis} cor="#ef4444" comPct />
+                              <Card titulo="COFINS" valor={impostos.cofins} cor="#ef4444" comPct />
+                              <Card titulo="Logístico" valor={impostos.logistico} cor="#f59e0b" comPct />
+                              <Card titulo="Comissionado 1" valor={impostos.comissionado_1} cor="#f59e0b" comPct />
+                              <Card titulo="Comissionado 2" valor={impostos.comissionado_2} cor="#f59e0b" comPct />
+                              <Card titulo="Custo Operacional" valor={impostos.custo_operacional} cor="#94a3b8" comPct />
+                              <Card titulo="Outros" valor={impostos.outros} cor="#94a3b8" comPct />
+                              <Card titulo="Total Deduções" valor={impostos.total_deducoes} cor="#ef4444" comPct />
+                              <Card titulo="Total Venda" valor={impostos.total_venda} cor="#22c55e" />
+                              <Card titulo="Margem" valor={impostos.margem} cor="#22c55e" comPct />
+                              <div style={{ ...styles.cardGrid, borderTop: '3px solid #38bdf8' }}><p style={styles.cardTitulo}>Total Registros</p><p style={{ ...styles.cardValor, color: '#38bdf8' }}>{impostos.total_registros}</p></div>
+                            </div>
+                          );
+                        })()}
                         {impostos.registros?.length > 0 && (
                           <div style={{ marginTop: '24px' }}>
                             <h4 style={{ color: '#94a3b8', marginBottom: '12px', fontSize: '14px' }}>📋 Registros do Período</h4>
