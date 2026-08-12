@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
@@ -67,6 +67,7 @@ export default function Relatorios() {
   const [segmentosSelecionados, setSegmentosSelecionados] = useState([]);
   const [redes, setRedes] = useState([]);
   const [redesSelecionadas, setRedesSelecionadas] = useState([]);
+  const resultadoFinanceiroRef = useRef(null);
 
   // Dashboard rápido de máquina na aba Geral
   const [serialDashboard, setSerialDashboard] = useState('');
@@ -100,6 +101,16 @@ export default function Relatorios() {
     setSelectMes(mesInicial);
     carregarSemMovimentacao(mesAnterior);
   }, []);
+
+  // Rola até o resultado do relatório financeiro assim que ele carrega,
+  // sem precisar rolar manualmente até o fim da lista de seleção
+  useEffect(() => {
+    if (relatorioFinanceiro && !carregando && resultadoFinanceiroRef.current) {
+      // 'instant' em vez de 'smooth' — a animação suave era interrompida por
+      // outras atualizações de estado concorrentes na página (ex: carregarResumo)
+      resultadoFinanceiroRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }
+  }, [relatorioFinanceiro, carregando]);
 
   const carregarResumo = async () => {
     try {
@@ -929,7 +940,7 @@ export default function Relatorios() {
               if (!atual || atual.qtd === 0) return null;
               return (
                 <button
-                  style={{ ...styles.botaoBuscar, position: 'fixed', bottom: '24px', right: '24px', zIndex: 50, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}
+                  style={{ ...styles.botaoBuscar, position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 50, boxShadow: '0 4px 16px rgba(0,0,0,0.4)', padding: '14px 28px', fontSize: '15px' }}
                   onClick={atual.buscar}
                 >
                   💰 Gerar Relatório ({atual.qtd})
@@ -1177,7 +1188,7 @@ export default function Relatorios() {
             {carregando && <p style={styles.mensagem}>Carregando...</p>}
 
             {relatorioFinanceiro && !carregando && (
-              <div style={{ marginTop: '32px' }}>
+              <div ref={resultadoFinanceiroRef} style={{ marginTop: '32px' }}>
                 <div style={styles.secao}>
                   <h3 style={styles.secaoTitulo}>💰 Relatório Consolidado — {tituloConsolidado()}</h3>
                 </div>
