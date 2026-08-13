@@ -652,10 +652,12 @@ export default function Relatorios() {
                           </div>
                         </div>
                         <table style={styles.tabela}>
-                          <thead><tr><th style={styles.th}>Ano</th><th style={styles.th}>Faturamento</th><th style={styles.th}>Máquinas</th><th style={styles.th}>Média/Máquina</th><th style={styles.th}>Resultado Líquido</th><th style={styles.th}>% do Faturamento</th></tr></thead>
+                          <thead><tr><th style={styles.th}>Ano</th><th style={styles.th}>Faturamento</th><th style={styles.th}>Máquinas</th><th style={styles.th}>Média/Máquina</th><th style={styles.th}>Resultado Líquido</th><th style={styles.th}>Média Líquido/Máquina</th><th style={styles.th}>% do Faturamento</th></tr></thead>
                           <tbody>{[...desempenhoAnual.dados].reverse().map((row, i) => {
                             const faturado = parseFloat(row.total_faturado || 0);
                             const margem = parseFloat(row.total_margem || 0);
+                            const qtdMaquinas = parseFloat(row.qtd_maquinas || 0);
+                            const mediaLiquidoMaquina = qtdMaquinas > 0 ? margem / qtdMaquinas : 0;
                             const pct = faturado > 0 ? (margem / faturado) * 100 : 0;
                             const cor = margem >= 0 ? '#4ade80' : '#f87171';
                             return (
@@ -665,6 +667,7 @@ export default function Relatorios() {
                                 <td style={styles.td}>{row.qtd_maquinas}</td>
                                 <td style={styles.td}>{moeda(row.media_maquina)}</td>
                                 <td style={{ ...styles.td, color: cor, fontWeight: 'bold' }}>{moeda(row.total_margem)}</td>
+                                <td style={{ ...styles.td, color: cor, fontWeight: 'bold' }}>{moeda(mediaLiquidoMaquina)}</td>
                                 <td style={{ ...styles.td, color: cor, fontWeight: 'bold' }}>{pct.toFixed(2).replace('.', ',')}%</td>
                               </tr>
                             );
