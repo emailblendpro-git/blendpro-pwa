@@ -4,6 +4,13 @@ import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
 import { QRCodeSVG } from 'qrcode.react';
 
+const corStatus = (status) => {
+    if (status === 'Em Estoque') return '#ef4444';
+    if (status === 'Em Teste') return '#f59e0b';
+    if (status === 'Ativa') return '#22c55e';
+    return '#94a3b8';
+};
+
 export default function Maquinas() {
     const navigate = useNavigate();
     const { podeGerenciar } = useUsuario();
@@ -643,7 +650,10 @@ export default function Maquinas() {
                                 }}>
                                     <td style={styles.td}>{m.numero_serie}</td>
                                     <td style={styles.td}>{m.modelo}</td>
-                                    <td style={styles.td}>{m.status}</td>
+                                    <td style={styles.td}>
+                                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: corStatus(m.status), marginRight: '8px' }}></span>
+                                        {m.status}
+                                    </td>
                                     <td style={styles.td}>{m.nome_cliente || '—'}</td>
                                     <td style={styles.td}>{m.nome_vendedor ? `${m.nome_vendedor} (${m.carteira_vendedor})` : '—'}</td>
                                 </tr>
