@@ -18,6 +18,7 @@ export default function Clientes() {
   const [filtroRede, setFiltroRede] = useState('');
   const [filtroSegmento, setFiltroSegmento] = useState('');
   const [filtroBusca, setFiltroBusca] = useState('');
+  const [filtroAtivosComMaquinas, setFiltroAtivosComMaquinas] = useState(false);
   const [form, setForm] = useState({
     nome_cliente: '', cnpj: '', codigo_erp: '', endereco: '',
     bairro: '', cidade: '', uf: '', cep: '', telefone: '',
@@ -94,7 +95,8 @@ export default function Clientes() {
     const buscaOk = filtroBusca === '' || c.nome_cliente.toLowerCase().includes(filtroBusca.toLowerCase()) || (c.cidade || '').toLowerCase().includes(filtroBusca.toLowerCase());
     const redeOk = filtroRede === '' || String(c.id_rede) === filtroRede;
     const segmentoOk = filtroSegmento === '' || String(c.id_segmento) === filtroSegmento;
-    return buscaOk && redeOk && segmentoOk;
+    const ativosComMaquinasOk = !filtroAtivosComMaquinas || parseInt(c.maquinas_ativas || 0) > 0;
+    return buscaOk && redeOk && segmentoOk && ativosComMaquinasOk;
   });
 
   return (
@@ -124,6 +126,10 @@ export default function Clientes() {
             <option value="">Todos os Segmentos</option>
             {segmentos.map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
           </select>
+          <label style={styles.checkboxLabel}>
+            <input type="checkbox" checked={filtroAtivosComMaquinas} onChange={(e) => setFiltroAtivosComMaquinas(e.target.checked)} />
+            Apenas clientes ativos com máquinas
+          </label>
         </div>
 
         {/* FORMULÁRIO NOVO CLIENTE */}
@@ -280,6 +286,7 @@ const styles = {
   botaoNovo: { padding: '10px 20px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' },
   filtros: { display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' },
   inputFiltro: { padding: '10px 14px', backgroundColor: '#1e293b', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '8px', fontSize: '14px', flex: 1, minWidth: '200px' },
+  checkboxLabel: { display: 'flex', alignItems: 'center', gap: '8px', color: '#f1f5f9', fontSize: '14px', whiteSpace: 'nowrap' },
   form: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '12px' },
   formTitulo: { color: '#38bdf8', margin: '0 0 8px 0' },
   input: { padding: '10px 14px', backgroundColor: '#0f172a', color: '#f1f5f9', border: '1px solid #334155', borderRadius: '8px', fontSize: '14px', width: '100%', boxSizing: 'border-box' },
