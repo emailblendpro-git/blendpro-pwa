@@ -4,6 +4,9 @@ import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
 import { QRCodeSVG } from 'qrcode.react';
 
+const podeImprimirComprovante = (m) =>
+    (m.status === 'Ativa' || m.status === 'Em Teste') && !!m.nome_cliente;
+
 const corStatus = (status) => {
     if (status === 'Em Estoque') return '#ef4444';
     if (status === 'Em Teste') return '#f59e0b';
@@ -635,6 +638,7 @@ export default function Maquinas() {
                                 <th style={styles.th}>Status</th>
                                 <th style={styles.th}>Cliente</th>
                                 <th style={styles.th}>Vendedor</th>
+                                <th style={styles.th}>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -656,6 +660,20 @@ export default function Maquinas() {
                                     </td>
                                     <td style={styles.td}>{m.nome_cliente || '—'}</td>
                                     <td style={styles.td}>{m.nome_vendedor ? `${m.nome_vendedor} (${m.carteira_vendedor})` : '—'}</td>
+                                    <td style={styles.td}>
+                                        {podeImprimirComprovante(m) && (
+                                            <button
+                                                title="Imprimir comprovante de abastecimento"
+                                                style={styles.botaoImprimir}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    window.open(`/maquinas/${m.numero_serie}/comprovante`, '_blank');
+                                                }}
+                                            >
+                                                🖨️
+                                            </button>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -705,4 +723,5 @@ const styles = {
     operadorItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1e293b', padding: '8px 12px', borderRadius: '8px', fontSize: '14px' },
     botaoRemover: { padding: '4px 10px', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' },
     botaoAdicionar: { padding: '10px 16px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap' },
+    botaoImprimir: { padding: '6px 10px', backgroundColor: '#334155', color: '#f1f5f9', border: '1px solid #475569', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', lineHeight: 1 },
 };

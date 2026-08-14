@@ -14,6 +14,7 @@ import Prestadores from './pages/Prestadores';
 import Agente from './pages/Agente';
 import AgenteMaster from './pages/AgenteMaster';
 import RegistrosOperacionais from './pages/RegistrosOperacionais';
+import ComprovanteAbastecimento from './pages/ComprovanteAbastecimento';
 import LancamentosFaturamento from './pages/LancamentosFaturamento';
 import { useUsuario } from './hooks/useUsuario';
 
@@ -109,6 +110,14 @@ export default function App() {
 
         <Route path="/abastecer/:serial" element={
           <RotaProtegida><Abastecer /></RotaProtegida>
+        } />
+
+        <Route path="/maquinas/:serial/comprovante" element={
+          <RotaProtegida>
+            <RotaRestrita perfisPermitidos={['master', 'operador_interno', 'operador_externo']}>
+              <ComprovanteAbastecimento />
+            </RotaRestrita>
+          </RotaProtegida>
         } />
 
         <Route path="/operacoes" element={
