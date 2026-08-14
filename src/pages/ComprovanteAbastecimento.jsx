@@ -8,14 +8,14 @@ const formatarEndereco = (m) => {
     return partes.length ? partes.join(' — ') : '—';
 };
 
-const formatarEmissao = () => {
-    const agora = new Date();
+const formatarEmissao = (isoString) => {
+    const agora = new Date(isoString);
     const data = agora.toLocaleDateString('pt-BR');
     const hora = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     return `${data} às ${hora}`;
 };
 
-function Via({ tag, maquina }) {
+function Via({ tag, maquina, numero, geradoEm }) {
     const operadores = maquina.operadores_autorizados || [];
     return (
         <div className="via">
@@ -27,7 +27,7 @@ function Via({ tag, maquina }) {
                 </div>
                 <div className="doc-meta">
                     <div className="title">Comprovante de Abastecimento</div>
-                    <div className="num">Emitido em {formatarEmissao()}</div>
+                    <div className="num">Nº {String(numero).padStart(6, '0')} &nbsp;·&nbsp; Emitido em {formatarEmissao(geradoEm)}</div>
                 </div>
             </div>
 
@@ -136,12 +136,17 @@ export default function ComprovanteAbastecimento() {
     const { serial } = useParams();
     const navigate = useNavigate();
     const [maquina, setMaquina] = useState(null);
+    const [comprovante, setComprovante] = useState(null);
     const [erro, setErro] = useState(null);
 
     useEffect(() => {
         api.get(`/maquinas/${serial}`)
             .then((res) => setMaquina(res.data))
             .catch(() => setErro('Não foi possível carregar os dados desta máquina.'));
+
+        api.post('/comprovantes/abastecimento', { numero_serie: serial })
+            .then((res) => setComprovante(res.data))
+            .catch(() => setErro('Não foi possível gerar o número do comprovante.'));
     }, [serial]);
 
     if (erro) {
@@ -152,7 +157,7 @@ export default function ComprovanteAbastecimento() {
         );
     }
 
-    if (!maquina) {
+    if (!maquina || !comprovante) {
         return <div style={{ padding: 40, fontFamily: 'Arial, sans-serif', color: '#64748b' }}>Carregando comprovante...</div>;
     }
 
@@ -160,13 +165,13 @@ export default function ComprovanteAbastecimento() {
         <>
             <style>{estilos}</style>
             <div className="toolbar">
-                <span>Comprovante de abastecimento · {maquina.numero_serie} · 2 vias na mesma folha</span>
+                <span>Comprovante Nº {String(comprovante.numero).padStart(6, '0')} · {maquina.numero_serie} · 2 vias na mesma folha</span>
                 <button className="print-btn" onClick={() => window.print()}>Imprimir / Salvar PDF</button>
             </div>
             <div className="sheet">
-                <Via tag="1ª via — cliente" maquina={maquina} />
+                <Via tag="1ª via — cliente" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
                 <div className="cut-line">✂ recortar aqui</div>
-                <Via tag="2ª via — atendente" maquina={maquina} />
+                <Via tag="2ª via — atendente" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
             </div>
         </>
     );
