@@ -32,6 +32,7 @@ export default function Maquinas() {
     const [parametrosExistem, setParametrosExistem] = useState(false);
     const [operadorParaAdicionar, setOperadorParaAdicionar] = useState('');
     const [historicoVinculo, setHistoricoVinculo] = useState([]);
+    const [selecionadas, setSelecionadas] = useState(new Set());
     const [dataEfetiva, setDataEfetiva] = useState(new Date().toISOString().slice(0, 10));
     const [formOperacional, setFormOperacional] = useState({
         vol1: '3000', vol2: '3000', fat1: '19.0', fat2: '66.0', mlx_segundo: '9.5',
@@ -219,6 +220,27 @@ export default function Maquinas() {
 
     const operadoresExternos = usuarios.filter(u => u.perfil === 'operador_externo');
 
+    const elegiveisComprovante = maquinas.filter(podeImprimirComprovante);
+    const todasSelecionadas = elegiveisComprovante.length > 0 && selecionadas.size === elegiveisComprovante.length;
+
+    const alternarSelecionada = (serial) => {
+        setSelecionadas((atual) => {
+            const proximo = new Set(atual);
+            if (proximo.has(serial)) proximo.delete(serial);
+            else proximo.add(serial);
+            return proximo;
+        });
+    };
+
+    const alternarTodasSelecionadas = () => {
+        setSelecionadas(todasSelecionadas ? new Set() : new Set(elegiveisComprovante.map((m) => m.numero_serie)));
+    };
+
+    const imprimirSelecionadas = () => {
+        if (selecionadas.size === 0) return;
+        window.open(`/maquinas/comprovantes?seriais=${[...selecionadas].join(',')}`, '_blank');
+    };
+
     // Select reutilizável de prestador
     const SelectPrestador = ({ campo, label }) => (
         <div style={styles.campoParametro}>
@@ -246,11 +268,18 @@ export default function Maquinas() {
             <div style={styles.conteudo}>
                 <div style={styles.topBar}>
                     <h2 style={styles.pageTitulo}>Máquinas</h2>
-                    {podeGerenciar && (
-                        <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
-                            {mostrarForm ? '✕ Fechar' : '+ Nova Máquina'}
-                        </button>
-                    )}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        {selecionadas.size > 0 && (
+                            <button style={styles.botaoImprimirLote} onClick={imprimirSelecionadas}>
+                                🖨️ Imprimir selecionadas ({selecionadas.size})
+                            </button>
+                        )}
+                        {podeGerenciar && (
+                            <button style={styles.botaoNovo} onClick={() => setMostrarForm(!mostrarForm)}>
+                                {mostrarForm ? '✕ Fechar' : '+ Nova Máquina'}
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {mostrarForm && podeGerenciar && (
@@ -638,7 +667,20 @@ export default function Maquinas() {
                                 <th style={styles.th}>Status</th>
                                 <th style={styles.th}>Cliente</th>
                                 <th style={styles.th}>Vendedor</th>
-                                <th style={styles.th}>Ações</th>
+                                <th style={styles.th}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span>Ações</span>
+                                        {elegiveisComprovante.length > 0 && (
+                                            <input
+                                                type="checkbox"
+                                                title="Selecionar todas para impressão"
+                                                checked={todasSelecionadas}
+                                                onChange={alternarTodasSelecionadas}
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        )}
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -662,16 +704,25 @@ export default function Maquinas() {
                                     <td style={styles.td}>{m.nome_vendedor ? `${m.nome_vendedor} (${m.carteira_vendedor})` : '—'}</td>
                                     <td style={styles.td}>
                                         {podeImprimirComprovante(m) && (
-                                            <button
-                                                title="Imprimir comprovante de abastecimento"
-                                                style={styles.botaoImprimir}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    window.open(`/maquinas/${m.numero_serie}/comprovante`, '_blank');
-                                                }}
-                                            >
-                                                🖨️
-                                            </button>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <button
+                                                    title="Imprimir comprovante de abastecimento"
+                                                    style={styles.botaoImprimir}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.open(`/maquinas/${m.numero_serie}/comprovante`, '_blank');
+                                                    }}
+                                                >
+                                                    🖨️
+                                                </button>
+                                                <input
+                                                    type="checkbox"
+                                                    title="Selecionar para impressão em lote"
+                                                    checked={selecionadas.has(m.numero_serie)}
+                                                    onChange={() => alternarSelecionada(m.numero_serie)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
+                                            </div>
                                         )}
                                     </td>
                                 </tr>
@@ -724,4 +775,5 @@ const styles = {
     botaoRemover: { padding: '4px 10px', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' },
     botaoAdicionar: { padding: '10px 16px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap' },
     botaoImprimir: { padding: '6px 10px', backgroundColor: '#334155', color: '#f1f5f9', border: '1px solid #475569', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', lineHeight: 1 },
+    botaoImprimirLote: { padding: '10px 16px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap' },
 };
