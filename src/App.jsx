@@ -8,7 +8,6 @@ import Usuarios from './pages/Usuarios';
 import Chamados from './pages/Chamados';
 import Produtos from './pages/Produtos';
 import Relatorios from './pages/Relatorios';
-import Vendedores from './pages/Vendedores';
 import Abastecer from './pages/Abastecer';
 import Prestadores from './pages/Prestadores';
 import Agente from './pages/Agente';
@@ -89,14 +88,6 @@ export default function App() {
           <RotaProtegida>
             <RotaRestrita perfisPermitidos={['master', 'operador_interno']}>
               <Relatorios />
-            </RotaRestrita>
-          </RotaProtegida>
-        } />
-
-        <Route path="/vendedores" element={
-          <RotaProtegida>
-            <RotaRestrita perfisPermitidos={['master', 'operador_interno']}>
-              <Vendedores />
             </RotaRestrita>
           </RotaProtegida>
         } />

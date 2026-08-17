@@ -25,8 +25,8 @@ export default function Maquinas() {
     const [clientes, setClientes] = useState([]);
     const [produtos, setProdutos] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
-    const [vendedores, setVendedores] = useState([]);
     const [prestadores, setPrestadores] = useState([]);
+    const vendedores = prestadores.filter((p) => p.tipo === 'Vendedor');
     const [editando, setEditando] = useState(false);
     const [formEdicao, setFormEdicao] = useState({});
     const [parametrosExistem, setParametrosExistem] = useState(false);
@@ -199,10 +199,6 @@ export default function Maquinas() {
         api.get('/usuarios')
             .then((res) => setUsuarios(res.data))
             .catch(() => setUsuarios([]));
-
-        api.get('/vendedores')
-            .then((res) => setVendedores(res.data))
-            .catch(() => setVendedores([]));
 
         api.get('/prestadores')
             .then((res) => setPrestadores(res.data))

@@ -29,7 +29,7 @@ export default function Prestadores() {
 
   const formVazio = {
     nome: '', tipo: '', documento: '', email: '', telefone: '',
-    banco: '', agencia: '', conta: '', tipo_conta: '', chave_pix: '', observacao: ''
+    banco: '', agencia: '', conta: '', tipo_conta: '', chave_pix: '', observacao: '', carteira: ''
   };
   const [form, setForm] = useState(formVazio);
 
@@ -105,6 +105,7 @@ export default function Prestadores() {
 
   const handleSubmit = async () => {
     if (!form.nome || !form.tipo) { alert('Nome e tipo são obrigatórios.'); return; }
+    if (form.tipo === 'Vendedor' && !form.carteira) { alert('Informe a carteira do vendedor.'); return; }
     setSalvando(true);
     try {
       if (editando) {
@@ -127,7 +128,7 @@ export default function Prestadores() {
       nome: p.nome || '', tipo: p.tipo || '', documento: p.documento || '',
       email: p.email || '', telefone: p.telefone || '', banco: p.banco || '',
       agencia: p.agencia || '', conta: p.conta || '', tipo_conta: p.tipo_conta || '',
-      chave_pix: p.chave_pix || '', observacao: p.observacao || ''
+      chave_pix: p.chave_pix || '', observacao: p.observacao || '', carteira: p.carteira || ''
     });
     setEditando(p.id);
     setMostrarForm(true);
@@ -172,6 +173,9 @@ export default function Prestadores() {
               <input style={styles.input} placeholder="CPF / CNPJ" value={form.documento} onChange={(e) => setForm({ ...form, documento: e.target.value })} />
               <input style={styles.input} placeholder="E-mail" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               <input style={styles.input} placeholder="Telefone / WhatsApp" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+              {form.tipo === 'Vendedor' && (
+                <input style={styles.input} placeholder="Carteira (ex: A, B, C) *" value={form.carteira} onChange={(e) => setForm({ ...form, carteira: e.target.value })} />
+              )}
             </div>
             <p style={styles.secaoLabel}>💳 Dados para Pagamento</p>
             <div style={styles.formGrid}>
@@ -200,6 +204,7 @@ export default function Prestadores() {
               <div>
                 <h3 style={{ color: '#38bdf8', margin: 0 }}>{prestadorSelecionado.nome}</h3>
                 <span style={{ ...styles.badge, backgroundColor: tipoColor(prestadorSelecionado.tipo) }}>{prestadorSelecionado.tipo}</span>
+                {prestadorSelecionado.tipo === 'Vendedor' && prestadorSelecionado.carteira && <span style={{ ...styles.info, marginLeft: '8px' }}>Carteira {prestadorSelecionado.carteira}</span>}
                 {prestadorSelecionado.chave_pix && <span style={{ ...styles.info, marginLeft: '8px' }}>PIX: {prestadorSelecionado.chave_pix}</span>}
               </div>
               <button style={styles.botaoFechar} onClick={() => { setPrestadorSelecionado(null); setApuracao(null); }}>✕ Fechar</button>
@@ -457,6 +462,7 @@ export default function Prestadores() {
                       <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{p.nome}</div>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
                         <span style={{ ...styles.badge, backgroundColor: tipoColor(p.tipo) }}>{p.tipo}</span>
+                        {p.tipo === 'Vendedor' && p.carteira && <span style={styles.info}>Carteira {p.carteira}</span>}
                         {p.documento && <span style={styles.info}>{p.documento}</span>}
                         {p.telefone && <span style={styles.info}>📱 {p.telefone}</span>}
                         {p.chave_pix && <span style={styles.info}>PIX: {p.chave_pix}</span>}

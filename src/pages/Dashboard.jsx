@@ -114,14 +114,6 @@ export default function Dashboard() {
         {/* Linha 3 — Extras */}
         <div className="dash-linha">
           {podeGerenciar && (
-            <div className="dash-card" onClick={() => navigate('/vendedores')}>
-              <p style={styles.cardTitulo}>Vendedores</p>
-              <p style={styles.cardValor}>🤝</p>
-              <p style={styles.cardLink}>Ver vendedores →</p>
-            </div>
-          )}
-
-          {podeGerenciar && (
             <div className="dash-card" onClick={() => navigate('/faturamento/lancamentos')}>
               <p style={styles.cardTitulo}>Faturamento</p>
               <p style={styles.cardValor}>💰</p>

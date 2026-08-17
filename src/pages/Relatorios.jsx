@@ -69,6 +69,14 @@ export default function Relatorios() {
   const [redesSelecionadas, setRedesSelecionadas] = useState([]);
   const resultadoFinanceiroRef = useRef(null);
 
+  // Relatório de Pagamentos por Beneficiário
+  const [prestadores, setPrestadores] = useState([]);
+  const [prestadoresSelecionados, setPrestadoresSelecionados] = useState([]);
+  const [mesBenef, setMesBenef] = useState('');
+  const [anoBenef, setAnoBenef] = useState('');
+  const [relatoriosBeneficiarios, setRelatoriosBeneficiarios] = useState(null);
+  const [carregandoBenef, setCarregandoBenef] = useState(false);
+
   // Dashboard rápido de máquina na aba Geral
   const [serialDashboard, setSerialDashboard] = useState('');
   const [dashboardMaquina, setDashboardMaquina] = useState(null);
@@ -93,6 +101,7 @@ export default function Relatorios() {
     api.get('/relatorios/cidades').then((res) => setCidades(res.data.cidades)).catch(() => setCidades([]));
     api.get('/relatorios/segmentos').then((res) => setSegmentos(res.data.segmentos)).catch(() => setSegmentos([]));
     api.get('/relatorios/redes').then((res) => setRedes(res.data.redes)).catch(() => setRedes([]));
+    api.get('/prestadores').then((res) => setPrestadores(res.data)).catch(() => setPrestadores([]));
     carregarResumo();
     const mesAnterior = new Date(new Date().setMonth(new Date().getMonth() - 1))
       .toISOString().substring(0, 7);
@@ -100,6 +109,9 @@ export default function Relatorios() {
     setSelectAno(anoInicial);
     setSelectMes(mesInicial);
     carregarSemMovimentacao(mesAnterior);
+    const agora = new Date();
+    setAnoBenef(String(agora.getFullYear()));
+    setMesBenef(String(agora.getMonth() + 1).padStart(2, '0'));
   }, []);
 
   // Rola até o resultado do relatório financeiro assim que ele carrega,
@@ -301,6 +313,101 @@ export default function Relatorios() {
       setRelatorioFinanceiro(res.data);
     } catch { alert('Erro ao carregar relatório financeiro por redes.'); }
     finally { setCarregando(false); }
+  };
+
+  const togglePrestador = (id) => {
+    setPrestadoresSelecionados(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
+    setRelatoriosBeneficiarios(null);
+  };
+  const selecionarTodosPrestadores = () => {
+    setPrestadoresSelecionados(prestadoresSelecionados.length === prestadores.length ? [] : prestadores.map(p => p.id));
+    setRelatoriosBeneficiarios(null);
+  };
+  const buscarRelatorioBeneficiarios = async () => {
+    if (prestadoresSelecionados.length === 0) { alert('Selecione ao menos um beneficiário.'); return; }
+    if (!mesBenef || !anoBenef) { alert('Informe o mês e o ano.'); return; }
+    try {
+      setCarregandoBenef(true);
+      const resultados = await Promise.all(
+        prestadoresSelecionados.map(id =>
+          api.get(`/pagamentos/apuracao/${id}?mes=${mesBenef}&ano=${anoBenef}`)
+            .then(res => res.data)
+            .catch(() => null)
+        )
+      );
+      setRelatoriosBeneficiarios(resultados.filter(Boolean));
+    } catch { alert('Erro ao carregar relatório de pagamentos.'); }
+    finally { setCarregandoBenef(false); }
+  };
+
+  const TIPOS_BENEFICIO = [
+    { chave: 'valor_logistico', label: 'Logístico' },
+    { chave: 'valor_comissionado_1', label: 'Comissionado 1' },
+    { chave: 'valor_comissionado_2', label: 'Comissionado 2' },
+    { chave: 'valor_custo_operacional', label: 'Custo Operacional' },
+    { chave: 'valor_outros', label: 'Outros' },
+  ];
+
+  const CardBeneficiario = ({ relatorio }) => {
+    const registros = relatorio.registros || [];
+    const colunas = TIPOS_BENEFICIO.filter(t => registros.some(r => parseFloat(r[t.chave] || 0) > 0));
+    const totaisColuna = colunas.reduce((acc, t) => {
+      acc[t.chave] = registros.reduce((s, r) => s + parseFloat(r[t.chave] || 0), 0);
+      return acc;
+    }, {});
+    return (
+      <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+          <h3 style={{ ...styles.secaoTitulo, marginBottom: 0 }}>👤 {relatorio.prestador_nome}</h3>
+          <div style={{ display: 'flex', gap: '24px' }}>
+            <div>
+              <p style={styles.cardTitulo}>Total a Pagar</p>
+              <p style={{ ...styles.cardValor, color: '#22c55e', fontSize: '20px' }}>{moeda(relatorio.total_apurado)}</p>
+            </div>
+            <div>
+              <p style={styles.cardTitulo}>Total de Máquinas a Pagar</p>
+              <p style={{ ...styles.cardValor, fontSize: '20px' }}>{relatorio.total_maquinas}</p>
+            </div>
+          </div>
+        </div>
+        {registros.length === 0 ? (
+          <p style={styles.mensagem}>Nenhum lançamento vinculado a este beneficiário no período.</p>
+        ) : (
+          <table style={styles.tabela}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Máquina N°</th>
+                <th style={styles.th}>Cliente</th>
+                <th style={styles.th}>Local Instalada</th>
+                <th style={styles.th}>Cidade</th>
+                {colunas.map(c => <th key={c.chave} style={{ ...styles.th, textAlign: 'right' }}>{c.label}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {registros.map((r, i) => (
+                <tr key={i} style={styles.tr}>
+                  <td style={styles.td}>{r.numero_serie}</td>
+                  <td style={styles.td}>{r.nome_cliente || '—'}</td>
+                  <td style={styles.td}>{r.nome_local || '—'}</td>
+                  <td style={styles.td}>{r.cidade || '—'}</td>
+                  {colunas.map(c => (
+                    <td key={c.chave} style={{ ...styles.td, textAlign: 'right', color: '#22c55e' }}>{moeda(r[c.chave])}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td style={{ ...styles.td, fontWeight: 'bold' }} colSpan={4}>Total</td>
+                {colunas.map(c => (
+                  <td key={c.chave} style={{ ...styles.td, textAlign: 'right', fontWeight: 'bold', color: '#22c55e' }}>{moeda(totaisColuna[c.chave])}</td>
+                ))}
+              </tr>
+            </tfoot>
+          </table>
+        )}
+      </div>
+    );
   };
 
   const formatarData = (data) => { if (!data) return '—'; return new Date(data).toLocaleDateString('pt-BR'); };
@@ -928,6 +1035,10 @@ export default function Relatorios() {
                 onClick={() => { setSubAbaFin('redes'); setRelatorioFinanceiro(null); setRedesSelecionadas([]); }}>
                 🔗 Redes
               </button>
+              <button style={{ ...styles.aba, ...(subAbaFin === 'beneficiarios' ? styles.abaAtiva : {}) }}
+                onClick={() => { setSubAbaFin('beneficiarios'); setRelatoriosBeneficiarios(null); setPrestadoresSelecionados([]); setRelatorioFinanceiro(null); }}>
+                👤 Beneficiários (Pagamentos)
+              </button>
             </div>
 
             {/* Botão flutuante — sempre visível, não depende de rolar até o fim da lista */}
@@ -938,6 +1049,7 @@ export default function Relatorios() {
                 cidades: { qtd: cidadesSelecionadas.length, buscar: buscarFinanceiroCidades },
                 segmentos: { qtd: segmentosSelecionados.length, buscar: buscarFinanceiroSegmentos },
                 redes: { qtd: redesSelecionadas.length, buscar: buscarFinanceiroRedes },
+                beneficiarios: { qtd: prestadoresSelecionados.length, buscar: buscarRelatorioBeneficiarios },
               };
               const atual = mapaSelecao[subAbaFin];
               if (!atual || atual.qtd === 0) return null;
@@ -1185,6 +1297,68 @@ export default function Relatorios() {
                 <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={buscarFinanceiroRedes}>
                   💰 Gerar Relatório Financeiro ({redesSelecionadas.length})
                 </button>
+              </div>
+            )}
+
+            {subAbaFin === 'beneficiarios' && (
+              <div style={styles.listaCheckbox}>
+                <div style={styles.checkboxHeader}>
+                  <label style={styles.checkboxItem}>
+                    <input type="checkbox"
+                      checked={prestadoresSelecionados.length === prestadores.length && prestadores.length > 0}
+                      onChange={selecionarTodosPrestadores} style={{ marginRight: '8px' }} />
+                    <strong>Selecionar todos ({prestadores.length})</strong>
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <select style={{ ...styles.input, flex: 'none', width: 'auto' }} value={mesBenef} onChange={(e) => { setMesBenef(e.target.value); setRelatoriosBeneficiarios(null); }}>
+                      {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, i) => (
+                        <option key={m} value={m}>{['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][i]}</option>
+                      ))}
+                    </select>
+                    <select style={{ ...styles.input, flex: 'none', width: 'auto' }} value={anoBenef} onChange={(e) => { setAnoBenef(e.target.value); setRelatoriosBeneficiarios(null); }}>
+                      {Array.from({ length: 10 }, (_, i) => 2021 + i).map(ano => (
+                        <option key={ano} value={String(ano)}>{ano}</option>
+                      ))}
+                    </select>
+                    <span style={{ color: '#94a3b8', fontSize: '13px' }}>{prestadoresSelecionados.length} selecionado(s)</span>
+                    <button style={styles.botaoBuscarCompacto} onClick={buscarRelatorioBeneficiarios} disabled={prestadoresSelecionados.length === 0 || carregandoBenef}>
+                      💰 Gerar Relatório ({prestadoresSelecionados.length})
+                    </button>
+                  </div>
+                </div>
+                <div style={styles.checkboxGrid}>
+                  {prestadores.map((p) => (
+                    <label key={p.id} style={{
+                      ...styles.checkboxItem,
+                      backgroundColor: prestadoresSelecionados.includes(p.id) ? '#0c4a6e' : '#1e293b',
+                      border: prestadoresSelecionados.includes(p.id) ? '1px solid #0ea5e9' : '1px solid #334155',
+                    }}>
+                      <input type="checkbox" checked={prestadoresSelecionados.includes(p.id)}
+                        onChange={() => togglePrestador(p.id)} style={{ marginRight: '8px' }} />
+                      <div style={{ flex: 1, textAlign: 'left' }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '13px' }}>{p.nome}</div>
+                        <div style={{ color: '#94a3b8', fontSize: '12px' }}>{p.tipo || '—'}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <button style={{ ...styles.botaoBuscar, marginTop: '16px' }} onClick={buscarRelatorioBeneficiarios} disabled={carregandoBenef}>
+                  💰 Gerar Relatório de Pagamentos ({prestadoresSelecionados.length})
+                </button>
+
+                {carregandoBenef && <p style={styles.mensagem}>Carregando...</p>}
+
+                {relatoriosBeneficiarios && !carregandoBenef && (
+                  <div style={{ marginTop: '16px' }}>
+                    {relatoriosBeneficiarios.length === 0 ? (
+                      <p style={styles.mensagem}>Nenhum resultado encontrado.</p>
+                    ) : (
+                      relatoriosBeneficiarios.map((rel) => (
+                        <CardBeneficiario key={rel.prestador_id} relatorio={rel} />
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
