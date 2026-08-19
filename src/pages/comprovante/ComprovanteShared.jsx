@@ -92,7 +92,7 @@ export function Via({ tag, maquina, numero, geradoEm }) {
                         <div className="v blank">&nbsp;</div>
                     </div>
                     <div className="field span-2">
-                        <div className="k">Nome do atendente que acompanhou</div>
+                        <div className="k">Nome do conferente que acompanhou</div>
                         <div className="v blank">&nbsp;</div>
                     </div>
                 </div>
@@ -110,7 +110,7 @@ export function Via({ tag, maquina, numero, geradoEm }) {
 
             <div className="sig-row">
                 <div className="sig-box">
-                    <div className="cap">Assinatura do atendente</div>
+                    <div className="cap">Assinatura do conferente</div>
                     <div className="sig-line"></div>
                     <div className="name-hint">Nome legível: ___________________________</div>
                 </div>
@@ -313,7 +313,8 @@ export const estilos = `
   .sig-box {
     border: 1px solid var(--rule);
     border-radius: 4px;
-    padding: 4px 9px 4px;
+    padding: 4px 9px;
+    padding-bottom: calc(4px + 10mm);
     display: flex;
     flex-direction: column;
     gap: 4px;
