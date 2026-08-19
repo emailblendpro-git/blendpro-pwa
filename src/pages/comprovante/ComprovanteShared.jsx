@@ -360,9 +360,10 @@ export const estilos = `
     .sheet {
       box-shadow: none;
       border: none;
-      width: 192mm;
+      width: 210mm;
       max-width: none;
       min-height: auto;
+      padding: 7mm 21mm 6mm;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -370,6 +371,6 @@ export const estilos = `
       break-after: page;
       page-break-after: always;
     }
-    @page { size: A4; margin: 5mm 9mm; }
+    @page { size: A4; margin: 0; }
   }
 `;
