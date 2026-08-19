@@ -119,11 +119,6 @@ export function Via({ tag, maquina, numero, geradoEm }) {
                     <div className="stamp-area">espaço reservado para carimbo</div>
                 </div>
             </div>
-
-            <div className="footer">
-                <span>BlendPro · Alquimis Química Industrial Ltda</span>
-                <span>Documento gerado eletronicamente — válido como comprovante de visita técnica</span>
-            </div>
         </div>
     );
 }
@@ -195,11 +190,11 @@ export const estilos = `
     padding: 2mm 12mm 1mm;
     display: flex;
     flex-direction: column;
-    font-size: 12.6px;
-    line-height: 1.4;
+    font-size: 11.5px;
+    line-height: 1.3;
   }
 
-  .via { display: flex; flex-direction: column; gap: 2.2mm; }
+  .via { display: flex; flex-direction: column; gap: 1.5mm; }
 
   .cut-line {
     display: flex;
@@ -210,7 +205,7 @@ export const estilos = `
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin: 0.5mm 0;
+    margin: 0.3mm 0;
   }
   .cut-line::before, .cut-line::after {
     content: "";
@@ -245,7 +240,7 @@ export const estilos = `
   .doc-meta .title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); }
   .doc-meta .num { font-size: 10px; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-top: 1px; }
 
-  .section { display: flex; flex-direction: column; gap: 3px; }
+  .section { display: flex; flex-direction: column; gap: 2px; }
   .section-label {
     font-size: 9.5px;
     font-weight: 800;
@@ -258,7 +253,7 @@ export const estilos = `
   }
   .section-label::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
 
-  .grid { display: grid; gap: 5px 10px; }
+  .grid { display: grid; gap: 4px 8px; }
   .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
   .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
   .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
@@ -266,14 +261,14 @@ export const estilos = `
   .field { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .field .k { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 800; }
   .field .v {
-    font-size: 12.5px;
+    font-size: 11.5px;
     font-weight: 600;
     color: var(--ink);
-    padding: 4px 7px;
+    padding: 3px 6px;
     background: var(--field-bg);
     border: 1px solid var(--rule);
     border-radius: 3px;
-    min-height: 12px;
+    min-height: 10px;
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
   }
@@ -285,15 +280,15 @@ export const estilos = `
     border: none;
     border-bottom: 1.5px solid var(--ink-soft);
     border-radius: 0;
-    min-height: 16px;
-    padding: 4px 2px;
+    min-height: 13px;
+    padding: 3px 2px;
   }
 
   .operador-box {
     border: 1px solid var(--rule);
     background: var(--accent-soft);
     border-radius: 4px;
-    padding: 4px 9px;
+    padding: 3px 9px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -314,23 +309,23 @@ export const estilos = `
     white-space: nowrap;
   }
 
-  .sig-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .sig-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .sig-box {
     border: 1px solid var(--rule);
     border-radius: 4px;
-    padding: 5px 9px 5px;
+    padding: 4px 9px 4px;
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 4px;
   }
   .sig-box .cap { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 800; }
-  .sig-line { border-bottom: 1.5px solid var(--ink-soft); height: 15px; }
+  .sig-line { border-bottom: 1.5px solid var(--ink-soft); height: 11px; }
   .sig-box .name-hint { font-size: 9px; color: var(--ink-soft); font-weight: 600; }
 
   .stamp-area {
     border: 1.5px dashed var(--stamp-border);
     border-radius: 4px;
-    min-height: 20px;
+    min-height: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -339,16 +334,6 @@ export const estilos = `
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-  }
-
-  .footer {
-    display: flex;
-    justify-content: space-between;
-    color: var(--ink-faint);
-    font-size: 7.5px;
-    font-weight: 600;
-    padding-top: 2px;
-    border-top: 1px solid var(--rule);
   }
 
   .sheets { display: flex; flex-direction: column; gap: 24px; align-items: center; }
@@ -363,7 +348,7 @@ export const estilos = `
       width: 210mm;
       max-width: none;
       min-height: auto;
-      padding: 7mm 21mm 6mm;
+      padding: 5mm 18mm 5mm;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
