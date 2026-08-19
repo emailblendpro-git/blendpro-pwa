@@ -205,7 +205,7 @@ export const estilos = `
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin: 0.3mm 0;
+    margin: 5.3mm 0;
   }
   .cut-line::before, .cut-line::after {
     content: "";
