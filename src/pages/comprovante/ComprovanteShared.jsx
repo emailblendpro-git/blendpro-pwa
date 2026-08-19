@@ -360,7 +360,8 @@ export const estilos = `
     .sheet {
       box-shadow: none;
       border: none;
-      width: auto;
+      width: 192mm;
+      max-width: none;
       min-height: auto;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
