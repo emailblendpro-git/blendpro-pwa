@@ -80,7 +80,6 @@ export function Via({ tag, maquina, numero, geradoEm }) {
                         )}
                     </div>
                     <div className="operador-right">
-                        {operadores.length > 0 && <div className="badge">Vinculado à máquina</div>}
                         <div className="operador-assinatura">Assinatura <span className="assinatura-linha"></span></div>
                     </div>
                 </div>
@@ -315,18 +314,6 @@ export const estilos = `
   }
   .operador-box .name { font-size: 14px; font-weight: 800; color: var(--accent); }
   .operador-box .role { font-size: 8.5px; color: var(--ink-soft); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-  .operador-box .badge {
-    font-size: 8px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #1f6a3f;
-    background: #e3f2e8;
-    border: 1px solid #bfe0cb;
-    padding: 3px 8px;
-    border-radius: 20px;
-    white-space: nowrap;
-  }
 
   .operador-right {
     display: flex;
