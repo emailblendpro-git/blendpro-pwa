@@ -319,6 +319,7 @@ export const estilos = `
     display: flex;
     flex-direction: column;
     align-items: center;
+    align-self: flex-end;
     gap: 4px;
   }
   .operador-assinatura {
