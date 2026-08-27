@@ -352,7 +352,8 @@ export const estilos = `
     height: 1px;
   }
 
-  .qtd-block { display: flex; align-items: center; gap: 12px; }
+  .qtd-block { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+  .section > .field { margin-top: 6px; }
   .qtd-opcoes { display: flex; gap: 16px; padding: 2px 0; }
   .qtd-opcao {
     display: flex;
