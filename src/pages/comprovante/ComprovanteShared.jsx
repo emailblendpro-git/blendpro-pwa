@@ -15,7 +15,10 @@ export function Via({ tag, maquina, numero, geradoEm }) {
     const operadores = maquina.operadores_autorizados || [];
     return (
         <div className="via">
-            <span className="via-tag">{tag}</span>
+            <div className="id-row">
+                <div className="cliente-nome">{maquina.nome_cliente || '—'}</div>
+                <span className="via-tag">{tag}</span>
+            </div>
             <div className="head">
                 <div className="brand">
                     <div className="mark">Blend<span>Pro</span></div>
@@ -45,8 +48,8 @@ export function Via({ tag, maquina, numero, geradoEm }) {
                 <div className="section-label">Dados do Cliente</div>
                 <div className="grid cols-3">
                     <div className="field span-2">
-                        <div className="k">Razão Social</div>
-                        <div className="v">{maquina.nome_cliente || '—'}</div>
+                        <div className="k">Nome do Contato</div>
+                        <div className="v">{maquina.contato || '—'}</div>
                     </div>
                     <div className="field">
                         <div className="k">CNPJ</div>
@@ -76,7 +79,10 @@ export function Via({ tag, maquina, numero, geradoEm }) {
                             operadores.map((op) => <div className="name" key={op.id}>{op.nome}</div>)
                         )}
                     </div>
-                    {operadores.length > 0 && <div className="badge">Vinculado à máquina</div>}
+                    <div className="operador-right">
+                        {operadores.length > 0 && <div className="badge">Vinculado à máquina</div>}
+                        <div className="operador-assinatura">Assinatura <span className="assinatura-linha"></span></div>
+                    </div>
                 </div>
             </div>
 
@@ -96,27 +102,29 @@ export function Via({ tag, maquina, numero, geradoEm }) {
                         <div className="v blank">&nbsp;</div>
                     </div>
                 </div>
-                <div className="grid cols-3">
-                    <div className="field">
-                        <div className="k">Quantidade abastecida (L)</div>
-                        <div className="v blank">&nbsp;</div>
+                <div className="qtd-block">
+                    <div className="k">Quantidade abastecida em litros</div>
+                    <div className="qtd-opcoes">
+                        <div className="qtd-opcao"><span className="qtd-caixa"></span>5L.</div>
+                        <div className="qtd-opcao"><span className="qtd-caixa"></span>10L.</div>
+                        <div className="qtd-opcao"><span className="qtd-caixa"></span>15L.</div>
+                        <div className="qtd-opcao"><span className="qtd-caixa"></span>20L.</div>
                     </div>
-                    <div className="field span-2">
-                        <div className="k">Observações</div>
-                        <div className="v blank">&nbsp;</div>
-                    </div>
+                </div>
+                <div className="field">
+                    <div className="k">Observações</div>
+                    <div className="v blank">&nbsp;</div>
                 </div>
             </div>
 
             <div className="sig-row">
                 <div className="sig-box">
                     <div className="cap">Assinatura do conferente</div>
-                    <div className="sig-line"></div>
-                    <div className="name-hint">Nome legível: ___________________________</div>
+                    <div className="sig-line sig-line-baixo"></div>
                 </div>
                 <div className="sig-box">
                     <div className="cap">Carimbo do cliente</div>
-                    <div className="stamp-area">espaço reservado para carimbo</div>
+                    <div className="stamp-area"></div>
                 </div>
             </div>
         </div>
@@ -213,8 +221,21 @@ export const estilos = `
     border-top: 1.5px dashed var(--rule-strong);
   }
 
+  .id-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .cliente-nome {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    text-align: left;
+  }
+
   .via-tag {
-    align-self: flex-start;
     background: var(--accent);
     color: var(--paper);
     font-size: 11px;
@@ -238,7 +259,7 @@ export const estilos = `
   .brand .sub { font-size: 9.5px; color: var(--ink-faint); }
   .doc-meta { text-align: right; }
   .doc-meta .title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); }
-  .doc-meta .num { font-size: 10px; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .doc-meta .num { font-size: 13px; font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-top: 1px; }
 
   .section { display: flex; flex-direction: column; gap: 2px; }
   .section-label {
@@ -309,6 +330,49 @@ export const estilos = `
     white-space: nowrap;
   }
 
+  .operador-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .operador-assinatura {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 8.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .assinatura-linha {
+    display: inline-block;
+    width: 38mm;
+    border-bottom: 1.5px solid var(--ink-soft);
+    height: 1px;
+  }
+
+  .qtd-block { display: flex; flex-direction: column; gap: 3px; }
+  .qtd-opcoes { display: flex; gap: 16px; padding: 2px 0; }
+  .qtd-opcao {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .qtd-caixa {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 1.4px solid var(--ink-soft);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
   .sig-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .sig-box {
     border: 1px solid var(--rule);
@@ -321,7 +385,7 @@ export const estilos = `
   }
   .sig-box .cap { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 800; }
   .sig-line { border-bottom: 1.5px solid var(--ink-soft); height: 11px; }
-  .sig-box .name-hint { font-size: 9px; color: var(--ink-soft); font-weight: 600; }
+  .sig-line-baixo { margin-top: auto; }
 
   .stamp-area {
     border: 1.5px dashed var(--stamp-border);
