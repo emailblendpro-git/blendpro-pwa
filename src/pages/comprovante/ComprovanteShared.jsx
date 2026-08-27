@@ -120,11 +120,9 @@ export function Via({ tag, maquina, numero, geradoEm }) {
             <div className="sig-row">
                 <div className="sig-box">
                     <div className="cap">Assinatura do conferente</div>
-                    <div className="sig-line sig-line-baixo"></div>
                 </div>
                 <div className="sig-box">
                     <div className="cap">Carimbo do cliente</div>
-                    <div className="stamp-area"></div>
                 </div>
             </div>
         </div>
@@ -333,7 +331,7 @@ export const estilos = `
   .operador-right {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
     gap: 4px;
   }
   .operador-assinatura {
@@ -354,20 +352,20 @@ export const estilos = `
     height: 1px;
   }
 
-  .qtd-block { display: flex; flex-direction: column; gap: 3px; }
+  .qtd-block { display: flex; align-items: center; gap: 12px; }
   .qtd-opcoes { display: flex; gap: 16px; padding: 2px 0; }
   .qtd-opcao {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: 11px;
     font-weight: 700;
     color: var(--ink);
   }
   .qtd-caixa {
     display: inline-block;
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
     border: 1.4px solid var(--ink-soft);
     border-radius: 2px;
     flex-shrink: 0;
@@ -384,22 +382,6 @@ export const estilos = `
     gap: 4px;
   }
   .sig-box .cap { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 800; }
-  .sig-line { border-bottom: 1.5px solid var(--ink-soft); height: 11px; }
-  .sig-line-baixo { margin-top: auto; }
-
-  .stamp-area {
-    border: 1.5px dashed var(--stamp-border);
-    border-radius: 4px;
-    min-height: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--ink-soft);
-    font-size: 8px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
 
   .sheets { display: flex; flex-direction: column; gap: 24px; align-items: center; }
 
