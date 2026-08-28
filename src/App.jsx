@@ -16,6 +16,7 @@ import RegistrosOperacionais from './pages/RegistrosOperacionais';
 import ComprovanteAbastecimento from './pages/ComprovanteAbastecimento';
 import ComprovantesLote from './pages/ComprovantesLote';
 import LancamentosFaturamento from './pages/LancamentosFaturamento';
+import FolhaAbastecimento from './pages/FolhaAbastecimento';
 import { useUsuario } from './hooks/useUsuario';
 
 function RotaProtegida({ children }) {
@@ -102,6 +103,14 @@ export default function App() {
 
         <Route path="/abastecer/:serial" element={
           <RotaProtegida><Abastecer /></RotaProtegida>
+        } />
+
+        <Route path="/maquinas/folha-abastecimento" element={
+          <RotaProtegida>
+            <RotaRestrita perfisPermitidos={['master', 'operador_interno', 'operador_externo']}>
+              <FolhaAbastecimento />
+            </RotaRestrita>
+          </RotaProtegida>
         } />
 
         <Route path="/maquinas/:serial/comprovante" element={

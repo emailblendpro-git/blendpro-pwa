@@ -7,6 +7,11 @@ import { QRCodeSVG } from 'qrcode.react';
 const podeImprimirComprovante = (m) =>
     (m.status === 'Ativa' || m.status === 'Em Teste') && !!m.nome_cliente;
 
+const MESES_FOLHA = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
 const corStatus = (status) => {
     if (status === 'Em Estoque') return '#ef4444';
     if (status === 'Em Teste') return '#f59e0b';
@@ -16,7 +21,7 @@ const corStatus = (status) => {
 
 export default function Maquinas() {
     const navigate = useNavigate();
-    const { podeGerenciar } = useUsuario();
+    const { podeGerenciar, podeManutencao } = useUsuario();
     const [maquinas, setMaquinas] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [mostrarForm, setMostrarForm] = useState(false);
@@ -33,6 +38,10 @@ export default function Maquinas() {
     const [operadorParaAdicionar, setOperadorParaAdicionar] = useState('');
     const [historicoVinculo, setHistoricoVinculo] = useState([]);
     const [selecionadas, setSelecionadas] = useState(new Set());
+    const [mostrarFolha, setMostrarFolha] = useState(false);
+    const [folhaOperador, setFolhaOperador] = useState('');
+    const [folhaMes, setFolhaMes] = useState(String(new Date().getMonth() + 1));
+    const [folhaAno, setFolhaAno] = useState(String(new Date().getFullYear()));
     const [dataEfetiva, setDataEfetiva] = useState(new Date().toISOString().slice(0, 10));
     const [formOperacional, setFormOperacional] = useState({
         vol1: '3000', vol2: '3000', fat1: '19.0', fat2: '66.0', mlx_segundo: '9.5',
@@ -237,6 +246,17 @@ export default function Maquinas() {
         window.open(`/maquinas/comprovantes?seriais=${[...selecionadas].join(',')}`, '_blank');
     };
 
+    const gerarFolhaAbastecimento = () => {
+        if (podeGerenciar && !folhaOperador) {
+            alert('Selecione o operador.');
+            return;
+        }
+        const params = new URLSearchParams({ mes: folhaMes, ano: folhaAno });
+        if (folhaOperador) params.set('operador', folhaOperador);
+        window.open(`/maquinas/folha-abastecimento?${params.toString()}`, '_blank');
+        setMostrarFolha(false);
+    };
+
     // Select reutilizável de prestador
     const SelectPrestador = ({ campo, label }) => (
         <div style={styles.campoParametro}>
@@ -265,6 +285,11 @@ export default function Maquinas() {
                 <div style={styles.topBar}>
                     <h2 style={styles.pageTitulo}>Máquinas</h2>
                     <div style={{ display: 'flex', gap: '10px' }}>
+                        {podeManutencao && (
+                            <button style={styles.botaoFolha} onClick={() => setMostrarFolha(true)}>
+                                🖨️ Folha de Abastecimento
+                            </button>
+                        )}
                         {selecionadas.size > 0 && (
                             <button style={styles.botaoImprimirLote} onClick={imprimirSelecionadas}>
                                 🖨️ Imprimir selecionadas ({selecionadas.size})
@@ -277,6 +302,50 @@ export default function Maquinas() {
                         )}
                     </div>
                 </div>
+
+                {mostrarFolha && (
+                    <div style={styles.modalOverlay} onClick={() => setMostrarFolha(false)}>
+                        <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+                            <h3 style={styles.formTitulo}>Folha de Controle de Abastecimento</h3>
+                            <p style={{ color: '#94a3b8', fontSize: '13px', margin: '0 0 8px 0' }}>
+                                Gera a folha para impressão com as máquinas do operador. O mês e o ano
+                                podem ser ajustados na própria folha antes de imprimir.
+                            </p>
+
+                            {podeGerenciar && (
+                                <div>
+                                    <label style={styles.painelLabel}>Operador</label>
+                                    <select style={styles.input} value={folhaOperador} onChange={(e) => setFolhaOperador(e.target.value)}>
+                                        <option value="">Selecionar operador externo</option>
+                                        {operadoresExternos.map((u) => (
+                                            <option key={u.id} value={u.id}>{u.nome}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={styles.painelLabel}>Mês</label>
+                                    <select style={styles.input} value={folhaMes} onChange={(e) => setFolhaMes(e.target.value)}>
+                                        {MESES_FOLHA.map((nome, i) => (
+                                            <option key={nome} value={i + 1}>{nome}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div style={{ width: '100px' }}>
+                                    <label style={styles.painelLabel}>Ano</label>
+                                    <input style={styles.input} type="number" value={folhaAno} onChange={(e) => setFolhaAno(e.target.value)} />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                                <button style={{ ...styles.botaoFechar, flex: 1 }} onClick={() => setMostrarFolha(false)}>Cancelar</button>
+                                <button style={{ ...styles.botaoSalvar, flex: 1, marginTop: 0 }} onClick={gerarFolhaAbastecimento}>Gerar folha</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {mostrarForm && podeGerenciar && (
                     <div style={styles.form}>
@@ -772,4 +841,7 @@ const styles = {
     botaoAdicionar: { padding: '10px 16px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap' },
     botaoImprimir: { padding: '6px 10px', backgroundColor: '#334155', color: '#f1f5f9', border: '1px solid #475569', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', lineHeight: 1 },
     botaoImprimirLote: { padding: '10px 16px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap' },
+    botaoFolha: { padding: '10px 16px', backgroundColor: '#334155', color: '#f1f5f9', border: '1px solid #475569', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap' },
+    modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '16px' },
+    modalCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', gap: '12px', border: '1px solid #334155' },
 };
