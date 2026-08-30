@@ -36,14 +36,15 @@ export default function ComprovanteAbastecimento() {
         <>
             <style>{estilos}</style>
             <div className="toolbar">
-                <span>Comprovante Nº {String(comprovante.numero).padStart(6, '0')} · {maquina.numero_serie} · 2 vias na mesma folha</span>
+                <span>Comprovante Nº {String(comprovante.numero).padStart(6, '0')} · {maquina.numero_serie} · 2 vias, uma por folha</span>
                 <button className="print-btn" onClick={() => window.print()}>Imprimir / Salvar PDF</button>
             </div>
             <div className="sheets">
                 <div className="sheet">
-                    <Via tag="1ª via — cliente" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
-                    <div className="cut-line">✂ recortar aqui</div>
-                    <Via tag="2ª via — atendente" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
+                    <Via tag="1ª via — local / cliente" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
+                </div>
+                <div className="sheet">
+                    <Via tag="2ª via — Alquimis" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
                 </div>
             </div>
         </>

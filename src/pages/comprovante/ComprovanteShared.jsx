@@ -87,7 +87,7 @@ export function Via({ tag, maquina, numero, geradoEm }) {
 
             <div className="section">
                 <div className="section-label">Registro do Abastecimento</div>
-                <div className="grid cols-4">
+                <div className="grid cols-4 campos-registro">
                     <div className="field">
                         <div className="k">Data</div>
                         <div className="v blank">&nbsp;</div>
@@ -102,7 +102,7 @@ export function Via({ tag, maquina, numero, geradoEm }) {
                     </div>
                 </div>
                 <div className="qtd-block">
-                    <div className="k">Quantidade abastecida em litros</div>
+                    <div className="k qtd-titulo">Quantidade abastecida em litros</div>
                     <div className="qtd-opcoes">
                         <div className="qtd-opcao"><span className="qtd-caixa"></span>5L.</div>
                         <div className="qtd-opcao"><span className="qtd-caixa"></span>10L.</div>
@@ -110,8 +110,10 @@ export function Via({ tag, maquina, numero, geradoEm }) {
                         <div className="qtd-opcao"><span className="qtd-caixa"></span>20L.</div>
                     </div>
                 </div>
-                <div className="field">
+                <div className="field obs">
                     <div className="k">Observações</div>
+                    <div className="v blank">&nbsp;</div>
+                    <div className="v blank">&nbsp;</div>
                     <div className="v blank">&nbsp;</div>
                 </div>
             </div>
@@ -192,31 +194,14 @@ export const estilos = `
     color: var(--ink);
     box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 18px 40px -12px rgba(0,0,0,0.35);
     border: 1px solid var(--paper-edge);
-    padding: 2mm 12mm 1mm;
+    padding: 16mm 14mm 12mm;
     display: flex;
     flex-direction: column;
     font-size: 11.5px;
     line-height: 1.3;
   }
 
-  .via { display: flex; flex-direction: column; gap: 1.5mm; }
-
-  .cut-line {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--ink-soft);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin: 5.3mm 0;
-  }
-  .cut-line::before, .cut-line::after {
-    content: "";
-    flex: 1;
-    border-top: 1.5px dashed var(--rule-strong);
-  }
+  .via { display: flex; flex-direction: column; gap: 6mm; }
 
   .id-row {
     display: flex;
@@ -258,7 +243,7 @@ export const estilos = `
   .doc-meta .title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); }
   .doc-meta .num { font-size: 13px; font-weight: 800; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-top: 1px; }
 
-  .section { display: flex; flex-direction: column; gap: 2px; }
+  .section { display: flex; flex-direction: column; gap: 5px; }
   .section-label {
     font-size: 9.5px;
     font-weight: 800;
@@ -271,12 +256,14 @@ export const estilos = `
   }
   .section-label::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
 
-  .grid { display: grid; gap: 4px 8px; }
+  .grid { display: grid; gap: 7px 8px; }
   .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
   .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
   .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
 
   .field { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .campos-registro .field { gap: 12px; }
+  .field.obs { gap: 12px; margin-top: 14px; }
   .field .k { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); font-weight: 800; }
   .field .v {
     font-size: 11.5px;
@@ -340,32 +327,33 @@ export const estilos = `
     height: 1px;
   }
 
-  .qtd-block { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
-  .section > .field { margin-top: 6px; }
-  .qtd-opcoes { display: flex; gap: 16px; padding: 2px 0; }
+  .qtd-block { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+  .section > .field { margin-top: 10px; }
+  .qtd-titulo { font-size: 12px; }
+  .qtd-opcoes { display: flex; gap: 20px; padding: 2px 0; }
   .qtd-opcao {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 11px;
+    gap: 8px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ink);
   }
   .qtd-caixa {
     display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 1.4px solid var(--ink-soft);
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--ink-soft);
     border-radius: 2px;
     flex-shrink: 0;
   }
 
-  .sig-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sig-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4mm; }
   .sig-box {
     border: 1px solid var(--rule);
     border-radius: 4px;
-    padding: 4px 9px;
-    padding-bottom: calc(4px + 10mm);
+    padding: 6px 10px;
+    padding-bottom: calc(6px + 26mm);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -384,7 +372,7 @@ export const estilos = `
       width: 210mm;
       max-width: none;
       min-height: auto;
-      padding: 5mm 18mm 5mm;
+      padding: 20mm 18mm 14mm;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }

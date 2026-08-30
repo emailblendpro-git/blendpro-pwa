@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { Via, estilos } from './comprovante/ComprovanteShared';
@@ -59,7 +59,7 @@ export default function ComprovantesLote() {
             <style>{estilos}</style>
             <div className="toolbar">
                 <span>
-                    {itens.length} comprovante{itens.length !== 1 ? 's' : ''} · 2 vias por máquina, cada uma em sua própria folha
+                    {itens.length} comprovante{itens.length !== 1 ? 's' : ''} · 2 vias por máquina, uma por folha ({itens.length * 2} páginas)
                     {falhas.length > 0 && (
                         <span style={{ color: '#c0392b' }}> · falhou pra: {falhas.join(', ')}</span>
                     )}
@@ -68,11 +68,14 @@ export default function ComprovantesLote() {
             </div>
             <div className="sheets">
                 {itens.map(({ maquina, comprovante }) => (
-                    <div className="sheet" key={maquina.numero_serie}>
-                        <Via tag="1ª via — cliente" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
-                        <div className="cut-line">✂ recortar aqui</div>
-                        <Via tag="2ª via — atendente" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
-                    </div>
+                    <Fragment key={maquina.numero_serie}>
+                        <div className="sheet">
+                            <Via tag="1ª via — local / cliente" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
+                        </div>
+                        <div className="sheet">
+                            <Via tag="2ª via — Alquimis" maquina={maquina} numero={comprovante.numero} geradoEm={comprovante.gerado_em} />
+                        </div>
+                    </Fragment>
                 ))}
             </div>
         </>
