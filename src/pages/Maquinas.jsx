@@ -7,6 +7,19 @@ import { QRCodeSVG } from 'qrcode.react';
 const podeImprimirComprovante = (m) =>
     (m.status === 'Ativa' || m.status === 'Em Teste') && !!m.nome_cliente;
 
+// Monta o endereço de instalação da máquina (vindo do cadastro do cliente)
+const montarEnderecoMaquina = (m) => {
+    if (!m) return '';
+    const cidadeUf = m.cidade && m.uf ? `${m.cidade} - ${m.uf}` : (m.cidade || m.uf || '');
+    return [m.endereco, m.bairro, cidadeUf].filter(Boolean).join(', ');
+};
+
+const linkGoogleMaps = (endereco) =>
+    `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(endereco)}`;
+
+const linkWaze = (endereco) =>
+    `https://waze.com/ul?q=${encodeURIComponent(endereco)}&navigate=yes`;
+
 const MESES_FOLHA = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
@@ -38,6 +51,7 @@ export default function Maquinas() {
     const [operadorParaAdicionar, setOperadorParaAdicionar] = useState('');
     const [historicoVinculo, setHistoricoVinculo] = useState([]);
     const [selecionadas, setSelecionadas] = useState(new Set());
+    const [menuMapa, setMenuMapa] = useState(null);
     const [mostrarFolha, setMostrarFolha] = useState(false);
     const [folhaOperador, setFolhaOperador] = useState('');
     const [folhaMes, setFolhaMes] = useState(String(new Date().getMonth() + 1));
@@ -246,6 +260,15 @@ export default function Maquinas() {
         window.open(`/maquinas/comprovantes?seriais=${[...selecionadas].join(',')}`, '_blank');
     };
 
+    const abrirNavegacao = (app) => {
+        if (!menuMapa) return;
+        const endereco = montarEnderecoMaquina(menuMapa);
+        if (!endereco) return;
+        const url = app === 'waze' ? linkWaze(endereco) : linkGoogleMaps(endereco);
+        window.open(url, '_blank', 'noopener');
+        setMenuMapa(null);
+    };
+
     const gerarFolhaAbastecimento = () => {
         if (podeGerenciar && !folhaOperador) {
             alert('Selecione o operador.');
@@ -302,6 +325,26 @@ export default function Maquinas() {
                         )}
                     </div>
                 </div>
+
+                {menuMapa && (
+                    <div style={styles.modalOverlay} onClick={() => setMenuMapa(null)}>
+                        <div style={{ ...styles.modalCard, maxWidth: '360px' }} onClick={(e) => e.stopPropagation()}>
+                            <h3 style={styles.formTitulo}>Como chegar</h3>
+                            <p style={{ color: '#94a3b8', fontSize: '13px', margin: '0 0 8px 0' }}>
+                                {menuMapa.nome_cliente || menuMapa.numero_serie}
+                            </p>
+                            <button style={styles.botaoGoogleMaps} onClick={() => abrirNavegacao('google')}>
+                                📍 Google Maps
+                            </button>
+                            <button style={styles.botaoWaze} onClick={() => abrirNavegacao('waze')}>
+                                📍 Waze
+                            </button>
+                            <button style={{ ...styles.botaoFechar, marginTop: '4px' }} onClick={() => setMenuMapa(null)}>
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {mostrarFolha && (
                     <div style={styles.modalOverlay} onClick={() => setMostrarFolha(false)}>
@@ -390,6 +433,11 @@ export default function Maquinas() {
                         <div style={styles.painelHeader}>
                             <h3 style={styles.painelTitulo}>{maquinaSelecionada.numero_serie}</h3>
                             <div style={{ display: 'flex', gap: '8px' }}>
+                                {montarEnderecoMaquina(maquinaSelecionada) && (
+                                    <button style={styles.botaoMapaHeader} onClick={() => setMenuMapa(maquinaSelecionada)}>
+                                        📍 Como chegar
+                                    </button>
+                                )}
                                 {podeGerenciar && (
                                     <button style={styles.botaoEditar} onClick={() => {
                                         if (!editando) {
@@ -728,7 +776,6 @@ export default function Maquinas() {
                         <thead>
                             <tr>
                                 <th style={styles.th}>Serial</th>
-                                <th style={styles.th}>Modelo</th>
                                 <th style={styles.th}>Status</th>
                                 <th style={styles.th}>Cliente</th>
                                 <th style={styles.th}>Vendedor</th>
@@ -760,7 +807,6 @@ export default function Maquinas() {
                                     carregarHistoricoVinculo(m.numero_serie);
                                 }}>
                                     <td style={styles.td}>{m.numero_serie}</td>
-                                    <td style={styles.td}>{m.modelo}</td>
                                     <td style={styles.td}>
                                         <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: corStatus(m.status), marginRight: '8px' }}></span>
                                         {m.status}
@@ -768,27 +814,41 @@ export default function Maquinas() {
                                     <td style={styles.td}>{m.nome_cliente || '—'}</td>
                                     <td style={styles.td}>{m.nome_vendedor ? `${m.nome_vendedor} (${m.carteira_vendedor})` : '—'}</td>
                                     <td style={styles.td}>
-                                        {podeImprimirComprovante(m) && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {montarEnderecoMaquina(m) && (
                                                 <button
-                                                    title="Imprimir comprovante de abastecimento"
+                                                    title="Como chegar (Google Maps / Waze)"
                                                     style={styles.botaoImprimir}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        window.open(`/maquinas/${m.numero_serie}/comprovante`, '_blank');
+                                                        setMenuMapa(m);
                                                     }}
                                                 >
-                                                    🖨️
+                                                    📍
                                                 </button>
-                                                <input
-                                                    type="checkbox"
-                                                    title="Selecionar para impressão em lote"
-                                                    checked={selecionadas.has(m.numero_serie)}
-                                                    onChange={() => alternarSelecionada(m.numero_serie)}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                />
-                                            </div>
-                                        )}
+                                            )}
+                                            {podeImprimirComprovante(m) && (
+                                                <>
+                                                    <button
+                                                        title="Imprimir comprovante de abastecimento"
+                                                        style={styles.botaoImprimir}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            window.open(`/maquinas/${m.numero_serie}/comprovante`, '_blank');
+                                                        }}
+                                                    >
+                                                        🖨️
+                                                    </button>
+                                                    <input
+                                                        type="checkbox"
+                                                        title="Selecionar para impressão em lote"
+                                                        checked={selecionadas.has(m.numero_serie)}
+                                                        onChange={() => alternarSelecionada(m.numero_serie)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                </>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -842,6 +902,9 @@ const styles = {
     botaoImprimir: { padding: '6px 10px', backgroundColor: '#334155', color: '#f1f5f9', border: '1px solid #475569', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', lineHeight: 1 },
     botaoImprimirLote: { padding: '10px 16px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap' },
     botaoFolha: { padding: '10px 16px', backgroundColor: '#334155', color: '#f1f5f9', border: '1px solid #475569', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap' },
+    botaoMapaHeader: { padding: '8px 16px', backgroundColor: '#334155', color: '#f1f5f9', border: '1px solid #475569', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', whiteSpace: 'nowrap' },
+    botaoGoogleMaps: { padding: '13px', backgroundColor: '#1a73e8', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', width: '100%' },
+    botaoWaze: { padding: '13px', backgroundColor: '#33ccff', color: '#0f172a', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', width: '100%' },
     modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '16px' },
     modalCard: { backgroundColor: '#1e293b', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', gap: '12px', border: '1px solid #334155' },
 };
