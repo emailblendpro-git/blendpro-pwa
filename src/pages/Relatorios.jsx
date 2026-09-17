@@ -180,6 +180,73 @@ export default function Relatorios() {
     finally { setCarregandoImpostos(false); }
   };
 
+  const exportarExcelDesempenhoMensal = () => {
+    if (!impostos?.mensal?.length) return;
+    const cab = ['Mês', 'Total', 'Produto', 'Deduções', 'ICMS', 'PIS', 'COFINS', 'Logístico', 'Comissionado 1', 'Comissionado 2', 'Operacional', 'Outros', 'Margem', 'Margem %'];
+    const n = (v, dec = 2) => parseFloat(v || 0).toFixed(dec).replace('.', ',');
+    const linhas = impostos.mensal.map((m) => [
+      formatarMesAbrev(m.mes), n(m.total_venda), n(m.total_custo), n(m.total_deducoes),
+      n(m.icms), n(m.pis), n(m.cofins), n(m.logistico), n(m.comissionado_1), n(m.comissionado_2),
+      n(m.custo_operacional), n(m.outros), n(m.margem), n(m.margem_pct),
+    ]);
+    const csv = [cab, ...linhas].map((linha) => linha.join(';')).join('\r\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `desempenho-mensal_${impostoMesInicio}_a_${impostoMesFim}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const imprimirDesempenhoMensal = () => {
+    if (!impostos?.mensal?.length) return;
+    const cab = ['Mês', 'Total', 'Produto', 'Deduções', 'ICMS', 'PIS', 'COFINS', 'Logístico', 'Comissionado 1', 'Comissionado 2', 'Operacional', 'Outros', 'Margem', 'Margem %'];
+    const linhasHtml = impostos.mensal.map((m) => `
+      <tr>
+        <td>${formatarMesAbrev(m.mes)}</td>
+        <td>${moeda(m.total_venda)}</td>
+        <td>${moeda(m.total_custo)}</td>
+        <td>${moeda(m.total_deducoes)}</td>
+        <td>${moeda(m.icms)}</td>
+        <td>${moeda(m.pis)}</td>
+        <td>${moeda(m.cofins)}</td>
+        <td>${moeda(m.logistico)}</td>
+        <td>${moeda(m.comissionado_1)}</td>
+        <td>${moeda(m.comissionado_2)}</td>
+        <td>${moeda(m.custo_operacional)}</td>
+        <td>${moeda(m.outros)}</td>
+        <td>${moeda(m.margem)}</td>
+        <td>${num(m.margem_pct, 2)}%</td>
+      </tr>`).join('');
+    const html = `<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8" />
+<title>Desempenho Mensal — ${formatarMesAbrev(impostoMesInicio)} a ${formatarMesAbrev(impostoMesFim)}</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; color: #1e293b; padding: 24px; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  p.periodo { color: #475569; font-size: 13px; margin: 0 0 20px; }
+  table { border-collapse: collapse; width: 100%; font-size: 11px; }
+  th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right; white-space: nowrap; }
+  th { background: #f1f5f9; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  @page { size: A4 landscape; margin: 12mm; }
+</style>
+</head><body>
+  <h1>Desempenho Mensal — BlendPro</h1>
+  <p class="periodo">Período: ${formatarMesAbrev(impostoMesInicio)} a ${formatarMesAbrev(impostoMesFim)}</p>
+  <table>
+    <thead><tr>${cab.map((c) => `<th>${c}</th>`).join('')}</tr></thead>
+    <tbody>${linhasHtml}</tbody>
+  </table>
+</body></html>`;
+    const janela = window.open('', '_blank');
+    if (!janela) { alert('Permita pop-ups para imprimir o relatório.'); return; }
+    janela.document.write(html);
+    janela.document.close();
+    janela.onload = () => janela.print();
+  };
+
   const carregarDashboardMaquina = async () => {
     if (!serialDashboard) return;
     try {
@@ -800,7 +867,11 @@ export default function Relatorios() {
                       <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                           <h3 style={{ ...styles.secaoTitulo, marginBottom: 0 }}>🧾 Desempenho Mensal — {formatarMesAbrev(impostoMesInicio)} a {formatarMesAbrev(impostoMesFim)}</h3>
-                          <button onClick={() => setImpostos(null)} style={styles.botaoFechar}>✕ Fechar</button>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={exportarExcelDesempenhoMensal} style={styles.botaoBuscar}>📊 Exportar Excel</button>
+                            <button onClick={imprimirDesempenhoMensal} style={styles.botaoBuscar}>🖨️ Imprimir</button>
+                            <button onClick={() => setImpostos(null)} style={styles.botaoFechar}>✕ Fechar</button>
+                          </div>
                         </div>
                         {(() => {
                           const totalVenda = parseFloat(impostos.total_venda || 0);
