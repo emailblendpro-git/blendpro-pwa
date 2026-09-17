@@ -86,14 +86,17 @@ export default function Relatorios() {
   const [desempenhoAnual, setDesempenhoAnual] = useState(null);
   const [carregandoDesempenho, setCarregandoDesempenho] = useState(false);
 
-  // Relatório de Impostos
+  // Relatório de Impostos / Desempenho Mensal
   const [impostos, setImpostos] = useState(null);
   const [carregandoImpostos, setCarregandoImpostos] = useState(false);
   const hoje = new Date();
-  const hojeStr = hoje.toISOString().substring(0, 10);
-  const inicioMesStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
-  const [impostoDataInicio, setImpostoDataInicio] = useState(inicioMesStr);
-  const [impostoDataFim, setImpostoDataFim] = useState(hojeStr);
+  const mesAtualStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+  const [impostoMesInicio, setImpostoMesInicio] = useState(mesAtualStr);
+  const [impostoMesFim, setImpostoMesFim] = useState(mesAtualStr);
+
+  // Filtro de período compartilhado pela aba Financeiro (máquinas/clientes/cidades/segmentos/redes)
+  const [finDataInicio, setFinDataInicio] = useState('');
+  const [finDataFim, setFinDataFim] = useState('');
 
   useEffect(() => {
     api.get('/maquinas').then((res) => setMaquinas(res.data)).catch(() => setMaquinas([]));
@@ -158,13 +161,20 @@ export default function Relatorios() {
   };
 
   const carregarImpostos = async () => {
-    if (!impostoDataInicio || !impostoDataFim) {
-      alert('Informe a data de início e fim.');
+    if (!impostoMesInicio || !impostoMesFim) {
+      alert('Informe o mês de início e fim.');
+      return;
+    }
+    if (impostoMesFim < impostoMesInicio) {
+      alert('O mês final não pode ser anterior ao mês inicial.');
       return;
     }
     try {
       setCarregandoImpostos(true);
-      const res = await api.get(`/relatorios/impostos?data_inicio=${impostoDataInicio}&data_fim=${impostoDataFim}`);
+      const dataInicio = `${impostoMesInicio}-01`;
+      const [anoFim, mesFim] = impostoMesFim.split('-').map(Number);
+      const dataFim = new Date(anoFim, mesFim, 0).toISOString().substring(0, 10);
+      const res = await api.get(`/relatorios/impostos?data_inicio=${dataInicio}&data_fim=${dataFim}`);
       setImpostos(res.data);
     } catch { alert('Erro ao carregar relatório de impostos.'); }
     finally { setCarregandoImpostos(false); }
@@ -237,7 +247,7 @@ export default function Relatorios() {
     if (seraisSelecionados.length === 0) { alert('Selecione ao menos uma máquina.'); return; }
     try {
       setCarregando(true);
-      const res = await api.post('/relatorios/financeiro/maquinas', { seriais: seraisSelecionados });
+      const res = await api.post('/relatorios/financeiro/maquinas', { seriais: seraisSelecionados, inicio: finDataInicio || undefined, fim: finDataFim || undefined });
       setRelatorioFinanceiro(res.data);
     } catch { alert('Erro ao carregar relatório financeiro.'); }
     finally { setCarregando(false); }
@@ -255,7 +265,7 @@ export default function Relatorios() {
     if (clientesSelecionados.length === 0) { alert('Selecione ao menos um cliente.'); return; }
     try {
       setCarregando(true);
-      const res = await api.post('/relatorios/financeiro/clientes', { ids: clientesSelecionados });
+      const res = await api.post('/relatorios/financeiro/clientes', { ids: clientesSelecionados, inicio: finDataInicio || undefined, fim: finDataFim || undefined });
       setRelatorioFinanceiro(res.data);
     } catch { alert('Erro ao carregar relatório financeiro.'); }
     finally { setCarregando(false); }
@@ -273,7 +283,7 @@ export default function Relatorios() {
     if (cidadesSelecionadas.length === 0) { alert('Selecione ao menos uma cidade.'); return; }
     try {
       setCarregando(true);
-      const res = await api.post('/relatorios/financeiro/cidades', { cidades: cidadesSelecionadas });
+      const res = await api.post('/relatorios/financeiro/cidades', { cidades: cidadesSelecionadas, inicio: finDataInicio || undefined, fim: finDataFim || undefined });
       setRelatorioFinanceiro(res.data);
     } catch { alert('Erro ao carregar relatório financeiro por cidades.'); }
     finally { setCarregando(false); }
@@ -291,7 +301,7 @@ export default function Relatorios() {
     if (segmentosSelecionados.length === 0) { alert('Selecione ao menos um segmento.'); return; }
     try {
       setCarregando(true);
-      const res = await api.post('/relatorios/financeiro/segmentos', { ids: segmentosSelecionados });
+      const res = await api.post('/relatorios/financeiro/segmentos', { ids: segmentosSelecionados, inicio: finDataInicio || undefined, fim: finDataFim || undefined });
       setRelatorioFinanceiro(res.data);
     } catch { alert('Erro ao carregar relatório financeiro por segmentos.'); }
     finally { setCarregando(false); }
@@ -309,7 +319,7 @@ export default function Relatorios() {
     if (redesSelecionadas.length === 0) { alert('Selecione ao menos uma rede.'); return; }
     try {
       setCarregando(true);
-      const res = await api.post('/relatorios/financeiro/redes', { ids: redesSelecionadas });
+      const res = await api.post('/relatorios/financeiro/redes', { ids: redesSelecionadas, inicio: finDataInicio || undefined, fim: finDataFim || undefined });
       setRelatorioFinanceiro(res.data);
     } catch { alert('Erro ao carregar relatório financeiro por redes.'); }
     finally { setCarregando(false); }
@@ -412,6 +422,8 @@ export default function Relatorios() {
 
   const formatarData = (data) => { if (!data) return '—'; return new Date(data).toLocaleDateString('pt-BR'); };
   const formatarMes = (mes) => { if (!mes) return '—'; const [ano, m] = mes.split('-'); return `${m}/${ano}`; };
+  const MESES_ABREV = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const formatarMesAbrev = (mes) => { if (!mes) return '—'; const [ano, m] = mes.split('-'); return `${MESES_ABREV[parseInt(m, 10) - 1]}/${ano.slice(2)}`; };
 
   const calcularDashboard = (dm) => {
     const m = dm.maquina;
@@ -694,12 +706,12 @@ export default function Relatorios() {
                         </div>
                       </div>
 
-                      {/* Painel 3 — Impostos e Deduções por Período */}
+                      {/* Painel 3 — Desempenho Mensal (Impostos e Deduções por Período) */}
                       <div style={styles.secaoDashboard}>
-                        <h3 style={styles.secaoTitulo}>🧾 Impostos e Deduções por Período</h3>
+                        <h3 style={styles.secaoTitulo}>🧾 Desempenho Mensal</h3>
                         <div style={{ ...styles.filtro, flexWrap: 'wrap', gap: '8px' }}>
-                          <input type="date" style={{ ...styles.input, flex: '1', minWidth: '120px' }} value={impostoDataInicio} onChange={(e) => setImpostoDataInicio(e.target.value)} />
-                          <input type="date" style={{ ...styles.input, flex: '1', minWidth: '120px' }} value={impostoDataFim} onChange={(e) => setImpostoDataFim(e.target.value)} />
+                          <input type="month" style={{ ...styles.input, flex: '1', minWidth: '120px' }} value={impostoMesInicio} onChange={(e) => setImpostoMesInicio(e.target.value)} />
+                          <input type="month" style={{ ...styles.input, flex: '1', minWidth: '120px' }} value={impostoMesFim} onChange={(e) => setImpostoMesFim(e.target.value)} />
                           <button style={{ ...styles.botaoBuscar, whiteSpace: 'nowrap' }} onClick={carregarImpostos} disabled={carregandoImpostos}>
                             {carregandoImpostos ? 'Carregando...' : '🔍 Buscar'}
                           </button>
@@ -787,7 +799,7 @@ export default function Relatorios() {
                     {impostos && (
                       <div style={{ ...styles.secaoDashboard, marginTop: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                          <h3 style={{ ...styles.secaoTitulo, marginBottom: 0 }}>🧾 Impostos e Deduções — {impostoDataInicio} a {impostoDataFim}</h3>
+                          <h3 style={{ ...styles.secaoTitulo, marginBottom: 0 }}>🧾 Desempenho Mensal — {formatarMesAbrev(impostoMesInicio)} a {formatarMesAbrev(impostoMesFim)}</h3>
                           <button onClick={() => setImpostos(null)} style={styles.botaoFechar}>✕ Fechar</button>
                         </div>
                         {(() => {
@@ -802,6 +814,7 @@ export default function Relatorios() {
                           );
                           return (
                             <div style={styles.cardsGrid3}>
+                              <Card titulo="Produto" valor={impostos.total_custo} cor="#94a3b8" comPct />
                               <Card titulo="ICMS" valor={impostos.icms} cor="#ef4444" comPct />
                               <Card titulo="PIS" valor={impostos.pis} cor="#ef4444" comPct />
                               <Card titulo="COFINS" valor={impostos.cofins} cor="#ef4444" comPct />
@@ -817,6 +830,51 @@ export default function Relatorios() {
                             </div>
                           );
                         })()}
+                        {impostos.mensal?.length > 0 && (
+                          <div style={{ marginTop: '24px', overflowX: 'auto' }}>
+                            <h4 style={{ color: '#94a3b8', marginBottom: '12px', fontSize: '14px' }}>📅 Detalhamento Mensal</h4>
+                            <table style={styles.tabela}>
+                              <thead>
+                                <tr>
+                                  <th style={styles.th}>Mês</th>
+                                  <th style={styles.th}>Total</th>
+                                  <th style={styles.th}>Produto</th>
+                                  <th style={styles.th}>Deduções</th>
+                                  <th style={styles.th}>ICMS</th>
+                                  <th style={styles.th}>PIS</th>
+                                  <th style={styles.th}>COFINS</th>
+                                  <th style={styles.th}>Logístico</th>
+                                  <th style={styles.th}>Comissionado 1</th>
+                                  <th style={styles.th}>Comissionado 2</th>
+                                  <th style={styles.th}>Operacional</th>
+                                  <th style={styles.th}>Outros</th>
+                                  <th style={styles.th}>Margem</th>
+                                  <th style={styles.th}>Margem %</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {impostos.mensal.map((m, i) => (
+                                  <tr key={i} style={styles.tr}>
+                                    <td style={styles.td}>{formatarMesAbrev(m.mes)}</td>
+                                    <td style={styles.td}>{moeda(m.total_venda)}</td>
+                                    <td style={styles.td}>{moeda(m.total_custo)}</td>
+                                    <td style={{ ...styles.td, color: '#ef4444' }}>{moeda(m.total_deducoes)}</td>
+                                    <td style={styles.td}>{moeda(m.icms)}</td>
+                                    <td style={styles.td}>{moeda(m.pis)}</td>
+                                    <td style={styles.td}>{moeda(m.cofins)}</td>
+                                    <td style={styles.td}>{moeda(m.logistico)}</td>
+                                    <td style={styles.td}>{moeda(m.comissionado_1)}</td>
+                                    <td style={styles.td}>{moeda(m.comissionado_2)}</td>
+                                    <td style={styles.td}>{moeda(m.custo_operacional)}</td>
+                                    <td style={styles.td}>{moeda(m.outros)}</td>
+                                    <td style={{ ...styles.td, color: '#22c55e', fontWeight: 'bold' }}>{moeda(m.margem)}</td>
+                                    <td style={{ ...styles.td, color: '#22c55e' }}>{num(m.margem_pct, 2)}%</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                         {impostos.registros?.length > 0 && (
                           <div style={{ marginTop: '24px' }}>
                             <h4 style={{ color: '#94a3b8', marginBottom: '12px', fontSize: '14px' }}>📋 Registros do Período</h4>
@@ -1040,6 +1098,23 @@ export default function Relatorios() {
                 👤 Beneficiários (Pagamentos)
               </button>
             </div>
+
+            {subAbaFin !== 'beneficiarios' && (
+              <div style={{ ...styles.filtro, flexWrap: 'wrap', gap: '8px', marginBottom: '16px', alignItems: 'center' }}>
+                <span style={{ color: '#94a3b8', fontSize: '13px' }}>Período (opcional):</span>
+                <input type="date" style={{ ...styles.input, flex: '1', minWidth: '120px' }} value={finDataInicio} onChange={(e) => setFinDataInicio(e.target.value)} />
+                <span style={{ color: '#94a3b8' }}>até</span>
+                <input type="date" style={{ ...styles.input, flex: '1', minWidth: '120px' }} value={finDataFim} onChange={(e) => setFinDataFim(e.target.value)} />
+                {(finDataInicio || finDataFim) && (
+                  <button style={{ ...styles.botaoFechar, whiteSpace: 'nowrap' }} onClick={() => { setFinDataInicio(''); setFinDataFim(''); }}>
+                    ✕ Limpar período
+                  </button>
+                )}
+                <span style={{ color: '#64748b', fontSize: '12px' }}>
+                  {finDataInicio && finDataFim ? 'Aplicado ao gerar o relatório abaixo.' : 'Sem período = todo o histórico.'}
+                </span>
+              </div>
+            )}
 
             {/* Botão flutuante — sempre visível, não depende de rolar até o fim da lista */}
             {(() => {
@@ -1367,7 +1442,14 @@ export default function Relatorios() {
             {relatorioFinanceiro && !carregando && (
               <div ref={resultadoFinanceiroRef} style={{ marginTop: '32px' }}>
                 <div style={styles.secao}>
-                  <h3 style={styles.secaoTitulo}>💰 Relatório Consolidado — {tituloConsolidado()}</h3>
+                  <h3 style={styles.secaoTitulo}>
+                    💰 Relatório Consolidado — {tituloConsolidado()}
+                    {relatorioFinanceiro.periodo && (
+                      <span style={{ color: '#94a3b8', fontWeight: 'normal', fontSize: '14px' }}>
+                        {' '}— {relatorioFinanceiro.periodo.inicio} a {relatorioFinanceiro.periodo.fim}
+                      </span>
+                    )}
+                  </h3>
                 </div>
                 <CardsFinanceiros totais={relatorioFinanceiro.totais} />
                 {relatorioFinanceiro.por_item.length > 1 && (
