@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
+import { useScrollAoSelecionar } from '../hooks/useScrollAoSelecionar';
 
 export default function Chamados() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function Chamados() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [chamadoSelecionado, setChamadoSelecionado] = useState(null);
+  const painelRef = useScrollAoSelecionar(chamadoSelecionado?.id);
   const [form, setForm] = useState({
     titulo: '',
     numero_serie: '',
@@ -120,7 +122,7 @@ export default function Chamados() {
         )}
 
         {chamadoSelecionado && (
-          <div style={styles.painel}>
+          <div ref={painelRef} style={styles.painel}>
             <div style={styles.painelHeader}>
               <h3 style={styles.painelTitulo}>{chamadoSelecionado.titulo}</h3>
               <button style={styles.botaoFechar} onClick={() => setChamadoSelecionado(null)}>

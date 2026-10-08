@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
+import { useScrollAoSelecionar } from '../hooks/useScrollAoSelecionar';
 
 export default function Clientes() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function Clientes() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
+  const painelRef = useScrollAoSelecionar(clienteSelecionado?.id);
   const [editando, setEditando] = useState(false);
   const [formEdicao, setFormEdicao] = useState({});
   const [filtroRede, setFiltroRede] = useState('');
@@ -164,7 +166,7 @@ export default function Clientes() {
 
         {/* PAINEL DETALHES */}
         {clienteSelecionado && (
-          <div style={styles.painel}>
+          <div ref={painelRef} style={styles.painel}>
             <div style={styles.painelHeader}>
               <h3 style={styles.painelTitulo}>{clienteSelecionado.nome_cliente}</h3>
               <div style={{ display: 'flex', gap: '8px' }}>

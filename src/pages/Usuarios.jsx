@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
+import { useScrollAoSelecionar } from '../hooks/useScrollAoSelecionar';
 
 // ── Seletor de múltiplas máquinas com checkbox ───
 function SeletorMaquinas({ maquinas, selecionados, onChange }) {
@@ -87,6 +88,7 @@ export default function Usuarios() {
   const [mostrarForm, setMostrarForm]       = useState(false);
   const [salvando, setSalvando]             = useState(false);
   const [usuarioSel, setUsuarioSel]         = useState(null);
+  const painelRef = useScrollAoSelecionar(usuarioSel?.id);
   const [editando, setEditando]             = useState(false);
   const [formEdicao, setFormEdicao]         = useState({});
   const [maquinasEdicao, setMaquinasEdicao] = useState([]);
@@ -229,7 +231,7 @@ export default function Usuarios() {
 
         {/* ── Painel de detalhes / edição ── */}
         {usuarioSel && (
-          <div style={st.painel}>
+          <div ref={painelRef} style={st.painel}>
             <div style={st.painelHeader}>
               <h3 style={st.painelTitulo}>{usuarioSel.nome}</h3>
               <div style={{ display: 'flex', gap: '8px' }}>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { hojeLocal } from '../utils/data';
+import { useScrollAoSelecionar } from '../hooks/useScrollAoSelecionar';
 
 const moeda = (v) => `R$ ${(Math.round(parseFloat(v || 0) * 100) / 100).toFixed(2).replace('.', ',')}`;
 const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -16,6 +17,7 @@ export default function Prestadores() {
 
   // Painel de apuração
   const [prestadorSelecionado, setPrestadorSelecionado] = useState(null);
+  const painelRef = useScrollAoSelecionar(prestadorSelecionado?.id);
   const [selectMes, setSelectMes] = useState('');
   const [selectAno, setSelectAno] = useState('');
   const [apuracao, setApuracao] = useState(null);
@@ -200,7 +202,7 @@ export default function Prestadores() {
 
         {/* PAINEL DE APURAÇÃO */}
         {prestadorSelecionado && (
-          <div style={styles.painel}>
+          <div ref={painelRef} style={styles.painel}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
               <div>
                 <h3 style={{ color: '#38bdf8', margin: 0 }}>{prestadorSelecionado.nome}</h3>

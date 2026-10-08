@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
+import { useScrollAoSelecionar } from '../hooks/useScrollAoSelecionar';
 
 export default function Produtos() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export default function Produtos() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState(null);
+  const painelRef = useScrollAoSelecionar(produtoSelecionado?.id);
   const [editando, setEditando] = useState(false);
   const [formEdicao, setFormEdicao] = useState({});
   const [form, setForm] = useState({
@@ -114,7 +116,7 @@ export default function Produtos() {
         )}
 
         {produtoSelecionado && (
-          <div style={styles.painel}>
+          <div ref={painelRef} style={styles.painel}>
             <div style={styles.painelHeader}>
               <div>
                 <span style={styles.painelCodigo}>{produtoSelecionado.codigo || '—'}</span>
