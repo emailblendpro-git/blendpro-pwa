@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
@@ -36,11 +36,20 @@ const corStatus = (status) => {
 export default function Maquinas() {
     const navigate = useNavigate();
     const { podeGerenciar, podeManutencao } = useUsuario();
+    const painelRef = useRef(null);
     const [maquinas, setMaquinas] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [mostrarForm, setMostrarForm] = useState(false);
     const [salvando, setSalvando] = useState(false);
     const [maquinaSelecionada, setMaquinaSelecionada] = useState(null);
+
+    // Ao escolher uma máquina na lista, leva a tela até o painel de detalhes
+    useEffect(() => {
+        if (maquinaSelecionada?.numero_serie) {
+            // instantâneo e após o render: rolagem suave é cancelada pelos recarregamentos em seguida
+            requestAnimationFrame(() => painelRef.current?.scrollIntoView({ block: 'start' }));
+        }
+    }, [maquinaSelecionada?.numero_serie]);
     const [clientes, setClientes] = useState([]);
     const [produtos, setProdutos] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
@@ -428,7 +437,7 @@ export default function Maquinas() {
                 )}
 
                 {maquinaSelecionada && (
-                    <div style={styles.painel}>
+                    <div ref={painelRef} style={styles.painel}>
                         <div style={styles.painelHeader}>
                             <h3 style={styles.painelTitulo}>{maquinaSelecionada.numero_serie}</h3>
                             <div style={{ display: 'flex', gap: '8px' }}>
