@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { hojeLocal } from '../utils/data';
 
 const moeda = (v) => `R$ ${(Math.round(parseFloat(v || 0) * 100) / 100).toFixed(2).replace('.', ',')}`;
 const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -74,7 +75,7 @@ export default function Prestadores() {
       setFormPagamento({
         valor_pago: res.data.total_apurado,
         forma_pagamento: 'PIX',
-        data_pagamento: new Date().toISOString().split('T')[0],
+        data_pagamento: hojeLocal(),
         observacao: ''
       });
     } catch { alert('Erro ao apurar.'); }

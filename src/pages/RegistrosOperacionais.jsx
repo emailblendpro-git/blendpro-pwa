@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
 import './RegistrosOperacionais.css';
+import { agoraLocalInput } from '../utils/data';
 
 const moeda = (v) => `R$ ${(Math.round(parseFloat(v || 0) * 100) / 100).toFixed(2).replace('.', ',')}`;
 
@@ -42,7 +43,7 @@ const RegistrosOperacionais = () => {
     quantidade_litros: '',
     nome_conferente: '',
     observacao: '',
-    data_visita: new Date().toISOString().slice(0, 16),
+    data_visita: agoraLocalInput(),
     custo_tipo: '',
     custo_descricao: '',
     custo_valor: '',

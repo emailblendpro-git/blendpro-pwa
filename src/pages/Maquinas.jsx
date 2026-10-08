@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useUsuario } from '../hooks/useUsuario';
 import { QRCodeSVG } from 'qrcode.react';
+import { hojeLocal } from '../utils/data';
 
 const podeImprimirComprovante = (m) =>
     (m.status === 'Ativa' || m.status === 'Em Teste') && !!m.nome_cliente;
@@ -56,7 +57,7 @@ export default function Maquinas() {
     const [folhaOperador, setFolhaOperador] = useState('');
     const [folhaMes, setFolhaMes] = useState(String(new Date().getMonth() + 1));
     const [folhaAno, setFolhaAno] = useState(String(new Date().getFullYear()));
-    const [dataEfetiva, setDataEfetiva] = useState(new Date().toISOString().slice(0, 10));
+    const [dataEfetiva, setDataEfetiva] = useState(hojeLocal());
     const [formOperacional, setFormOperacional] = useState({
         vol1: '3000', vol2: '3000', fat1: '19.0', fat2: '66.0', mlx_segundo: '9.5',
     });
@@ -282,10 +283,9 @@ export default function Maquinas() {
 
     // Select reutilizável de prestador
     const SelectPrestador = ({ campo, label }) => (
-        <div style={styles.campoParametro}>
-            <label style={styles.painelLabel}>{label} — Beneficiário</label>
             <select
-                style={styles.input}
+                aria-label={`${label} — Beneficiário`}
+                style={{ ...styles.input, flex: 1, minWidth: '180px', width: 'auto' }}
                 value={formParametros[campo] || ''}
                 onChange={(e) => setFormParametros({ ...formParametros, [campo]: e.target.value })}>
                 <option value="">Nenhum beneficiário</option>
@@ -293,7 +293,6 @@ export default function Maquinas() {
                     <option key={p.id} value={p.id}>{p.nome} ({p.tipo})</option>
                 ))}
             </select>
-        </div>
     );
 
     return (
@@ -614,27 +613,22 @@ export default function Maquinas() {
                                 <div style={styles.secaoParametros}>
                                     <h4 style={styles.secaoTitulo}>⚙️ Parâmetros Operacionais</h4>
                                     <p style={styles.secaoDesc}>Enviados para a máquina via CONFIG_PARAM</p>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                        {[
-                                            { campo: 'vol1', label: 'Volume P1 (mL)' },
-                                            { campo: 'fat1', label: 'Diluição P1 (1:X)' },
-                                            { campo: 'vol2', label: 'Volume P2 (mL)' },
-                                            { campo: 'fat2', label: 'Diluição P2 (1:X)' },
-                                        ].map(({ campo, label }) => (
-                                            <div key={campo}>
-                                                <label style={styles.painelLabel}>{label}</label>
-                                                <input style={styles.input} type="number" step="0.1"
-                                                    value={formOperacional[campo]}
-                                                    onChange={(e) => setFormOperacional({ ...formOperacional, [campo]: e.target.value })}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <label style={styles.painelLabel}>Calibração da Bomba (mL/s)</label>
-                                    <input style={styles.input} type="number" step="0.1"
-                                        value={formOperacional.mlx_segundo}
-                                        onChange={(e) => setFormOperacional({ ...formOperacional, mlx_segundo: e.target.value })}
-                                    />
+                                    {[
+                                        { campo: 'vol1', label: 'Volume P1 (mL)' },
+                                        { campo: 'fat1', label: 'Diluição P1 (1:X)' },
+                                        { campo: 'vol2', label: 'Volume P2 (mL)' },
+                                        { campo: 'fat2', label: 'Diluição P2 (1:X)' },
+                                        { campo: 'mlx_segundo', label: 'Calibração da Bomba (mL/s)' },
+                                    ].map(({ campo, label }) => (
+                                        <div key={campo} style={styles.campoParametro}>
+                                            <label style={styles.labelParametro}>{label}</label>
+                                            <span style={styles.igualParametro}>=</span>
+                                            <input style={{ ...styles.input, ...styles.inputPct }} type="number" step="0.1"
+                                                value={formOperacional[campo]}
+                                                onChange={(e) => setFormOperacional({ ...formOperacional, [campo]: e.target.value })}
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
 
                                 {mostrarParametros(formEdicao) && (
@@ -650,9 +644,10 @@ export default function Maquinas() {
                                             { campo: 'cofins', label: 'COFINS' },
                                         ].map(({ campo, label }) => (
                                             <div key={campo} style={styles.campoParametro}>
-                                                <label style={styles.painelLabel}>{label} (%)</label>
+                                                <label style={styles.labelParametro}>{label} (%)</label>
+                                                <span style={styles.igualParametro}>=</span>
                                                 <input
-                                                    style={styles.input}
+                                                    style={{ ...styles.input, ...styles.inputPct }}
                                                     type="number"
                                                     step="0.01"
                                                     value={formParametros[campo]}
@@ -665,34 +660,39 @@ export default function Maquinas() {
                                         <p style={{ color: '#94a3b8', fontSize: '12px', margin: '12px 0 4px 0', fontWeight: 'bold' }}>👤 Com Beneficiário</p>
 
                                         <div key="logistico" style={styles.campoParametro}>
-                                            <label style={styles.painelLabel}>Logístico (%)</label>
-                                            <input style={styles.input} type="number" step="0.01" value={formParametros.logistico} onChange={(e) => setFormParametros({ ...formParametros, logistico: e.target.value })} />
-                                        </div>
-                                        <SelectPrestador campo="logistico_beneficiario_id" label="Logístico" />
+                                            <label style={styles.labelParametro}>Logístico (%)</label>
+<span style={styles.igualParametro}>=</span>
+<input style={{ ...styles.input, ...styles.inputPct }} type="number" step="0.01" value={formParametros.logistico} onChange={(e) => setFormParametros({ ...formParametros, logistico: e.target.value })} />
+<SelectPrestador campo="logistico_beneficiario_id" label="Logístico" />
+</div>
 
                                         <div key="comissionado_1" style={styles.campoParametro}>
-                                            <label style={styles.painelLabel}>Comissionado 1 (%)</label>
-                                            <input style={styles.input} type="number" step="0.01" value={formParametros.comissionado_1} onChange={(e) => setFormParametros({ ...formParametros, comissionado_1: e.target.value })} />
-                                        </div>
-                                        <SelectPrestador campo="comissionado_1_beneficiario_id" label="Comissionado 1" />
+                                            <label style={styles.labelParametro}>Comissionado 1 (%)</label>
+<span style={styles.igualParametro}>=</span>
+<input style={{ ...styles.input, ...styles.inputPct }} type="number" step="0.01" value={formParametros.comissionado_1} onChange={(e) => setFormParametros({ ...formParametros, comissionado_1: e.target.value })} />
+<SelectPrestador campo="comissionado_1_beneficiario_id" label="Comissionado 1" />
+</div>
 
                                         <div key="comissionado_2" style={styles.campoParametro}>
-                                            <label style={styles.painelLabel}>Comissionado 2 (%)</label>
-                                            <input style={styles.input} type="number" step="0.01" value={formParametros.comissionado_2} onChange={(e) => setFormParametros({ ...formParametros, comissionado_2: e.target.value })} />
-                                        </div>
-                                        <SelectPrestador campo="comissionado_2_beneficiario_id" label="Comissionado 2" />
+                                            <label style={styles.labelParametro}>Comissionado 2 (%)</label>
+<span style={styles.igualParametro}>=</span>
+<input style={{ ...styles.input, ...styles.inputPct }} type="number" step="0.01" value={formParametros.comissionado_2} onChange={(e) => setFormParametros({ ...formParametros, comissionado_2: e.target.value })} />
+<SelectPrestador campo="comissionado_2_beneficiario_id" label="Comissionado 2" />
+</div>
 
                                         <div key="custo_operacional" style={styles.campoParametro}>
-                                            <label style={styles.painelLabel}>Custo Operacional (%)</label>
-                                            <input style={styles.input} type="number" step="0.01" value={formParametros.custo_operacional} onChange={(e) => setFormParametros({ ...formParametros, custo_operacional: e.target.value })} />
-                                        </div>
-                                        <SelectPrestador campo="custo_operacional_beneficiario_id" label="Custo Operacional" />
+                                            <label style={styles.labelParametro}>Custo Operacional (%)</label>
+<span style={styles.igualParametro}>=</span>
+<input style={{ ...styles.input, ...styles.inputPct }} type="number" step="0.01" value={formParametros.custo_operacional} onChange={(e) => setFormParametros({ ...formParametros, custo_operacional: e.target.value })} />
+<SelectPrestador campo="custo_operacional_beneficiario_id" label="Custo Operacional" />
+</div>
 
                                         <div key="outros" style={styles.campoParametro}>
-                                            <label style={styles.painelLabel}>Outros (%)</label>
-                                            <input style={styles.input} type="number" step="0.01" value={formParametros.outros} onChange={(e) => setFormParametros({ ...formParametros, outros: e.target.value })} />
-                                        </div>
-                                        <SelectPrestador campo="outros_beneficiario_id" label="Outros" />
+                                            <label style={styles.labelParametro}>Outros (%)</label>
+<span style={styles.igualParametro}>=</span>
+<input style={{ ...styles.input, ...styles.inputPct }} type="number" step="0.01" value={formParametros.outros} onChange={(e) => setFormParametros({ ...formParametros, outros: e.target.value })} />
+<SelectPrestador campo="outros_beneficiario_id" label="Outros" />
+</div>
 
                                         {(() => {
                                             const { margem, margemPct, venda, custo, deducoes } = calcularMargem();
@@ -802,7 +802,7 @@ export default function Maquinas() {
                                     setMaquinaSelecionada(res.data);
                                     setFormEdicao(res.data);
                                     setEditando(false);
-                                    setDataEfetiva(new Date().toISOString().slice(0, 10));
+                                    setDataEfetiva(hojeLocal());
                                     carregarParametros(m.numero_serie);
                                     carregarHistoricoVinculo(m.numero_serie);
                                 }}>
@@ -889,7 +889,10 @@ const styles = {
     secaoParametros: { backgroundColor: '#0f172a', borderRadius: '10px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #334155' },
     secaoTitulo: { color: '#38bdf8', margin: '0 0 8px 0', fontSize: '15px' },
     secaoDesc: { color: '#94a3b8', fontSize: '12px', margin: '0 0 8px 0' },
-    campoParametro: { display: 'flex', flexDirection: 'column', gap: '4px' },
+    campoParametro: { display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: '8px' },
+    labelParametro: { color: '#94a3b8', fontSize: '12px', textTransform: 'uppercase', width: '190px', flexShrink: 0 },
+    igualParametro: { color: '#94a3b8', fontSize: '14px' },
+    inputPct: { width: '110px', flexShrink: 0 },
     resumoMargem: { backgroundColor: '#1e293b', borderRadius: '8px', padding: '16px', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #334155' },
     resumoTitulo: { color: '#f1f5f9', margin: '0 0 8px 0', fontSize: '14px' },
     resumoLinha: { display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#cbd5e1' },

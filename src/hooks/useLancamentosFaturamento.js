@@ -6,6 +6,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import api from '../services/api';
+import { hojeLocal } from '../utils/data';
 
 export const useLancamentosFaturamento = () => {
   // Estado principal
@@ -149,7 +150,7 @@ export const useLancamentosFaturamento = () => {
 
       const response = await api.post('/lancamentos-faturamento/salvar-rascunho', {
         lancamentos: lancamentosAprovar,
-        data_lancamento: filtros.data || new Date().toISOString().split('T')[0]
+        data_lancamento: filtros.data || hojeLocal()
       });
 
       setErro(null);
@@ -188,7 +189,7 @@ export const useLancamentosFaturamento = () => {
 
       const response = await api.post('/lancamentos-faturamento/aprovar-lote', {
         lancamentos: lancamentosAprovar,
-        data_lancamento: filtros.data || new Date().toISOString().split('T')[0]
+        data_lancamento: filtros.data || hojeLocal()
       });
 
       setErro(null);

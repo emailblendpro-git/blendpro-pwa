@@ -10,6 +10,7 @@ import { useUsuario } from '../hooks/useUsuario';
 import useLancamentosFaturamento from '../hooks/useLancamentosFaturamento';
 import TabelaEditavelLotes from '../components/TabelaEditavelLotes';
 import './LancamentosFaturamento.css';
+import { hojeLocal } from '../utils/data';
 
 const LancamentosFaturamento = () => {
   const navigate = useNavigate();
@@ -115,7 +116,7 @@ const LancamentosFaturamento = () => {
           <label>Data:</label>
           <input
             type="date"
-            value={filtros.data || new Date().toISOString().split('T')[0]}
+            value={filtros.data || hojeLocal()}
             onChange={e => {
               const data = new Date(e.target.value);
               atualizarFiltro({
